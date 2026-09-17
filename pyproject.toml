@@ -1,0 +1,26 @@
+[project]
+name = "pyyq"
+version = "0.1.0"
+description = "A pure-Python (stdlib only) implementation of the mikefarah/yq expression language"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.13"
+dependencies = []
+classifiers = [
+  "Programming Language :: Python :: 3.13",
+  "Typing :: Typed",
+]
+
+[project.scripts]
+pyyq = "pyyq.cli.main:main"
+
+[dependency-groups]
+dev = []
+
+[build-system]
+requires = ["uv_build>=0.11.17,<0.12.0"]
+build-backend = "uv_build"
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100

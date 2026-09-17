@@ -1,0 +1,17 @@
+pyyq
+====
+
+pyyq is an independent, pure-Python re-implementation of the expression
+language and core behaviour of yq (https://github.com/mikefarah/yq), a Go
+program by Mike Farah and contributors, released under the MIT License.
+
+The design of the operator set, the precedence table, the lexer rule order and
+the test scenarios under tests/golden/operators/ were derived from the yq
+source tree (v4.53.6). The extracted scenarios remain subject to the yq MIT
+License:
+
+    MIT License
+    Copyright (c) 2017 Mike Farah
+
+No code from yq is compiled into or linked with pyyq; pyyq has zero runtime
+dependencies beyond the Python 3.13 standard library.
