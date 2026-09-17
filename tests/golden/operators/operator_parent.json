@@ -1,0 +1,236 @@
+[
+  {
+    "source": "operator_parent_test.go",
+    "description": "Simple example",
+    "document": "a: {nested: cat}",
+    "document2": "",
+    "expression": ".a.nested | parent",
+    "expected": [
+      "D0, P[a], (!!map)::{nested: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#0"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "Parent of nested matches",
+    "document": "{a: {fruit: apple, name: bob}, b: {fruit: banana, name: sam}}",
+    "document2": "",
+    "expression": ".. | select(. == \"banana\") | parent",
+    "expected": [
+      "D0, P[b], (!!map)::{fruit: banana, name: sam}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#1"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "Get parent attribute",
+    "document": "{a: {fruit: apple, name: bob}, b: {fruit: banana, name: sam}}",
+    "document2": "",
+    "expression": ".. | select(. == \"banana\") | parent.name",
+    "expected": [
+      "D0, P[b name], (!!str)::sam\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#2"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "Get parents",
+    "document": "{a: {b: {c: cat} } }",
+    "document2": "",
+    "expression": ".a.b.c | parents",
+    "expected": [
+      "D0, P[], (!!seq)::- {c: cat}\n- {b: {c: cat}}\n- {a: {b: {c: cat}}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#3"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "Get the top (root) parent",
+    "document": "a:\n  b:\n    c: cat\n",
+    "document2": "",
+    "expression": ".a.b.c | parent(-1)",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    b:\n        c: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#4"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "Root",
+    "document": "a:\n  b:\n    c: cat\n",
+    "document2": "",
+    "expression": ".a.b.c | root",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    b:\n        c: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#5"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "boundary negative",
+    "document": "a:\n  b:\n    c: cat\n",
+    "document2": "",
+    "expression": ".a.b.c | parent(-3)",
+    "expected": [
+      "D0, P[a b], (!!map)::c: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#6"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "large negative",
+    "document": "a:\n  b:\n    c: cat\n",
+    "document2": "",
+    "expression": ".a.b.c | parent(-10)",
+    "expected": [
+      "D0, P[a b c], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#7"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "parent zero",
+    "document": "a:\n  b:\n    c: cat\n",
+    "document2": "",
+    "expression": ".a.b.c | parent(0)",
+    "expected": [
+      "D0, P[a b c], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#8"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "large positive",
+    "document": "a:\n  b:\n    c: cat\n",
+    "document2": "",
+    "expression": ".a.b.c | parent(10)",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#9"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "N-th parent",
+    "document": "a:\n  b:\n    c: cat\n",
+    "document2": "",
+    "expression": ".a.b.c | parent(2)",
+    "expected": [
+      "D0, P[a], (!!map)::b:\n    c: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#10"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "N-th parent - another level",
+    "document": "a:\n  b:\n    c: cat\n",
+    "document2": "",
+    "expression": ".a.b.c | parent(3)",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    b:\n        c: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#11"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "N-th negative",
+    "document": "a:\n  b:\n    c: cat\n",
+    "document2": "",
+    "expression": ".a.b.c | parent(-2)",
+    "expected": [
+      "D0, P[a], (!!map)::b:\n    c: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#12"
+  },
+  {
+    "source": "operator_parent_test.go",
+    "description": "No parent",
+    "document": "{}",
+    "document2": "",
+    "expression": "parent",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "parentOperatorScenarios",
+    "id": "operator_parent#13"
+  }
+]

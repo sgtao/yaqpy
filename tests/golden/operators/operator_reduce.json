@@ -1,0 +1,53 @@
+[
+  {
+    "source": "operator_reduce_test.go",
+    "description": "Sum numbers",
+    "document": "[10,2, 5, 3]",
+    "document2": "",
+    "expression": ".[] as $item ireduce (0; . + $item)",
+    "expected": [
+      "D0, P[], (!!int)::20\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "reduceOperatorScenarios",
+    "id": "operator_reduce#0"
+  },
+  {
+    "source": "operator_reduce_test.go",
+    "description": "Merge all yaml files together",
+    "document": "a: cat",
+    "document2": "b: dog",
+    "expression": ". as $item ireduce ({}; . * $item )",
+    "expected": [
+      "D0, P[], (!!map)::a: cat\nb: dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "reduceOperatorScenarios",
+    "id": "operator_reduce#1"
+  },
+  {
+    "source": "operator_reduce_test.go",
+    "description": "Convert an array to an object",
+    "document": "[{name: Cathy, has: apples},{name: Bob, has: bananas}]",
+    "document2": "",
+    "expression": ".[] as $item ireduce ({}; .[$item | .name] = ($item | .has) )",
+    "expected": [
+      "D0, P[], (!!map)::Cathy: apples\nBob: bananas\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "reduceOperatorScenarios",
+    "id": "operator_reduce#2"
+  }
+]

@@ -1,0 +1,143 @@
+[
+  {
+    "source": "recipes_test.go",
+    "description": "Find items in an array",
+    "document": "[{name: Foo, numBuckets: 0}, {name: Bar, numBuckets: 0}]",
+    "document2": "",
+    "expression": ".[] | select(.name == \"Foo\")",
+    "expected": [
+      "D0, P[0], (!!map)::{name: Foo, numBuckets: 0}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recipes",
+    "id": "recipes#0"
+  },
+  {
+    "source": "recipes_test.go",
+    "description": "Find and update items in an array",
+    "document": "[{name: Foo, numBuckets: 0}, {name: Bar, numBuckets: 0}]",
+    "document2": "",
+    "expression": "(.[] | select(.name == \"Foo\") | .numBuckets) |= . + 1",
+    "expected": [
+      "D0, P[], (!!seq)::[{name: Foo, numBuckets: 1}, {name: Bar, numBuckets: 0}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recipes",
+    "id": "recipes#1"
+  },
+  {
+    "source": "recipes_test.go",
+    "description": "Deeply prune a tree",
+    "document": "{parentA: [bob],parentB: {child1: i am child1, child3: hiya},parentC: {childX: \"cool\",child2: me child2}}",
+    "document2": "",
+    "expression": "(\n  .. | # recurse through all the nodes\n  select(has(\"child1\") or has(\"child2\")) | # match parents that have either child1 or child2\n  (.child1, .child2) | # select those children\n  select(.) # filter out nulls\n) as $i ireduce({};  # using that set of nodes, create a new result map\n  setpath($i | path; $i) # and put in each node, using its original path\n)",
+    "expected": [
+      "D0, P[], (!!map)::parentB:\n    child1: i am child1\nparentC:\n    child2: me child2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recipes",
+    "id": "recipes#2"
+  },
+  {
+    "source": "recipes_test.go",
+    "description": "Multiple or complex updates to items in an array",
+    "document": "myArray: [{name: Foo, type: cat}, {name: Bar, type: dog}]",
+    "document2": "",
+    "expression": "with(.myArray[]; .name = .name + \" - \" + .type)",
+    "expected": [
+      "D0, P[], (!!map)::myArray: [{name: Foo - cat, type: cat}, {name: Bar - dog, type: dog}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recipes",
+    "id": "recipes#3"
+  },
+  {
+    "source": "recipes_test.go",
+    "description": "Sort an array by a field",
+    "document": "myArray: [{name: Foo, numBuckets: 1}, {name: Bar, numBuckets: 0}]",
+    "document2": "",
+    "expression": ".myArray |= sort_by(.numBuckets)",
+    "expected": [
+      "D0, P[], (!!map)::myArray: [{name: Bar, numBuckets: 0}, {name: Foo, numBuckets: 1}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recipes",
+    "id": "recipes#4"
+  },
+  {
+    "source": "recipes_test.go",
+    "description": "Filter, flatten, sort and unique",
+    "document": "[{type: foo, names: [Fred, Catherine]}, {type: bar, names: [Zelda]}, {type: foo, names: Fred}, {type: foo, names: Ava}]",
+    "document2": "",
+    "expression": "[.[] | select(.type == \"foo\") | .names] | flatten | sort | unique",
+    "expected": [
+      "D0, P[], (!!seq)::- Ava\n- Catherine\n- Fred\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recipes",
+    "id": "recipes#5"
+  },
+  {
+    "source": "recipes_test.go",
+    "description": "Export as environment variables (script), or any custom format",
+    "document": "var0: string0\nvar1: string1\nfruit: [apple, banana, peach]\n",
+    "document2": "",
+    "expression": ".[] |(\n\t( select(kind == \"scalar\") | key + \"='\" + . + \"'\"),\n\t( select(kind == \"seq\") | key + \"=(\" + (map(\"'\" + . + \"'\") | join(\",\")) + \")\")\n)",
+    "expected": [
+      "D0, P[var0='string0'], (!!str)::var0='string0'\n",
+      "D0, P[var1='string1'], (!!str)::var1='string1'\n",
+      "D0, P[fruit=('apple','banana','peach')], (!!str)::fruit=('apple','banana','peach')\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recipes",
+    "id": "recipes#6"
+  },
+  {
+    "source": "recipes_test.go",
+    "description": "Custom format with nested data",
+    "document": "simple: string0\nsimpleArray: [apple, banana, peach]\ndeep:\n  property: value\n  array: [cat]\n",
+    "document2": "",
+    "expression": ".. |(\n\t( select(kind == \"scalar\" and parent | kind != \"seq\") | (path | join(\"_\")) + \"='\" + . + \"'\"),\n\t( select(kind == \"seq\") | (path | join(\"_\")) + \"=(\" + (map(\"'\" + . + \"'\") | join(\",\")) + \")\")\n)",
+    "expected": [
+      "D0, P[simple], (!!str)::simple='string0'\n",
+      "D0, P[deep property], (!!str)::deep_property='value'\n",
+      "D0, P[simpleArray], (!!str)::simpleArray=('apple','banana','peach')\n",
+      "D0, P[deep array], (!!str)::deep_array=('cat')\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recipes",
+    "id": "recipes#7"
+  }
+]

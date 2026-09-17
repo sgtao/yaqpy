@@ -1,0 +1,1079 @@
+[
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "\"foo\" + \"bar\"",
+    "expected": [
+      "D0, P[], (!!str)::foobar\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#0"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[] | .[] | \"foo\" + .",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#1"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[] | .[] | . + \"foo\"",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#2"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "select(.) | \"foo\" + \"bar\"",
+    "expected": [
+      "D0, P[], (!!str)::foobar\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#3"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "apples: 3",
+    "document2": "",
+    "expression": ".apples + 3",
+    "expected": [
+      "D0, P[apples], (!!int)::6\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#4"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "apples: 3",
+    "document2": "",
+    "expression": ".bobo + 3",
+    "expected": [
+      "D0, P[], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#5"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "select(.) | \"cat\" + .",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#6"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "[]",
+    "document2": "",
+    "expression": ".[] | (.a + \"|\" + .b)",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#7"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "[]",
+    "document2": "",
+    "expression": ".[] | (.a + \"|\")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#8"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "[]",
+    "document2": "",
+    "expression": ".[] | (\"|\" + .a)",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#9"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "resources: [foo, bar, baz]",
+    "document2": "",
+    "expression": ".missing + .resources | .[]",
+    "expected": [
+      "D0, P[resources 0], (!!str)::foo\n",
+      "D0, P[resources 1], (!!str)::bar\n",
+      "D0, P[resources 2], (!!str)::baz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#10"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "resources: [foo, bar, baz]",
+    "document2": "",
+    "expression": ". | .missing + .resources | .[]",
+    "expected": [
+      "D0, P[resources 0], (!!str)::foo\n",
+      "D0, P[resources 1], (!!str)::bar\n",
+      "D0, P[resources 2], (!!str)::baz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#11"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "resources: [foo, bar, baz]",
+    "document2": "",
+    "expression": ". | .missing + .resources",
+    "expected": [
+      "D0, P[resources], (!!seq)::[foo, bar, baz]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#12"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "resources: [foo, bar, baz]",
+    "document2": "",
+    "expression": ". | .missing + .resources | .[]",
+    "expected": [
+      "D0, P[resources 0], (!!str)::foo\n",
+      "D0, P[resources 1], (!!str)::bar\n",
+      "D0, P[resources 2], (!!str)::baz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#13"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "[{a: foo, b: bar}, {a: 1, b: 2}]",
+    "document2": "",
+    "expression": ".[] | .a + .b",
+    "expected": [
+      "D0, P[0 a], (!!str)::foobar\n",
+      "D0, P[1 a], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#14"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "add sequence creates a new sequence",
+    "document": "",
+    "document2": "",
+    "expression": "[\"a\"] as $f | {0:$f + [\"b\"], 1:$f}",
+    "expected": [
+      "D0, P[], (!!map)::0:\n    - a\n    - b\n1:\n    - a\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#15"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "a: key",
+    "document2": "",
+    "expression": ". += {\"key\": \"b\"}",
+    "expected": [
+      "D0, P[], (!!map)::a: key\nkey: b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#16"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "[[c], [b]]",
+    "document2": "",
+    "expression": ".[] | . += \"a\"",
+    "expected": [
+      "D0, P[0], (!!seq)::[c, a]\n",
+      "D0, P[1], (!!seq)::[b, a]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#17"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": "(.a + .b) as $x | .",
+    "expected": [
+      "D0, P[], (!!map)::{}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#18"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "a: 0",
+    "document2": "",
+    "expression": ".a += .b.c",
+    "expected": [
+      "D0, P[], (!!map)::a: 0\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#19"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate arrays",
+    "document": "{a: [1,2], b: [3,4]}",
+    "document2": "",
+    "expression": ".a + .b",
+    "expected": [
+      "D0, P[a], (!!seq)::[1, 2, 3, 4]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#20"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate to existing array",
+    "document": "a: [1,2]\nb:\n  - 3\n  - 4",
+    "document2": "",
+    "expression": ".a += .b",
+    "expected": [
+      "D0, P[], (!!map)::a: [1, 2, 3, 4]\nb:\n    - 3\n    - 4\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#21"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[1] + ([2], [3])",
+    "expected": [
+      "D0, P[], (!!seq)::- 1\n- 2\n",
+      "D0, P[], (!!seq)::- 1\n- 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#22"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate null to array",
+    "document": "{a: [1,2]}",
+    "document2": "",
+    "expression": ".a + null",
+    "expected": [
+      "D0, P[a], (!!seq)::[1, 2]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#23"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate to empty array",
+    "document": "{a: []}",
+    "document2": "",
+    "expression": ".a + \"cat\"",
+    "expected": [
+      "D0, P[a], (!!seq)::- cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#24"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Append to existing array",
+    "document": "a: ['dog']",
+    "document2": "",
+    "expression": ".a += \"cat\"",
+    "expected": [
+      "D0, P[], (!!map)::a: ['dog', 'cat']\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#25"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Prepend to existing array",
+    "document": "a: [dog]",
+    "document2": "",
+    "expression": ".a = [\"cat\"] + .a",
+    "expected": [
+      "D0, P[], (!!map)::a: [cat, dog]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#26"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate to existing array",
+    "document": "{a: ['dog'], b: cat}",
+    "document2": "",
+    "expression": ".a = .a + .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: ['dog', 'cat'], b: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#27"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate to empty array",
+    "document": "a: []",
+    "document2": "",
+    "expression": ".a += \"cat\"",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    - cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#28"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate to existing array",
+    "document": "a: [dog]",
+    "document2": "",
+    "expression": ".a += \"cat\"",
+    "expected": [
+      "D0, P[], (!!map)::a: [dog, cat]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#29"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate to empty object",
+    "document": "{a: {}}",
+    "document2": "",
+    "expression": ".a + {\"b\": \"cat\"}",
+    "expected": [
+      "D0, P[a], (!!map)::b: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#30"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate to existing object",
+    "document": "{a: {c: dog}}",
+    "document2": "",
+    "expression": ".a + {\"b\": \"cat\"}",
+    "expected": [
+      "D0, P[a], (!!map)::{c: dog, b: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#31"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate to existing object",
+    "document": "a:\n  c: dog",
+    "document2": "",
+    "expression": ".a + {\"b\": \"cat\"}",
+    "expected": [
+      "D0, P[a], (!!map)::c: dog\nb: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#32"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate to empty object in place",
+    "document": "a: {}",
+    "document2": "",
+    "expression": ".a += {\"b\": \"cat\"}",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    b: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#33"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Concatenate to existing object in place",
+    "document": "a: {c: dog}",
+    "document2": "",
+    "expression": ".a += {\"b\": \"cat\"}",
+    "expected": [
+      "D0, P[], (!!map)::a: {c: dog, b: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#34"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Add new object to array",
+    "document": "a: [{dog: woof}]",
+    "document2": "",
+    "expression": ".a + {\"cat\": \"meow\"}",
+    "expected": [
+      "D0, P[a], (!!seq)::[{dog: woof}, {cat: meow}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#35"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Relative append",
+    "document": "a: { a1: {b: [cat]}, a2: {b: [dog]}, a3: {} }",
+    "document2": "",
+    "expression": ".a[].b += [\"mouse\"]",
+    "expected": [
+      "D0, P[], (!!map)::a: {a1: {b: [cat, mouse]}, a2: {b: [dog, mouse]}, a3: {b: [mouse]}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#36"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "String concatenation",
+    "document": "{a: cat, b: meow}",
+    "document2": "",
+    "expression": ".a += .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: catmeow, b: meow}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#37"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "String concatenation - str + int",
+    "document": "{a: !cool cat, b: meow}",
+    "document2": "",
+    "expression": ".a + 3",
+    "expected": [
+      "D0, P[a], (!cool)::cat3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#38"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "String concatenation - int + str",
+    "document": "{a: !cool cat, b: meow}",
+    "document2": "",
+    "expression": "3 + .a",
+    "expected": [
+      "D0, P[], (!cool)::3cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#39"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "null + \"cat\"",
+    "expected": [
+      "D0, P[], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#40"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "\"cat\" + null",
+    "expected": [
+      "D0, P[], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#41"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Number addition - float",
+    "document": "{a: 3, b: 4.9}",
+    "document2": "",
+    "expression": ".a = .a + .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: 7.9, b: 4.9}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#42"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Number addition - int",
+    "document": "{a: 3, b: 4}",
+    "document2": "",
+    "expression": ".a = .a + .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: 7, b: 4}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#43"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Increment numbers",
+    "document": "{a: 3, b: 5}",
+    "document2": "",
+    "expression": ".[] += 1",
+    "expected": [
+      "D0, P[], (!!map)::{a: 4, b: 6}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#44"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Date addition",
+    "document": "a: 2021-01-01T00:00:00Z",
+    "document2": "",
+    "expression": ".a += \"3h10m\"",
+    "expected": [
+      "D0, P[], (!!map)::a: 2021-01-01T03:10:00Z\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#45"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Date addition -date only",
+    "document": "a: 2021-01-01",
+    "document2": "",
+    "expression": ".a += \"24h\"",
+    "expected": [
+      "D0, P[], (!!map)::a: 2021-01-02T00:00:00Z\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#46"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Date addition - custom format",
+    "document": "a: Saturday, 15-Dec-01 at 2:59AM GMT",
+    "document2": "",
+    "expression": "with_dtf(\"Monday, 02-Jan-06 at 3:04PM MST\", .a += \"3h1m\")",
+    "expected": [
+      "D0, P[], (!!map)::a: Saturday, 15-Dec-01 at 6:00AM GMT\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#47"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Date addition - custom format",
+    "document": "a: !cat Saturday, 15-Dec-01 at 2:59AM GMT",
+    "document2": "",
+    "expression": "with_dtf(\"Monday, 02-Jan-06 at 3:04PM MST\", .a += \"3h1m\")",
+    "expected": [
+      "D0, P[], (!!map)::a: !cat Saturday, 15-Dec-01 at 6:00AM GMT\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#48"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "empty add shouldn't add",
+    "document": "[]",
+    "document2": "",
+    "expression": ".[]  | (.a + \"cat\")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#49"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "empty add shouldn't add",
+    "document": "[]",
+    "document2": "",
+    "expression": ".[]  | (.a + \"cat\" + .b)",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#50"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Add to empty",
+    "document": "",
+    "document2": "",
+    "expression": ".nada + \"cat\"",
+    "expected": [
+      "D0, P[], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#51"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Add to null",
+    "document": "",
+    "document2": "",
+    "expression": "null + \"cat\"",
+    "expected": [
+      "D0, P[], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#52"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Add maps to shallow merge",
+    "document": "a: {thing: {name: Astuff, value: x}, a1: cool}\nb: {thing: {name: Bstuff, legs: 3}, b1: neat}",
+    "document2": "",
+    "expression": ".a += .b",
+    "expected": [
+      "D0, P[], (!!map)::a: {thing: {name: Bstuff, legs: 3}, a1: cool, b1: neat}\nb: {thing: {name: Bstuff, legs: 3}, b1: neat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#53"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Custom types: that are really strings",
+    "document": "a: !horse cat\nb: !goat _meow",
+    "document2": "",
+    "expression": ".a += .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse cat_meow\nb: !goat _meow\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#54"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Custom types: that are really numbers",
+    "document": "a: !horse 1.2\nb: !goat 2.3",
+    "document2": "",
+    "expression": ".a += .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse 3.5\nb: !goat 2.3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#55"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "a: !horse 2\nb: !goat 2.3",
+    "document2": "",
+    "expression": ".a += .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse 4.3\nb: !goat 2.3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#56"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "a: 2\nb: !goat 2.3",
+    "document2": "",
+    "expression": ".a += .b",
+    "expected": [
+      "D0, P[], (!!map)::a: 4.3\nb: !goat 2.3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#57"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Custom types: that are really ints",
+    "document": "a: !horse 2\nb: !goat 3",
+    "document2": "",
+    "expression": ".a += .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse 5\nb: !goat 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#58"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Custom types: that are really arrays",
+    "document": "a: !horse [a]\nb: !goat [b]",
+    "document2": "",
+    "expression": ".a += .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse [a, b]\nb: !goat [b]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#59"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Keep anchors",
+    "document": "a: &horse [1]",
+    "document2": "",
+    "expression": ".a += 2",
+    "expected": [
+      "D0, P[], (!!map)::a: &horse [1, 2]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#60"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Add sequence to map",
+    "document": "a: {x: cool}",
+    "document2": "",
+    "expression": ".a += [2]",
+    "expected": [],
+    "expected_error": "!!seq () cannot be added to a !!map (a)",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#61"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "Add sequence to scalar",
+    "document": "a: cool",
+    "document2": "",
+    "expression": ".a += [2]",
+    "expected": [],
+    "expected_error": "!!seq () cannot be added to a !!str (a)",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#62"
+  },
+  {
+    "source": "operator_add_test.go",
+    "description": "",
+    "document": "? [{~: ~}]\n: v1\n? [{2: ~}]\n: v2",
+    "document2": "",
+    "expression": ". += .",
+    "expected": [
+      "D0, P[], (!!map)::? [{~: ~}]\n: v1\n? [{2: ~}]\n: v2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "addOperatorScenarios",
+    "id": "operator_add#63"
+  }
+]

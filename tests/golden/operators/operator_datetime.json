@@ -1,0 +1,240 @@
+[
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Format: from standard RFC3339 format",
+    "document": "a: 2001-12-15T02:59:43.1Z",
+    "document2": "",
+    "expression": ".a |= format_datetime(\"Monday, 02-Jan-06 at 3:04PM\")",
+    "expected": [
+      "D0, P[], (!!map)::a: Saturday, 15-Dec-01 at 2:59AM\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#0"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Format: from custom date time",
+    "document": "a: Saturday, 15-Dec-01 at 2:59AM",
+    "document2": "",
+    "expression": ".a |= with_dtf(\"Monday, 02-Jan-06 at 3:04PM\"; format_datetime(\"2006-01-02\"))",
+    "expected": [
+      "D0, P[], (!!map)::a: 2001-12-15\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#1"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Format: get the day of the week",
+    "document": "a: 2001-12-15",
+    "document2": "",
+    "expression": ".a | format_datetime(\"Monday\")",
+    "expected": [
+      "D0, P[a], (!!str)::Saturday\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#2"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Now",
+    "document": "a: cool",
+    "document2": "",
+    "expression": ".updated = now",
+    "expected": [
+      "D0, P[], (!!map)::a: cool\nupdated: 2021-05-19T01:02:03Z\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#3"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "From Unix",
+    "document": "",
+    "document2": "",
+    "expression": "1675301929 | from_unix | tz(\"UTC\")",
+    "expected": [
+      "D0, P[], (!!timestamp)::2023-02-02T01:38:49Z\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#4"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "To Unix",
+    "document": "",
+    "document2": "",
+    "expression": "now | to_unix",
+    "expected": [
+      "D0, P[], (!!int)::1621386123\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#5"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Timezone: from standard RFC3339 format",
+    "document": "a: cool",
+    "document2": "",
+    "expression": ".updated = (now | tz(\"Australia/Sydney\"))",
+    "expected": [
+      "D0, P[], (!!map)::a: cool\nupdated: 2021-05-19T11:02:03+10:00\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#6"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Timezone: with custom format",
+    "document": "a: Saturday, 15-Dec-01 at 2:59AM GMT",
+    "document2": "",
+    "expression": ".a |= with_dtf(\"Monday, 02-Jan-06 at 3:04PM MST\"; tz(\"Australia/Sydney\"))",
+    "expected": [
+      "D0, P[], (!!map)::a: Saturday, 15-Dec-01 at 1:59PM AEDT\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#7"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Add and tz custom format",
+    "document": "a: Saturday, 15-Dec-01 at 2:59AM GMT",
+    "document2": "",
+    "expression": ".a |= with_dtf(\"Monday, 02-Jan-06 at 3:04PM MST\"; tz(\"Australia/Sydney\"))",
+    "expected": [
+      "D0, P[], (!!map)::a: Saturday, 15-Dec-01 at 1:59PM AEDT\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#8"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Date addition",
+    "document": "a: 2021-01-01T00:00:00Z",
+    "document2": "",
+    "expression": ".a += \"3h10m\"",
+    "expected": [
+      "D0, P[], (!!map)::a: 2021-01-01T03:10:00Z\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#9"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Date subtraction",
+    "document": "a: 2021-01-01T03:10:00Z",
+    "document2": "",
+    "expression": ".a -= \"3h10m\"",
+    "expected": [
+      "D0, P[], (!!map)::a: 2021-01-01T00:00:00Z\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#10"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Date addition - custom format",
+    "document": "a: Saturday, 15-Dec-01 at 2:59AM GMT",
+    "document2": "",
+    "expression": "with_dtf(\"Monday, 02-Jan-06 at 3:04PM MST\"; .a += \"3h1m\")",
+    "expected": [
+      "D0, P[], (!!map)::a: Saturday, 15-Dec-01 at 6:00AM GMT\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#11"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "Date script with custom format",
+    "document": "a: Saturday, 15-Dec-01 at 2:59AM GMT",
+    "document2": "",
+    "expression": "with_dtf(\"Monday, 02-Jan-06 at 3:04PM MST\"; .a = (.a + \"3h1m\" | tz(\"Australia/Perth\")))",
+    "expected": [
+      "D0, P[], (!!map)::a: Saturday, 15-Dec-01 at 2:00PM AWST\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#12"
+  },
+  {
+    "source": "operator_datetime_test.go",
+    "description": "allow comma",
+    "document": "a: Saturday, 15-Dec-01 at 2:59AM GMT",
+    "document2": "",
+    "expression": ".a |= with_dtf(\"Monday, 02-Jan-06 at 3:04PM MST\", tz(\"Australia/Sydney\"))",
+    "expected": [
+      "D0, P[], (!!map)::a: Saturday, 15-Dec-01 at 1:59PM AEDT\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "dateTimeOperatorScenarios",
+    "id": "operator_datetime#13"
+  }
+]

@@ -1,0 +1,105 @@
+[
+  {
+    "source": "operator_omit_test.go",
+    "description": "Omit keys from map",
+    "document": "myMap: {cat: meow, dog: bark, thing: hamster, hamster: squeak}\n",
+    "document2": "",
+    "expression": ".myMap |= omit([\"hamster\", \"cat\", \"goat\"])",
+    "expected": [
+      "D0, P[], (!!map)::myMap: {dog: bark, thing: hamster}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "omitOperatorScenarios",
+    "id": "operator_omit#0"
+  },
+  {
+    "source": "operator_omit_test.go",
+    "description": "Omit splat",
+    "document": "{cat: meow, dog: bark, hamster: squeak}\n",
+    "document2": "",
+    "expression": "omit([\"dog\"])[]",
+    "expected": [
+      "D0, P[cat], (!!str)::meow\n",
+      "D0, P[hamster], (!!str)::squeak\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "omitOperatorScenarios",
+    "id": "operator_omit#1"
+  },
+  {
+    "source": "operator_omit_test.go",
+    "description": "Omit keys from map",
+    "document": "!things myMap: {cat: meow, dog: bark, thing: hamster, hamster: squeak}\n",
+    "document2": "",
+    "expression": ".myMap |= omit([\"hamster\", \"cat\", \"goat\"])",
+    "expected": [
+      "D0, P[], (!!map)::!things myMap: {dog: bark, thing: hamster}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "omitOperatorScenarios",
+    "id": "operator_omit#2"
+  },
+  {
+    "source": "operator_omit_test.go",
+    "description": "Omit keys from map with comments",
+    "document": "# abc\nmyMap: {cat: meow, dog: bark, thing: hamster, hamster: squeak}\n# xyz\n",
+    "document2": "",
+    "expression": ".myMap |= omit([\"hamster\", \"cat\", \"goat\"])",
+    "expected": [
+      "D0, P[], (!!map)::# abc\nmyMap: {dog: bark, thing: hamster}\n# xyz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "omitOperatorScenarios",
+    "id": "operator_omit#3"
+  },
+  {
+    "source": "operator_omit_test.go",
+    "description": "Omit indices from array",
+    "document": "[cat, leopard, lion]",
+    "document2": "",
+    "expression": "omit([2, 0, 734, -5])",
+    "expected": [
+      "D0, P[], (!!seq)::[leopard]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "omitOperatorScenarios",
+    "id": "operator_omit#4"
+  },
+  {
+    "source": "operator_omit_test.go",
+    "description": "Omit indices from array with comments",
+    "document": "# abc\n[cat, leopard, lion]\n# xyz",
+    "document2": "",
+    "expression": "omit([2, 0, 734, -5])",
+    "expected": [
+      "D0, P[], (!!seq)::# abc\n[leopard]\n# xyz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "omitOperatorScenarios",
+    "id": "operator_omit#5"
+  }
+]

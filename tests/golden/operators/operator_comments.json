@@ -1,0 +1,479 @@
+[
+  {
+    "source": "operator_comments_test.go",
+    "description": "Set line comment",
+    "document": "a: cat",
+    "document2": "",
+    "expression": ".a line_comment=\"single\"",
+    "expected": [
+      "D0, P[], (!!map)::a: cat # single\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#0"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Set line comment of a maps/arrays",
+    "document": "a:\n  b: things",
+    "document2": "",
+    "expression": "(.a | key) line_comment=\"single\"",
+    "expected": [
+      "D0, P[], (!!map)::a: # single\n    b: things\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#1"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "",
+    "document": "a: cat\nb: dog",
+    "document2": "",
+    "expression": ".a line_comment=.b",
+    "expected": [
+      "D0, P[], (!!map)::a: cat # dog\nb: dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#2"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "",
+    "document": "a: cat\n---\na: dog",
+    "document2": "",
+    "expression": ".a line_comment |= documentIndex",
+    "expected": [
+      "D0, P[], (!!map)::a: cat # 0\n",
+      "D1, P[], (!!map)::a: dog # 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#3"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Use update assign to perform relative updates",
+    "document": "a: cat\nb: dog",
+    "document2": "",
+    "expression": ".. line_comment |= .",
+    "expected": [
+      "D0, P[], (!!map)::a: cat # cat\nb: dog # dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#4"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "",
+    "document": "a: cat\nb: dog",
+    "document2": "",
+    "expression": ".. comments |= .",
+    "expected": [
+      "D0, P[], (!!map)::a: cat # cat\n# cat\n\n# cat\nb: dog # dog\n# dog\n\n# dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#5"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Where is the comment - map key example",
+    "document": "hello: # hello-world-comment\n  message: world",
+    "document2": "",
+    "expression": "[... | {\"p\": path | join(\".\"), \"isKey\": is_key, \"hc\": headComment, \"lc\": lineComment, \"fc\": footComment}]",
+    "expected": [
+      "D0, P[], (!!seq)::- p: \"\"\n  isKey: false\n  hc: \"\"\n  lc: \"\"\n  fc: \"\"\n- p: hello\n  isKey: true\n  hc: \"\"\n  lc: hello-world-comment\n  fc: \"\"\n- p: hello\n  isKey: false\n  hc: \"\"\n  lc: \"\"\n  fc: \"\"\n- p: hello.message\n  isKey: true\n  hc: \"\"\n  lc: \"\"\n  fc: \"\"\n- p: hello.message\n  isKey: false\n  hc: \"\"\n  lc: \"\"\n  fc: \"\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#6"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Retrieve comment - map key example",
+    "document": "hello: # hello-world-comment\n  message: world",
+    "document2": "",
+    "expression": ".hello | key | line_comment",
+    "expected": [
+      "D0, P[hello], (!!str)::hello-world-comment\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#7"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Where is the comment - array example",
+    "document": "name:\n  # under-name-comment\n  - first-array-child",
+    "document2": "",
+    "expression": "[... | {\"p\": path | join(\".\"), \"isKey\": is_key, \"hc\": headComment, \"lc\": lineComment, \"fc\": footComment}]",
+    "expected": [
+      "D0, P[], (!!seq)::- p: \"\"\n  isKey: false\n  hc: \"\"\n  lc: \"\"\n  fc: \"\"\n- p: name\n  isKey: true\n  hc: \"\"\n  lc: \"\"\n  fc: \"\"\n- p: name\n  isKey: false\n  hc: \"\"\n  lc: \"\"\n  fc: \"\"\n- p: name.0\n  isKey: false\n  hc: under-name-comment\n  lc: \"\"\n  fc: \"\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#8"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Retrieve comment - array example",
+    "document": "name:\n  # under-name-comment\n  - first-array-child",
+    "document2": "",
+    "expression": ".name[0] | headComment",
+    "expected": [
+      "D0, P[name 0], (!!str)::under-name-comment\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#9"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Set head comment",
+    "document": "a: cat",
+    "document2": "",
+    "expression": ". head_comment=\"single\"",
+    "expected": [
+      "D0, P[], (!!map)::# single\na: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#10"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Set head comment of a map entry",
+    "document": "f: foo\na:\n  b: cat",
+    "document2": "",
+    "expression": "(.a | key) head_comment=\"single\"",
+    "expected": [
+      "D0, P[], (!!map)::f: foo\n# single\na:\n    b: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#11"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Set foot comment, using an expression",
+    "document": "a: cat",
+    "document2": "",
+    "expression": ". foot_comment=.a",
+    "expected": [
+      "D0, P[], (!!map)::a: cat\n# cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#12"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Set foot comment, using an expression",
+    "document": "a: cat\n\n# hi",
+    "document2": "",
+    "expression": ". foot_comment=\"\"",
+    "expected": [
+      "D0, P[], (!!map)::a: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#13"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "",
+    "document": "a: cat",
+    "document2": "",
+    "expression": ". foot_comment=.b.d",
+    "expected": [
+      "D0, P[], (!!map)::a: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#14"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "",
+    "document": "a: cat",
+    "document2": "",
+    "expression": ". foot_comment|=.b.d",
+    "expected": [
+      "D0, P[], (!!map)::a: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#15"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Remove comment",
+    "document": "a: cat # comment\nb: dog # leave this",
+    "document2": "",
+    "expression": ".a line_comment=\"\"",
+    "expected": [
+      "D0, P[], (!!map)::a: cat\nb: dog # leave this\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#16"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Remove (strip) all comments",
+    "document": "# hi\n\na: cat # comment\n\n# great\n\nb: # key comment",
+    "document2": "",
+    "expression": "... comments=\"\"",
+    "expected": [
+      "D0, P[], (!!map)::a: cat\nb:\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#17"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Get line comment",
+    "document": "# welcome!\n\na: cat # meow\n\n# have a great day",
+    "document2": "",
+    "expression": ".a | line_comment",
+    "expected": [
+      "D0, P[a], (!!str)::meow\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#18"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Get head comment",
+    "document": "# welcome!\n\na: cat # meow\n\n# have a great day",
+    "document2": "",
+    "expression": ". | head_comment",
+    "expected": [
+      "D0, P[], (!!str)::welcome!\n\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#19"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "strip trailing comment recurse all",
+    "document": "a: cat\n\n# haha",
+    "document2": "",
+    "expression": "... comments= \"\"",
+    "expected": [
+      "D0, P[], (!!map)::a: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#20"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "strip trailing comment recurse values",
+    "document": "a: cat\n\n# haha",
+    "document2": "",
+    "expression": ".. comments= \"\"",
+    "expected": [
+      "D0, P[], (!!map)::a: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#21"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Head comment with document split",
+    "document": "# welcome!\n---\n# bob\na: cat # meow\n\n# have a great day",
+    "document2": "",
+    "expression": "head_comment",
+    "expected": [
+      "D0, P[], (!!str)::welcome!\nbob\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#22"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "Get foot comment",
+    "document": "# welcome!\n\na: cat # meow\n\n# have a great day\n# no really",
+    "document2": "",
+    "expression": ". | foot_comment",
+    "expected": [
+      "D0, P[], (!!str)::have a great day\nno really\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#23"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "leading spaces",
+    "document": " # hi",
+    "document2": "",
+    "expression": ".",
+    "expected": [
+      "D0, P[], (!!null):: # hi\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#24"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "string spaces",
+    "document": "# hi\ncat\n",
+    "document2": "",
+    "expression": ".",
+    "expected": [
+      "D0, P[], (!!str)::# hi\ncat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#25"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "leading spaces with new line",
+    "document": " # hi\n",
+    "document2": "",
+    "expression": ".",
+    "expected": [
+      "D0, P[], (!!null):: # hi\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#26"
+  },
+  {
+    "source": "operator_comments_test.go",
+    "description": "directive",
+    "document": "%YAML 1.1\n# hi\n",
+    "document2": "",
+    "expression": ".",
+    "expected": [
+      "D0, P[], (!!null)::%YAML 1.1\n# hi\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "commentOperatorScenarios",
+    "id": "operator_comments#27"
+  }
+]

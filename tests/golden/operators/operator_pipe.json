@@ -1,0 +1,53 @@
+[
+  {
+    "source": "operator_pipe_test.go",
+    "description": "Simple Pipe",
+    "document": "{a: {b: cat}}",
+    "document2": "",
+    "expression": ".a | .b",
+    "expected": [
+      "D0, P[a b], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pipeOperatorScenarios",
+    "id": "operator_pipe#0"
+  },
+  {
+    "source": "operator_pipe_test.go",
+    "description": "Multiple updates",
+    "document": "{a: cow, b: sheep, c: same}",
+    "document2": "",
+    "expression": ".a = \"cat\" | .b = \"dog\"",
+    "expected": [
+      "D0, P[], (!!map)::{a: cat, b: dog, c: same}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pipeOperatorScenarios",
+    "id": "operator_pipe#1"
+  },
+  {
+    "source": "operator_pipe_test.go",
+    "description": "Don't pass readonly context",
+    "document": "",
+    "document2": "",
+    "expression": "(3 + 4) | ({} | .b = \"dog\")",
+    "expected": [
+      "D0, P[], (!!map)::b: dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pipeOperatorScenarios",
+    "id": "operator_pipe#2"
+  }
+]

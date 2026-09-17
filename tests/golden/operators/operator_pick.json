@@ -1,0 +1,122 @@
+[
+  {
+    "source": "operator_pick_test.go",
+    "description": "Pick keys from map",
+    "document": "myMap: {cat: meow, dog: bark, thing: hamster, hamster: squeak}\n",
+    "document2": "",
+    "expression": ".myMap |= pick([\"hamster\", \"cat\", \"goat\"])",
+    "expected": [
+      "D0, P[], (!!map)::myMap: {hamster: squeak, cat: meow}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pickOperatorScenarios",
+    "id": "operator_pick#0"
+  },
+  {
+    "source": "operator_pick_test.go",
+    "description": "Pick keys from map, included all the keys",
+    "document": "myMap: {cat: meow, dog: bark, thing: hamster, hamster: squeak}\n",
+    "document2": "",
+    "expression": ".myMap |= pick( ([\"thing\"] + keys) | unique)",
+    "expected": [
+      "D0, P[], (!!map)::myMap: {thing: hamster, cat: meow, dog: bark, hamster: squeak}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pickOperatorScenarios",
+    "id": "operator_pick#1"
+  },
+  {
+    "source": "operator_pick_test.go",
+    "description": "Pick splat",
+    "document": "{cat: meow, dog: bark, thing: hamster, hamster: squeak}\n",
+    "document2": "",
+    "expression": "pick([\"hamster\", \"cat\"])[]",
+    "expected": [
+      "D0, P[hamster], (!!str)::squeak\n",
+      "D0, P[cat], (!!str)::meow\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pickOperatorScenarios",
+    "id": "operator_pick#2"
+  },
+  {
+    "source": "operator_pick_test.go",
+    "description": "Pick keys from map",
+    "document": "!things myMap: {cat: meow, dog: bark, thing: hamster, hamster: squeak}\n",
+    "document2": "",
+    "expression": ".myMap |= pick([\"hamster\", \"cat\", \"goat\"])",
+    "expected": [
+      "D0, P[], (!!map)::!things myMap: {hamster: squeak, cat: meow}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pickOperatorScenarios",
+    "id": "operator_pick#3"
+  },
+  {
+    "source": "operator_pick_test.go",
+    "description": "Pick keys from map with comments",
+    "document": "# abc\nmyMap: {cat: meow, dog: bark, thing: hamster, hamster: squeak}\n# xyz\n",
+    "document2": "",
+    "expression": ".myMap |= pick([\"hamster\", \"cat\", \"goat\"])",
+    "expected": [
+      "D0, P[], (!!map)::# abc\nmyMap: {hamster: squeak, cat: meow}\n# xyz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pickOperatorScenarios",
+    "id": "operator_pick#4"
+  },
+  {
+    "source": "operator_pick_test.go",
+    "description": "Pick indices from array",
+    "document": "[cat, leopard, lion]",
+    "document2": "",
+    "expression": "pick([2, 0, 734, -5])",
+    "expected": [
+      "D0, P[], (!!seq)::[lion, cat]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pickOperatorScenarios",
+    "id": "operator_pick#5"
+  },
+  {
+    "source": "operator_pick_test.go",
+    "description": "Pick indices from array with comments",
+    "document": "# abc\n[cat, leopard, lion]\n# xyz",
+    "document2": "",
+    "expression": "pick([2, 0, 734, -5])",
+    "expected": [
+      "D0, P[], (!!seq)::# abc\n[lion, cat]\n# xyz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pickOperatorScenarios",
+    "id": "operator_pick#6"
+  }
+]

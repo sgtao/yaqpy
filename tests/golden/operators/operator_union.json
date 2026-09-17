@@ -1,0 +1,90 @@
+[
+  {
+    "source": "operator_union_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": "(.a, .b.c) as $x | .",
+    "expected": [
+      "D0, P[], (!!map)::{}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "unionOperatorScenarios",
+    "id": "operator_union#0"
+  },
+  {
+    "source": "operator_union_test.go",
+    "description": "clone test",
+    "document": "",
+    "document2": "",
+    "expression": "\"abc\" as $a | [$a, \"cat\"]",
+    "expected": [
+      "D0, P[], (!!seq)::- abc\n- cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "unionOperatorScenarios",
+    "id": "operator_union#1"
+  },
+  {
+    "source": "operator_union_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "(.foo = \"bar\"), (.toe = \"jam\")",
+    "expected": [
+      "D0, P[], ()::foo: bar\ntoe: jam\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "unionOperatorScenarios",
+    "id": "operator_union#2"
+  },
+  {
+    "source": "operator_union_test.go",
+    "description": "Combine scalars",
+    "document": "",
+    "document2": "",
+    "expression": "1, true, \"cat\"",
+    "expected": [
+      "D0, P[], (!!int)::1\n",
+      "D0, P[], (!!bool)::true\n",
+      "D0, P[], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "unionOperatorScenarios",
+    "id": "operator_union#3"
+  },
+  {
+    "source": "operator_union_test.go",
+    "description": "Combine selected paths",
+    "document": "{a: fieldA, b: fieldB, c: fieldC}",
+    "document2": "",
+    "expression": ".a, .c",
+    "expected": [
+      "D0, P[a], (!!str)::fieldA\n",
+      "D0, P[c], (!!str)::fieldC\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "unionOperatorScenarios",
+    "id": "operator_union#4"
+  }
+]

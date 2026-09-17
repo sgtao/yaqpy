@@ -1,0 +1,395 @@
+[
+  {
+    "source": "operator_slice_test.go",
+    "description": "Slicing arrays",
+    "document": "[cat, dog, frog, cow]",
+    "document2": "",
+    "expression": ".[1:3]",
+    "expected": [
+      "D0, P[], (!!seq)::- dog\n- frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#0"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "Slicing arrays - without the first number",
+    "document": "[cat, dog, frog, cow]",
+    "document2": "",
+    "expression": ".[:2]",
+    "expected": [
+      "D0, P[], (!!seq)::- cat\n- dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#1"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "Slicing arrays - without the second number",
+    "document": "[cat, dog, frog, cow]",
+    "document2": "",
+    "expression": ".[2:]",
+    "expected": [
+      "D0, P[], (!!seq)::- frog\n- cow\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#2"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "Slicing arrays - use negative numbers to count backwards from the end",
+    "document": "[cat, dog, frog, cow]",
+    "document2": "",
+    "expression": ".[1:-1]",
+    "expected": [
+      "D0, P[], (!!seq)::- dog\n- frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#3"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "Inserting into the middle of an array",
+    "document": "[cat, dog, frog, cow]",
+    "document2": "",
+    "expression": "(.[] | select(. == \"dog\") | key + 1) as $pos | .[0:($pos)] + [\"rabbit\"] + .[$pos:]",
+    "expected": [
+      "D0, P[], (!!seq)::- cat\n- dog\n- rabbit\n- frog\n- cow\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#4"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "",
+    "document": "[[cat, dog, frog, cow], [apple, banana, grape, mango]]",
+    "document2": "",
+    "expression": ".[] | .[1:3]",
+    "expected": [
+      "D0, P[0], (!!seq)::- dog\n- frog\n",
+      "D0, P[1], (!!seq)::- banana\n- grape\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#5"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "second index beyond array clamps",
+    "document": "[cat]",
+    "document2": "",
+    "expression": ".[:3]",
+    "expected": [
+      "D0, P[], (!!seq)::- cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#6"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "first index beyond array returns nothing",
+    "document": "[cat]",
+    "document2": "",
+    "expression": ".[3:]",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#7"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "",
+    "document": "[[cat, dog, frog, cow], [apple, banana, grape, mango]]",
+    "document2": "",
+    "expression": ".[] | .[-2:-1]",
+    "expected": [
+      "D0, P[0], (!!seq)::- frog\n",
+      "D0, P[1], (!!seq)::- grape\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#8"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "",
+    "document": "[cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8, cat9, cat10, cat11]",
+    "document2": "",
+    "expression": ".[10:11]",
+    "expected": [
+      "D0, P[], (!!seq)::- cat11\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#9"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "",
+    "document": "[cat1, cat2, cat3, cat4, cat5, cat6, cat7, cat8, cat9, cat10, cat11]",
+    "document2": "",
+    "expression": ".[-11:-10]",
+    "expected": [
+      "D0, P[], (!!seq)::- cat1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#10"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "",
+    "document": "[a, b, c]",
+    "document2": "",
+    "expression": ".[0:-99999]",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#11"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "",
+    "document": "[a, b, c]",
+    "document2": "",
+    "expression": ".[-99999:3]",
+    "expected": [
+      "D0, P[], (!!seq)::- a\n- b\n- c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#12"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "",
+    "document": "[a, b, c]",
+    "document2": "",
+    "expression": ".[-99999:-99998]",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#13"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "Slicing strings",
+    "document": "country: Australia",
+    "document2": "",
+    "expression": ".country[0:5]",
+    "expected": [
+      "D0, P[country], (!!str)::Austr\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#14"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "Slicing strings - without the second number",
+    "document": "country: Australia",
+    "document2": "",
+    "expression": ".country[5:]",
+    "expected": [
+      "D0, P[country], (!!str)::alia\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#15"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "Slicing strings - without the first number",
+    "document": "country: Australia",
+    "document2": "",
+    "expression": ".country[:5]",
+    "expected": [
+      "D0, P[country], (!!str)::Austr\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#16"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "Slicing strings - use negative numbers to count backwards from the end",
+    "document": "country: Australia",
+    "document2": "",
+    "expression": ".country[-5:]",
+    "expected": [
+      "D0, P[country], (!!str)::ralia\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#17"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "",
+    "document": "country: Australia",
+    "document2": "",
+    "expression": ".country[1:-1]",
+    "expected": [
+      "D0, P[country], (!!str)::ustrali\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#18"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "",
+    "document": "country: Australia",
+    "document2": "",
+    "expression": ".country[:]",
+    "expected": [
+      "D0, P[country], (!!str)::Australia\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#19"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "second index beyond string length clamps",
+    "document": "country: Australia",
+    "document2": "",
+    "expression": ".country[:100]",
+    "expected": [
+      "D0, P[country], (!!str)::Australia\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#20"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "first index beyond string length returns empty string",
+    "document": "country: Australia",
+    "document2": "",
+    "expression": ".country[100:]",
+    "expected": [
+      "D0, P[country], (!!str)::\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#21"
+  },
+  {
+    "source": "operator_slice_test.go",
+    "description": "Slicing strings - Unicode",
+    "document": "greeting: héllo",
+    "document2": "",
+    "expression": ".greeting[1:3]",
+    "expected": [
+      "D0, P[greeting], (!!str)::él\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sliceArrayScenarios",
+    "id": "operator_slice#22"
+  }
+]

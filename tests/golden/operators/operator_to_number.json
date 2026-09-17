@@ -1,0 +1,74 @@
+[
+  {
+    "source": "operator_to_number_test.go",
+    "description": "Converts strings to numbers",
+    "document": "[\"3\", \"3.1\", \"-1e3\"]",
+    "document2": "",
+    "expression": ".[] | to_number",
+    "expected": [
+      "D0, P[0], (!!int)::3\n",
+      "D0, P[1], (!!float)::3.1\n",
+      "D0, P[2], (!!float)::-1e3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "toNumberScenarios",
+    "id": "operator_to_number#0"
+  },
+  {
+    "source": "operator_to_number_test.go",
+    "description": "Converts strings to numbers, with tonumber because jq",
+    "document": "[\"3\", \"3.1\", \"-1e3\"]",
+    "document2": "",
+    "expression": ".[] | tonumber",
+    "expected": [
+      "D0, P[0], (!!int)::3\n",
+      "D0, P[1], (!!float)::3.1\n",
+      "D0, P[2], (!!float)::-1e3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "toNumberScenarios",
+    "id": "operator_to_number#1"
+  },
+  {
+    "source": "operator_to_number_test.go",
+    "description": "Doesn't change numbers",
+    "document": "[3, 3.1, -1e3]",
+    "document2": "",
+    "expression": ".[] | to_number",
+    "expected": [
+      "D0, P[0], (!!int)::3\n",
+      "D0, P[1], (!!float)::3.1\n",
+      "D0, P[2], (!!float)::-1e3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "toNumberScenarios",
+    "id": "operator_to_number#2"
+  },
+  {
+    "source": "operator_to_number_test.go",
+    "description": "Cannot convert null",
+    "document": "",
+    "document2": "",
+    "expression": ".a.b | to_number",
+    "expected": [],
+    "expected_error": "cannot convert node value [null] at path a.b of tag !!null to number",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "toNumberScenarios",
+    "id": "operator_to_number#3"
+  }
+]

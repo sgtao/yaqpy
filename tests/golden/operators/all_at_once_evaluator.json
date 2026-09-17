@@ -1,0 +1,53 @@
+[
+  {
+    "source": "all_at_once_evaluator_test.go",
+    "description": "",
+    "document": "a: hello",
+    "document2": "",
+    "expression": ".a",
+    "expected": [
+      "D0, P[a], (!!str)::hello\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "evaluateNodesScenario",
+    "id": "all_at_once_evaluator#0"
+  },
+  {
+    "source": "all_at_once_evaluator_test.go",
+    "description": "",
+    "document": "a: hello",
+    "document2": "",
+    "expression": ".",
+    "expected": [
+      "D0, P[], (!!map)::a: hello\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "evaluateNodesScenario",
+    "id": "all_at_once_evaluator#1"
+  },
+  {
+    "source": "all_at_once_evaluator_test.go",
+    "description": "",
+    "document": "- a: \"yes\"",
+    "document2": "",
+    "expression": ".[] | has(\"a\")",
+    "expected": [
+      "D0, P[0], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "evaluateNodesScenario",
+    "id": "all_at_once_evaluator#2"
+  }
+]

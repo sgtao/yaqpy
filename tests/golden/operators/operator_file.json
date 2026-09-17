@@ -1,0 +1,88 @@
+[
+  {
+    "source": "operator_file_test.go",
+    "description": "Get filename",
+    "document": "{a: cat}",
+    "document2": "",
+    "expression": "filename",
+    "expected": [
+      "D0, P[], (!!str)::sample.yml\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fileOperatorScenarios",
+    "id": "operator_file#0"
+  },
+  {
+    "source": "operator_file_test.go",
+    "description": "Get file index",
+    "document": "{a: cat}",
+    "document2": "",
+    "expression": "file_index",
+    "expected": [
+      "D0, P[], (!!int)::0\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fileOperatorScenarios",
+    "id": "operator_file#1"
+  },
+  {
+    "source": "operator_file_test.go",
+    "description": "Get file indices of multiple documents",
+    "document": "{a: cat}",
+    "document2": "{a: cat}",
+    "expression": "file_index",
+    "expected": [
+      "D0, P[], (!!int)::0\n",
+      "D0, P[], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fileOperatorScenarios",
+    "id": "operator_file#2"
+  },
+  {
+    "source": "operator_file_test.go",
+    "description": "Get file index alias",
+    "document": "{a: cat}",
+    "document2": "",
+    "expression": "fi",
+    "expected": [
+      "D0, P[], (!!int)::0\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fileOperatorScenarios",
+    "id": "operator_file#3"
+  },
+  {
+    "source": "operator_file_test.go",
+    "description": "",
+    "document": "a: cat\nb: dog",
+    "document2": "",
+    "expression": ".. lineComment |= filename",
+    "expected": [
+      "D0, P[], (!!map)::a: cat # sample.yml\nb: dog # sample.yml\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fileOperatorScenarios",
+    "id": "operator_file#4"
+  }
+]

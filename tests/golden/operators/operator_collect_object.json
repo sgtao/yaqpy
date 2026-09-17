@@ -1,0 +1,403 @@
+[
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "{\"name\": \"mike\"} | .name",
+    "expected": [
+      "D0, P[name], (!!str)::mike\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#0"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "{\"c\": \"a\", \"b\", \"d\"}",
+    "expected": [],
+    "expected_error": "CollectObject: mismatching node sizes; are you creating a map with mismatching key value pairs?",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#1"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "{\"person\": {\"names\": [\"mike\"]}} | .person.names[0]",
+    "expected": [
+      "D0, P[person names 0], (!!str)::mike\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#2"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "[{name: cat}, {name: dog}]",
+    "document2": "",
+    "expression": ".[] | {.name: \"great\"}",
+    "expected": [
+      "D0, P[], (!!map)::cat: great\n",
+      "D0, P[], (!!map)::dog: great\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#3"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "collect splat",
+    "document": "[{name: cat}, {name: dog}]",
+    "document2": "",
+    "expression": ".[] | {.name: \"great\"}[]",
+    "expected": [
+      "D0, P[cat], (!!str)::great\n",
+      "D0, P[dog], (!!str)::great\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#4"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "({} + {}) | (.b = 3)",
+    "expected": [
+      "D0, P[], (!!map)::b: 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#5"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "a: []",
+    "document2": "",
+    "expression": ".a += [{\"key\": \"att2\", \"value\": \"val2\"}]",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    - key: att2\n      value: val2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#6"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": ".a += {\"key\": \"att2\", \"value\": \"val2\"}",
+    "expected": [
+      "D0, P[], ()::a:\n    key: att2\n    value: val2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#7"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": ".a += [0]",
+    "expected": [
+      "D0, P[], ()::a:\n    - 0\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#8"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "Collect empty object",
+    "document": "",
+    "document2": "",
+    "expression": "{}",
+    "expected": [
+      "D0, P[], (!!map)::{}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#9"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "Wrap (prefix) existing object",
+    "document": "{name: Mike}\n",
+    "document2": "",
+    "expression": "{\"wrap\": .}",
+    "expected": [
+      "D0, P[], (!!map)::wrap: {name: Mike}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#10"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "Two documents",
+    "document": "{name: Mike}\n",
+    "document2": "{name: Bob}\n",
+    "expression": "{\"wrap\": .}",
+    "expected": [
+      "D0, P[], (!!map)::wrap: {name: Mike}\n",
+      "D0, P[], (!!map)::wrap: {name: Bob}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#11"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "two embedded documents",
+    "document": "{name: Mike}\n---\n{name: Bob}",
+    "document2": "",
+    "expression": "{\"wrap\": .}",
+    "expected": [
+      "D0, P[], (!!map)::wrap: {name: Mike}\n",
+      "D1, P[], (!!map)::wrap: {name: Bob}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#12"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "{name: Mike, age: 32}",
+    "document2": "",
+    "expression": "{.name: .age}",
+    "expected": [
+      "D0, P[], (!!map)::Mike: 32\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#13"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "Using splat to create multiple objects",
+    "document": "{name: Mike, pets: [cat, dog]}",
+    "document2": "",
+    "expression": "{.name: .pets.[]}",
+    "expected": [
+      "D0, P[], (!!map)::Mike: cat\n",
+      "D0, P[], (!!map)::Mike: dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#14"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "Working with multiple documents",
+    "document": "{name: Mike, pets: [cat, dog]}\n---\n{name: Rosey, pets: [monkey, sheep]}",
+    "document2": "",
+    "expression": "{.name: .pets.[]}",
+    "expected": [
+      "D0, P[], (!!map)::Mike: cat\n",
+      "D0, P[], (!!map)::Mike: dog\n",
+      "D1, P[], (!!map)::Rosey: monkey\n",
+      "D1, P[], (!!map)::Rosey: sheep\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#15"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "{name: Mike, pets: [cat, dog], food: [hotdog, burger]}",
+    "document2": "",
+    "expression": "{.name: .pets.[], \"f\":.food.[]}",
+    "expected": [
+      "D0, P[], (!!map)::Mike: cat\nf: hotdog\n",
+      "D0, P[], (!!map)::Mike: cat\nf: burger\n",
+      "D0, P[], (!!map)::Mike: dog\nf: hotdog\n",
+      "D0, P[], (!!map)::Mike: dog\nf: burger\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#16"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "name: Mike\npets:\n  cows:\n    - apl\n    - bba",
+    "document2": "name: Rosey\npets:\n  sheep:\n    - frog\n    - meow",
+    "expression": "{\"a\":.name, \"b\":.pets}",
+    "expected": [
+      "D0, P[], (!!map)::a: Mike\nb:\n    cows:\n        - apl\n        - bba\n",
+      "D0, P[], (!!map)::a: Rosey\nb:\n    sheep:\n        - frog\n        - meow\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#17"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "Creating yaml from scratch",
+    "document": "",
+    "document2": "",
+    "expression": "{\"wrap\": \"frog\"}",
+    "expected": [
+      "D0, P[], (!!map)::wrap: frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#18"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "{\"wrap\": \"frog\", \"bing\": \"bong\"}",
+    "expected": [
+      "D0, P[], (!!map)::wrap: frog\nbing: bong\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#19"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "{name: Mike}",
+    "document2": "",
+    "expression": "{\"wrap\": .}",
+    "expected": [
+      "D0, P[], (!!map)::wrap: {name: Mike}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#20"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "",
+    "document": "{name: Mike}",
+    "document2": "",
+    "expression": "{\"wrap\": {\"further\": .}} | (.. style= \"flow\")",
+    "expected": [
+      "D0, P[], (!!map)::{wrap: {further: {name: Mike}}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#21"
+  },
+  {
+    "source": "operator_collect_object_test.go",
+    "description": "Creating yaml from scratch with multiple objects",
+    "document": "",
+    "document2": "",
+    "expression": "(.a.b = \"foo\") | (.d.e = \"bar\")",
+    "expected": [
+      "D0, P[], ()::a:\n    b: foo\nd:\n    e: bar\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectObjectOperatorScenarios",
+    "id": "operator_collect_object#22"
+  }
+]

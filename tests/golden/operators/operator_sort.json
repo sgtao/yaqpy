@@ -1,0 +1,346 @@
+[
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort by string field",
+    "document": "[{a: banana},{a: cat},{a: apple}]",
+    "document2": "",
+    "expression": "sort_by(.a)",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: apple}, {a: banana}, {a: cat}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#0"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort by string field",
+    "document": "[{a: banana},{a: apple}]",
+    "document2": "",
+    "expression": "sort_by(.a)[]",
+    "expected": [
+      "D0, P[0], (!!map)::{a: apple}\n",
+      "D0, P[1], (!!map)::{a: banana}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#1"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort by with null",
+    "document": "[{a: banana},null,{a: apple}]",
+    "document2": "",
+    "expression": "sort_by(.a)[]",
+    "expected": [
+      "D0, P[0], (!!null)::null\n",
+      "D0, P[1], (!!map)::{a: apple}\n",
+      "D0, P[2], (!!map)::{a: banana}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#2"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort by multiple fields",
+    "document": "[{a: dog},{a: cat, b: banana},{a: cat, b: apple}]",
+    "document2": "",
+    "expression": "sort_by(.a, .b)",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: cat, b: apple}, {a: cat, b: banana}, {a: dog}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#3"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort by multiple fields",
+    "document": "[{a: dog, b: good},{a: cat, c: things},{a: cat, b: apple}]",
+    "document2": "",
+    "expression": "sort_by(.a, .b)",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: cat, c: things}, {a: cat, b: apple}, {a: dog, b: good}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#4"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort by multiple fields",
+    "document": "[{a: dog, b: 0.1},{a: cat, b: 0.01},{a: cat, b: 0.001}]",
+    "document2": "",
+    "expression": "sort_by(.a, .b)",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: cat, b: 0.001}, {a: cat, b: 0.01}, {a: dog, b: 0.1}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#5"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort descending by string field",
+    "document": "[{a: banana},{a: cat},{a: apple}]",
+    "document2": "",
+    "expression": "sort_by(.a) | reverse",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: cat}, {a: banana}, {a: apple}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#6"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort array in place",
+    "document": "cool: [{a: banana},{a: cat},{a: apple}]",
+    "document2": "",
+    "expression": ".cool |= sort_by(.a)",
+    "expected": [
+      "D0, P[], (!!map)::cool: [{a: apple}, {a: banana}, {a: cat}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#7"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort array of objects by key",
+    "document": "cool: [{b: banana},{a: banana},{c: banana}]",
+    "document2": "",
+    "expression": ".cool |= sort_by(keys | .[0])",
+    "expected": [
+      "D0, P[], (!!map)::cool: [{a: banana}, {b: banana}, {c: banana}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#8"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort a map",
+    "document": "y: b\nz: a\nx: c\n",
+    "document2": "",
+    "expression": "sort",
+    "expected": [
+      "D0, P[], (!!map)::z: a\ny: b\nx: c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#9"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort a map by keys",
+    "document": "Y: b\nz: a\nx: c\n",
+    "document2": "",
+    "expression": "sort_by(key | downcase)",
+    "expected": [
+      "D0, P[], (!!map)::x: c\nY: b\nz: a\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#10"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort is stable",
+    "document": "[{a: banana, b: 1}, {a: banana, b: 2}, {a: banana, b: 3}, {a: banana, b: 4}]",
+    "document2": "",
+    "expression": "sort_by(.a)",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: banana, b: 1}, {a: banana, b: 2}, {a: banana, b: 3}, {a: banana, b: 4}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#11"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort by numeric field",
+    "document": "[{a: 10},{a: 100},{a: 1}]",
+    "document2": "",
+    "expression": "sort_by(.a)",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: 1}, {a: 10}, {a: 100}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#12"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort by custom date field",
+    "document": "[{a: \"12-Jun-2011\"},{a: \"23-Dec-2010\"},{a: \"10-Aug-2011\"}]",
+    "document2": "",
+    "expression": "with_dtf(\"02-Jan-2006\"; sort_by(.a))",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: \"23-Dec-2010\"}, {a: \"12-Jun-2011\"}, {a: \"10-Aug-2011\"}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#13"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "",
+    "document": "[{a: 1.1},{a: 1.001},{a: 1.01}]",
+    "document2": "",
+    "expression": "sort_by(.a)",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: 1.001}, {a: 1.01}, {a: 1.1}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#14"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort, nulls come first",
+    "document": "[8,3,null,6, true, false, cat]",
+    "document2": "",
+    "expression": "sort",
+    "expected": [
+      "D0, P[], (!!seq)::[null, false, true, 3, 6, 8, cat]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#15"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort, nulls come first",
+    "document": "[8,null]",
+    "document2": "",
+    "expression": "sort[]",
+    "expected": [
+      "D0, P[0], (!!null)::null\n",
+      "D0, P[1], (!!int)::8\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#16"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "false before true",
+    "document": "[{a: false, b: 1}, {a: true, b: 2}, {a: false, b: 3}]",
+    "document2": "",
+    "expression": "sort_by(.a)",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: false, b: 1}, {a: false, b: 3}, {a: true, b: 2}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#17"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "head comment",
+    "document": "# abc\n- def\n# ghi",
+    "document2": "",
+    "expression": "sort",
+    "expected": [
+      "D0, P[], (!!seq)::# abc\n- def\n# ghi\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#18"
+  },
+  {
+    "source": "operator_sort_test.go",
+    "description": "Sort large integers (no int64 subtraction overflow)",
+    "document": "[5000000000000000000, -5000000000000000000]",
+    "document2": "",
+    "expression": "sort",
+    "expected": [
+      "D0, P[], (!!seq)::[-5000000000000000000, 5000000000000000000]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortByOperatorScenarios",
+    "id": "operator_sort#19"
+  }
+]

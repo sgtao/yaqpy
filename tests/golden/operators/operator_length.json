@@ -1,0 +1,104 @@
+[
+  {
+    "source": "operator_length_test.go",
+    "description": "String length",
+    "document": "{a: cat}",
+    "document2": "",
+    "expression": ".a | length",
+    "expected": [
+      "D0, P[a], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "lengthOperatorScenarios",
+    "id": "operator_length#0"
+  },
+  {
+    "source": "operator_length_test.go",
+    "description": "null length",
+    "document": "{a: null}",
+    "document2": "",
+    "expression": ".a | length",
+    "expected": [
+      "D0, P[a], (!!int)::0\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "lengthOperatorScenarios",
+    "id": "operator_length#1"
+  },
+  {
+    "source": "operator_length_test.go",
+    "description": "",
+    "document": "{a: ~}",
+    "document2": "",
+    "expression": ".a | length",
+    "expected": [
+      "D0, P[a], (!!int)::0\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "lengthOperatorScenarios",
+    "id": "operator_length#2"
+  },
+  {
+    "source": "operator_length_test.go",
+    "description": "",
+    "document": "# abc\n{a: key no exist}",
+    "document2": "",
+    "expression": ".b | length",
+    "expected": [
+      "D0, P[b], (!!int)::0\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "lengthOperatorScenarios",
+    "id": "operator_length#3"
+  },
+  {
+    "source": "operator_length_test.go",
+    "description": "Map length",
+    "document": "{a: cat, c: dog}",
+    "document2": "",
+    "expression": "length",
+    "expected": [
+      "D0, P[], (!!int)::2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "lengthOperatorScenarios",
+    "id": "operator_length#4"
+  },
+  {
+    "source": "operator_length_test.go",
+    "description": "Array length",
+    "document": "[2,4,6,8]",
+    "document2": "",
+    "expression": "length",
+    "expected": [
+      "D0, P[], (!!int)::4\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "lengthOperatorScenarios",
+    "id": "operator_length#5"
+  }
+]

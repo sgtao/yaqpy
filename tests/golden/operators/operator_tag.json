@@ -1,0 +1,165 @@
+[
+  {
+    "source": "operator_tag_test.go",
+    "description": "tag of key is not a key",
+    "document": "a: frog\n",
+    "document2": "",
+    "expression": ".a | key | tag",
+    "expected": [
+      "D0, P[a], (!!str)::!!str\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "tagOperatorScenarios",
+    "id": "operator_tag#0"
+  },
+  {
+    "source": "operator_tag_test.go",
+    "description": "Get tag",
+    "document": "{a: cat, b: 5, c: 3.2, e: true, f: []}",
+    "document2": "",
+    "expression": ".. | tag",
+    "expected": [
+      "D0, P[], (!!str)::!!map\n",
+      "D0, P[a], (!!str)::!!str\n",
+      "D0, P[b], (!!str)::!!int\n",
+      "D0, P[c], (!!str)::!!float\n",
+      "D0, P[e], (!!str)::!!bool\n",
+      "D0, P[f], (!!str)::!!seq\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "tagOperatorScenarios",
+    "id": "operator_tag#1"
+  },
+  {
+    "source": "operator_tag_test.go",
+    "description": "type is an alias for tag",
+    "document": "{a: cat, b: 5, c: 3.2, e: true, f: []}",
+    "document2": "",
+    "expression": ".. | type",
+    "expected": [
+      "D0, P[], (!!str)::!!map\n",
+      "D0, P[a], (!!str)::!!str\n",
+      "D0, P[b], (!!str)::!!int\n",
+      "D0, P[c], (!!str)::!!float\n",
+      "D0, P[e], (!!str)::!!bool\n",
+      "D0, P[f], (!!str)::!!seq\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "tagOperatorScenarios",
+    "id": "operator_tag#2"
+  },
+  {
+    "source": "operator_tag_test.go",
+    "description": "",
+    "document": "{a: cat, b: 5, c: 3.2, e: true, f: []}",
+    "document2": "",
+    "expression": "tag",
+    "expected": [
+      "D0, P[], (!!str)::!!map\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "tagOperatorScenarios",
+    "id": "operator_tag#3"
+  },
+  {
+    "source": "operator_tag_test.go",
+    "description": "",
+    "document": "32",
+    "document2": "",
+    "expression": ". tag= \"!!str\"",
+    "expected": [
+      "D0, P[], (!!str)::32\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "tagOperatorScenarios",
+    "id": "operator_tag#4"
+  },
+  {
+    "source": "operator_tag_test.go",
+    "description": "Set custom tag",
+    "document": "{a: str}",
+    "document2": "",
+    "expression": ".a tag = \"!!mikefarah\"",
+    "expected": [
+      "D0, P[], (!!map)::{a: !!mikefarah str}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "tagOperatorScenarios",
+    "id": "operator_tag#5"
+  },
+  {
+    "source": "operator_tag_test.go",
+    "description": "Set custom type",
+    "document": "{a: str}",
+    "document2": "",
+    "expression": ".a type = \"!!mikefarah\"",
+    "expected": [
+      "D0, P[], (!!map)::{a: !!mikefarah str}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "tagOperatorScenarios",
+    "id": "operator_tag#6"
+  },
+  {
+    "source": "operator_tag_test.go",
+    "description": "Find numbers and convert them to strings",
+    "document": "{a: cat, b: 5, c: 3.2, e: true}",
+    "document2": "",
+    "expression": "(.. | select(tag == \"!!int\")) tag= \"!!str\"",
+    "expected": [
+      "D0, P[], (!!map)::{a: cat, b: \"5\", c: 3.2, e: true}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "tagOperatorScenarios",
+    "id": "operator_tag#7"
+  },
+  {
+    "source": "operator_tag_test.go",
+    "description": "",
+    "document": "{a: \"!!frog\", b: \"!!customTag\"}",
+    "document2": "",
+    "expression": ".[] tag |= .",
+    "expected": [
+      "D0, P[], (!!map)::{a: !!frog \"!!frog\", b: !!customTag \"!!customTag\"}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "tagOperatorScenarios",
+    "id": "operator_tag#8"
+  }
+]

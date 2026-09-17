@@ -1,0 +1,876 @@
+[
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "merge anchor after existing keys",
+    "document": "objects:\n  - &circle\n    name: circle\n    shape: round\n  - name: ellipse\n    !!merge <<: *circle\n  - !!merge <<: *circle\n    name: egg\n",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::objects:\n    - name: circle\n      shape: round\n    - name: ellipse\n      shape: round\n    - shape: round\n      name: egg\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#0"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "FIXED: Explode with merge anchors",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::foo:\n    a: foo_a\n    thing: foo_thing\n    c: foo_c\nbar:\n    b: bar_b\n    thing: bar_thing\n    c: bar_c\nfoobarList:\n    b: foobarList_b\n    a: foo_a\n    thing: foo_thing\n    c: foobarList_c\nfoobar:\n    c: foobar_c\n    a: foo_a\n    thing: foobar_thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#1"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foo* | explode(.) | (. style=\"flow\")",
+    "expected": [
+      "D0, P[foo], (!!map)::{a: foo_a, thing: foo_thing, c: foo_c}\n",
+      "D0, P[foobarList], (!!map)::{b: foobarList_b, a: foo_a, thing: foo_thing, c: foobarList_c}\n",
+      "D0, P[foobar], (!!map)::{c: foobar_c, a: foo_a, thing: foobar_thing}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#2"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foo* | explode(explode(.)) | (. style=\"flow\")",
+    "expected": [
+      "D0, P[foo], (!!map)::{a: foo_a, thing: foo_thing, c: foo_c}\n",
+      "D0, P[foobarList], (!!map)::{b: foobarList_b, a: foo_a, thing: foo_thing, c: foobarList_c}\n",
+      "D0, P[foobar], (!!map)::{c: foobar_c, a: foo_a, thing: foobar_thing}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#3"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "FIXED: Merge multiple maps",
+    "document": "- &CENTRE { x: 1, y: 2 }\n- &LEFT { x: 0, y: 2 }\n- &BIG { r: 10 }\n- &SMALL { r: 1 }\n- << : [ *CENTRE, *BIG ]\n",
+    "document2": "",
+    "expression": ".[4] | explode(.)",
+    "expected": [
+      "D0, P[4], (!!map)::x: 1\ny: 2\nr: 10\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#4"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "FIXED: Override",
+    "document": "- &CENTRE { x: 1, y: 2 }\n- &LEFT { x: 0, y: 2 }\n- &BIG { r: 10 }\n- &SMALL { r: 1 }\n- << : [ *BIG, *LEFT, *SMALL ]\n  x: 1\n",
+    "document2": "",
+    "expression": ".[4] | explode(.)",
+    "expected": [
+      "D0, P[4], (!!map)::r: 10\ny: 2\nx: 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#5"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Exploding inline merge anchor",
+    "document": "{a: {b: &b 42}, <<: {c: *b}}",
+    "document2": "",
+    "expression": "explode(.) | sort_keys(.)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: 42}, c: 42}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#6"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Exploding inline merge anchor in sequence",
+    "document": "{a: {b: &b 42}, <<: [{c: *b}]}",
+    "document2": "",
+    "expression": "explode(.) | sort_keys(.)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: 42}, c: 42}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#7"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Exploding merge anchor should not explode neighbours",
+    "document": "{b: &b {a: &a 42}, r: *a, c: {<<: *b}}",
+    "document2": "",
+    "expression": "explode(.c)",
+    "expected": [
+      "D0, P[], (!!map)::{b: &b {a: &a 42}, r: *a, c: {a: 42}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#8"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Exploding sequence merge anchor should not explode neighbours",
+    "document": "{b: &b {a: &a 42}, r: *a, c: {<<: [*b]}}",
+    "document2": "",
+    "expression": "explode(.c)",
+    "expected": [
+      "D0, P[], (!!map)::{b: &b {a: &a 42}, r: *a, c: {a: 42}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#9"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Merge anchor with inline map",
+    "document": "{<<: {a: 42}}",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::{a: 42}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#10"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Nested merge anchor with inline map",
+    "document": "{<<: {<<: {a: 42}}}",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::{a: 42}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#11"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Merge anchor with sequence with inline map",
+    "document": "{<<: [{a: 42}]}",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::{a: 42}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#12"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Merge anchor with aliased sequence with inline map",
+    "document": "{s: &s [{a: 42}], m: {<<: *s}}",
+    "document2": "",
+    "expression": ".m | explode(.)",
+    "expected": [
+      "D0, P[m], (!!map)::{a: 42}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#13"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "deleting after explode",
+    "document": "x: 37\na: &a\n  b: 42\n<<: *a",
+    "document2": "",
+    "expression": "explode(.) | del(.x)",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    b: 42\nb: 42\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#14"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Merge after explode preserves correct parent references",
+    "document": "opensearch: &opensearch-cluster\n  ip2geo:\n    enabled: false\n\nopensearch-client:\n  <<: *opensearch-cluster\n  nodeGroup: client\n  opensearchJavaOpts: \"-Xmx1024m -Xms1024m\"",
+    "document2": "opensearch: &opensearch-cluster\n  ip2geo:\n    enabled: true\n\nopensearch-client:\n  <<: *opensearch-cluster\n  opensearchJavaOpts: \"-Xmx1536m -Xms1536m\"",
+    "expression": "(select(fi == 0) | explode(.)) * (select(fi == 1) | explode(.))",
+    "expected": [
+      "D0, P[], (!!map)::opensearch:\n    ip2geo:\n        enabled: true\nopensearch-client:\n    ip2geo:\n        enabled: true\n    nodeGroup: client\n    opensearchJavaOpts: \"-Xmx1536m -Xms1536m\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#15"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "LEGACY: merge anchor after existing keys",
+    "document": "objects:\n  - &circle\n    name: circle\n    shape: round\n  - name: ellipse\n    !!merge <<: *circle\n  - !!merge <<: *circle\n    name: egg\n",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::objects:\n    - name: circle\n      shape: round\n    - name: circle\n      shape: round\n    - shape: round\n      name: egg\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#16"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "LEGACY: Explode with merge anchors",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::foo:\n    a: foo_a\n    thing: foo_thing\n    c: foo_c\nbar:\n    b: bar_b\n    thing: bar_thing\n    c: bar_c\nfoobarList:\n    b: bar_b\n    thing: foo_thing\n    c: foobarList_c\n    a: foo_a\nfoobar:\n    c: foo_c\n    a: foo_a\n    thing: foobar_thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#17"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foo* | explode(.) | (. style=\"flow\")",
+    "expected": [
+      "D0, P[foo], (!!map)::{a: foo_a, thing: foo_thing, c: foo_c}\n",
+      "D0, P[foobarList], (!!map)::{b: bar_b, thing: foo_thing, c: foobarList_c, a: foo_a}\n",
+      "D0, P[foobar], (!!map)::{c: foo_c, a: foo_a, thing: foobar_thing}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#18"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foo* | explode(explode(.)) | (. style=\"flow\")",
+    "expected": [
+      "D0, P[foo], (!!map)::{a: foo_a, thing: foo_thing, c: foo_c}\n",
+      "D0, P[foobarList], (!!map)::{b: bar_b, thing: foo_thing, c: foobarList_c, a: foo_a}\n",
+      "D0, P[foobar], (!!map)::{c: foo_c, a: foo_a, thing: foobar_thing}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#19"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "LEGACY: Merge multiple maps",
+    "document": "- &CENTRE { x: 1, y: 2 }\n- &LEFT { x: 0, y: 2 }\n- &BIG { r: 10 }\n- &SMALL { r: 1 }\n- << : [ *CENTRE, *BIG ]\n",
+    "document2": "",
+    "expression": ".[4] | explode(.)",
+    "expected": [
+      "D0, P[4], (!!map)::r: 10\nx: 1\ny: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#20"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "LEGACY: Override",
+    "document": "- &CENTRE { x: 1, y: 2 }\n- &LEFT { x: 0, y: 2 }\n- &BIG { r: 10 }\n- &SMALL { r: 1 }\n- << : [ *BIG, *LEFT, *SMALL ]\n  x: 1\n",
+    "document2": "",
+    "expression": ".[4] | explode(.)",
+    "expected": [
+      "D0, P[4], (!!map)::r: 10\nx: 1\ny: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badAnchorOperatorScenarios",
+    "id": "operator_anchors_aliases#21"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "direct *+ preserves explicit !!merge tag on << key (regression for issue 2677)",
+    "document": "base: &base\n    x: 1\ndest:\n    !!merge <<: *base\n",
+    "document2": "",
+    "expression": ". as $d | {} *+ $d",
+    "expected": [
+      "D0, P[], (!!map)::base: &base\n    x: 1\ndest:\n    !!merge <<: *base\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#22"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "explicit !!merge tag on << key is preserved through ireduce merge",
+    "document": "\nconstants:\n    errorResponse: &errorResponse\n        status: 200\nendpoints:\n    - condition: true\n      !!merge <<: *errorResponse\n    - condition: false\n      <<: *errorResponse\nother:\n    !!merge <<: *errorResponse\nsomethingElse:\n    <<: *errorResponse\n",
+    "document2": "",
+    "expression": ". as $item ireduce ({}; . *+ $item)",
+    "expected": [
+      "D0, P[], (!!map)::\nconstants:\n    errorResponse: &errorResponse\n        status: 200\nendpoints:\n    - condition: true\n      !!merge <<: *errorResponse\n    - condition: false\n      <<: *errorResponse\nother:\n    !!merge <<: *errorResponse\nsomethingElse:\n    <<: *errorResponse\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#23"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "explode expands << merge keys regardless of explicit tag style (!!merge or plain)",
+    "document": "\nconstants:\n    errorResponse: &errorResponse\n        status: 200\nendpoints:\n    - condition: true\n      !!merge <<: *errorResponse\n    - condition: false\n      <<: *errorResponse\nother:\n    !!merge <<: *errorResponse\nsomethingElse:\n    <<: *errorResponse\n",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::\nconstants:\n    errorResponse:\n        status: 200\nendpoints:\n    - condition: true\n      status: 200\n    - condition: false\n      status: 200\nother:\n    status: 200\nsomethingElse:\n    status: 200\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#24"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "merge anchor to alias alias",
+    "document": "b: &b 10\na: &a { k:  *b }\nc:\n   <<: [*a]",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::b: 10\na: {k: 10}\nc:\n    k: 10\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#25"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "merge anchor not map",
+    "document": "a: &a\n  - 0\nc:\n  <<: [*a]\n",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [],
+    "expected_error": "can only use merge anchors with maps (!!map) or sequences (!!seq) of maps, but got sequence containing !!seq",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#26"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Merge one map",
+    "document": "- &CENTRE { x: 1, y: 2 }\n- &LEFT { x: 0, y: 2 }\n- &BIG { r: 10 }\n- &SMALL { r: 1 }\n- << : *CENTRE\n  r: 10\n",
+    "document2": "",
+    "expression": ".[4] | explode(.)",
+    "expected": [
+      "D0, P[4], (!!map)::x: 1\ny: 2\nr: 10\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#27"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Get anchor",
+    "document": "a: &billyBob cat",
+    "document2": "",
+    "expression": ".a | anchor",
+    "expected": [
+      "D0, P[a], (!!str)::billyBob\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#28"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Set anchor",
+    "document": "a: cat",
+    "document2": "",
+    "expression": ".a anchor = \"foobar\"",
+    "expected": [
+      "D0, P[], (!!map)::a: &foobar cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#29"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Set anchor relatively using assign-update",
+    "document": "a: {b: cat}",
+    "document2": "",
+    "expression": ".a anchor |= .b",
+    "expected": [
+      "D0, P[], (!!map)::a: &cat {b: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#30"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "",
+    "document": "a: {c: cat}",
+    "document2": "",
+    "expression": ".a anchor |= .b",
+    "expected": [
+      "D0, P[], (!!map)::a: {c: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#31"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "",
+    "document": "a: {c: cat}",
+    "document2": "",
+    "expression": ".a anchor = .b",
+    "expected": [
+      "D0, P[], (!!map)::a: {c: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#32"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Get alias",
+    "document": "{b: &billyBob meow, a: *billyBob}",
+    "document2": "",
+    "expression": ".a | alias",
+    "expected": [
+      "D0, P[a], (!!str)::billyBob\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#33"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Set alias",
+    "document": "{b: &meow purr, a: cat}",
+    "document2": "",
+    "expression": ".a alias = \"meow\"",
+    "expected": [
+      "D0, P[], (!!map)::{b: &meow purr, a: *meow}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#34"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Set alias to blank does nothing",
+    "document": "{b: &meow purr, a: cat}",
+    "document2": "",
+    "expression": ".a alias = \"\"",
+    "expected": [
+      "D0, P[], (!!map)::{b: &meow purr, a: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#35"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "",
+    "document": "{b: &meow purr, a: cat}",
+    "document2": "",
+    "expression": ".a alias = .c",
+    "expected": [
+      "D0, P[], (!!map)::{b: &meow purr, a: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#36"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "",
+    "document": "{b: &meow purr, a: cat}",
+    "document2": "",
+    "expression": ".a alias |= .c",
+    "expected": [
+      "D0, P[], (!!map)::{b: &meow purr, a: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#37"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Set alias relatively using assign-update",
+    "document": "{b: &meow purr, a: {f: meow}}",
+    "document2": "",
+    "expression": ".a alias |= .f",
+    "expected": [
+      "D0, P[], (!!map)::{b: &meow purr, a: *meow}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#38"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Dont explode alias and anchor - check alias parent",
+    "document": "{a: &a [1], b: *a}",
+    "document2": "",
+    "expression": ".b[]",
+    "expected": [
+      "D0, P[a 0], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#39"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Explode alias and anchor - check alias parent",
+    "document": "{a: &a cat, b: *a}",
+    "document2": "",
+    "expression": "explode(.) | .b",
+    "expected": [
+      "D0, P[b], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#40"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Explode splat",
+    "document": "{a: &a cat, b: *a}",
+    "document2": "",
+    "expression": "explode(.)[]",
+    "expected": [
+      "D0, P[a], (!!str)::cat\n",
+      "D0, P[b], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#41"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Explode alias and anchor - check original parent",
+    "document": "{a: &a cat, b: *a}",
+    "document2": "",
+    "expression": "explode(.) | .a",
+    "expected": [
+      "D0, P[a], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#42"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Explode alias and anchor",
+    "document": "{f : {a: &a cat, b: *a}}",
+    "document2": "",
+    "expression": "explode(.f)",
+    "expected": [
+      "D0, P[], (!!map)::{f: {a: cat, b: cat}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#43"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Explode with no aliases or anchors",
+    "document": "a: mike",
+    "document2": "",
+    "expression": "explode(.a)",
+    "expected": [
+      "D0, P[], (!!map)::a: mike\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#44"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Explode with alias keys",
+    "document": "{f : {a: &a cat, *a: b}}",
+    "document2": "",
+    "expression": "explode(.f)",
+    "expected": [
+      "D0, P[], (!!map)::{f: {a: cat, cat: b}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#45"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Explode with alias keys",
+    "document": "{f : {a: &a cat, *a : b}}",
+    "document2": "",
+    "expression": "explode(.f)",
+    "expected": [
+      "D0, P[], (!!map)::{f: {a: cat, cat: b}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#46"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "",
+    "document": "{f : {a: &a cat, b: &b {foo: *a}, *a: *b}}",
+    "document2": "",
+    "expression": "explode(.f)",
+    "expected": [
+      "D0, P[], (!!map)::{f: {a: cat, b: {foo: cat}, cat: {foo: cat}}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#47"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Dereference and update a field",
+    "document": "item_value: &item_value\n  value: true\n\nthingOne:\n  name: item_1\n  <<: *item_value\n\nthingTwo:\n  name: item_2\n  <<: *item_value\n",
+    "document2": "",
+    "expression": ".thingOne |= (explode(.) | sort_keys(.)) * {\"value\": false}",
+    "expected": [
+      "D0, P[], (!!map)::item_value: &item_value\n    value: true\nthingOne:\n    name: item_1\n    value: false\nthingTwo:\n    name: item_2\n    <<: *item_value\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#48"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "Duplicate keys",
+    "document": "{a: 1, a: 2}",
+    "document2": "",
+    "expression": "explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::{a: 1, a: 2}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#49"
+  },
+  {
+    "source": "operator_anchors_aliases_test.go",
+    "description": "!!str << should not be treated as merge anchor",
+    "document": "{!!str <<: {a: 37}}",
+    "document2": "",
+    "expression": "explode(.).a",
+    "expected": [
+      "D0, P[a], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "anchorOperatorScenarios",
+    "id": "operator_anchors_aliases#50"
+  }
+]

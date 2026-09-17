@@ -1,0 +1,55 @@
+[
+  {
+    "source": "operator_split_document_test.go",
+    "description": "Split empty",
+    "document": "",
+    "document2": "",
+    "expression": "split_doc",
+    "expected": [
+      "D0, P[], (!!null)::\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "splitDocOperatorScenarios",
+    "id": "operator_split_document#0"
+  },
+  {
+    "source": "operator_split_document_test.go",
+    "description": "Split array",
+    "document": "[{a: cat}, {b: dog}]",
+    "document2": "",
+    "expression": ".[] | split_doc",
+    "expected": [
+      "D0, P[0], (!!map)::{a: cat}\n",
+      "D1, P[1], (!!map)::{b: dog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "splitDocOperatorScenarios",
+    "id": "operator_split_document#1"
+  },
+  {
+    "source": "operator_split_document_test.go",
+    "description": "Split splat",
+    "document": "[{a: cat}, {b: dog}]",
+    "document2": "",
+    "expression": ".[] | split_doc[]",
+    "expected": [
+      "D0, P[0 a], (!!str)::cat\n",
+      "D1, P[1 b], (!!str)::dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "splitDocOperatorScenarios",
+    "id": "operator_split_document#2"
+  }
+]

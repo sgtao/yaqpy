@@ -1,0 +1,308 @@
+[
+  {
+    "source": "operator_subtract_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": "(.a - .b) as $x | .",
+    "expected": [
+      "D0, P[], (!!map)::{}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#0"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "subtract sequence creates a new sequence",
+    "document": "",
+    "document2": "",
+    "expression": "[\"a\", \"b\"] as $f | {0:$f - [\"a\"], 1:$f}",
+    "expected": [
+      "D0, P[], (!!map)::0:\n    - b\n1:\n    - a\n    - b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#1"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Array subtraction",
+    "document": "",
+    "document2": "",
+    "expression": "[1,2] - [2,3]",
+    "expected": [
+      "D0, P[], (!!seq)::- 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#2"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[2,1,2,2] - [2,3]",
+    "expected": [
+      "D0, P[], (!!seq)::- 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#3"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Array subtraction with nested array",
+    "document": "",
+    "document2": "",
+    "expression": "[[1], 1, 2] - [[1], 3]",
+    "expected": [
+      "D0, P[], (!!seq)::- 1\n- 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#4"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[[1], 1, [[[2]]]] - [[1], [[[3]]]]",
+    "expected": [
+      "D0, P[], (!!seq)::- 1\n- - - - 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#5"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Array subtraction with nested object",
+    "document": "[{a: b, c: d}, {a: b}]",
+    "document2": "",
+    "expression": ". - [{\"c\": \"d\", \"a\": \"b\"}]",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: b}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#6"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "",
+    "document": "[{a: [1], c: d}, {a: [2], c: d}, {a: b}]",
+    "document2": "",
+    "expression": ". - [{\"c\": \"d\", \"a\": [1]}]",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: [2], c: d}, {a: b}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#7"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Number subtraction - float",
+    "document": "{a: 3, b: 4.5}",
+    "document2": "",
+    "expression": ".a = .a - .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: -1.5, b: 4.5}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#8"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Number subtraction - int",
+    "document": "{a: 3, b: 4}",
+    "document2": "",
+    "expression": ".a = .a - .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: -1, b: 4}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#9"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Decrement numbers",
+    "document": "{a: 3, b: 5}",
+    "document2": "",
+    "expression": ".[] -= 1",
+    "expected": [
+      "D0, P[], (!!map)::{a: 2, b: 4}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#10"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Date subtraction",
+    "document": "a: 2021-01-01T03:10:00Z",
+    "document2": "",
+    "expression": ".a -= \"3h10m\"",
+    "expected": [
+      "D0, P[], (!!map)::a: 2021-01-01T00:00:00Z\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#11"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Date subtraction - only date",
+    "document": "a: 2021-01-01",
+    "document2": "",
+    "expression": ".a -= \"24h\"",
+    "expected": [
+      "D0, P[], (!!map)::a: 2020-12-31T00:00:00Z\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#12"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Date subtraction - custom format",
+    "document": "a: Saturday, 15-Dec-01 at 6:00AM GMT",
+    "document2": "",
+    "expression": "with_dtf(\"Monday, 02-Jan-06 at 3:04PM MST\", .a -= \"3h1m\")",
+    "expected": [
+      "D0, P[], (!!map)::a: Saturday, 15-Dec-01 at 2:59AM GMT\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#13"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Date subtraction - custom format",
+    "document": "a: !cat Saturday, 15-Dec-01 at 6:00AM GMT",
+    "document2": "",
+    "expression": "with_dtf(\"Monday, 02-Jan-06 at 3:04PM MST\", .a -= \"3h1m\")",
+    "expected": [
+      "D0, P[], (!!map)::a: !cat Saturday, 15-Dec-01 at 2:59AM GMT\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#14"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Custom types: that are really numbers",
+    "document": "a: !horse 2\nb: !goat 1",
+    "document2": "",
+    "expression": ".a -= .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse 1\nb: !goat 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#15"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Custom types: that are really floats",
+    "document": "a: !horse 2.5\nb: !goat 1.5",
+    "document2": "",
+    "expression": ".a - .b",
+    "expected": [
+      "D0, P[a], (!horse)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#16"
+  },
+  {
+    "source": "operator_subtract_test.go",
+    "description": "Custom types: that are really maps",
+    "document": "[!horse {a: b, c: d}, !goat {a: b}]",
+    "document2": "",
+    "expression": ". - [{\"c\": \"d\", \"a\": \"b\"}]",
+    "expected": [
+      "D0, P[], (!!seq)::[!goat {a: b}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "subtractOperatorScenarios",
+    "id": "operator_subtract#17"
+  }
+]

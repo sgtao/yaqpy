@@ -1,0 +1,631 @@
+[
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode value as json string",
+    "document": "{a: {cool: \"thing\"}}",
+    "document2": "",
+    "expression": ".b = (.a | to_json)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {cool: \"thing\"}, b: \"{\\n  \\\"cool\\\": \\\"thing\\\"\\n}\\n\"}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "json",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#0"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode value as json string, on one line",
+    "document": "{a: {cool: \"thing\"}}",
+    "document2": "",
+    "expression": ".b = (.a | to_json(0))",
+    "expected": [
+      "D0, P[], (!!map)::{a: {cool: \"thing\"}, b: '{\"cool\":\"thing\"}'}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "json",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#1"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode value as json string, on one line shorthand",
+    "document": "{a: {cool: \"thing\"}}",
+    "document2": "",
+    "expression": ".b = (.a | @json)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {cool: \"thing\"}, b: '{\"cool\":\"thing\"}'}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "json",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#2"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Decode a json encoded string",
+    "document": "a: '{\"cool\":\"thing\"}'",
+    "document2": "",
+    "expression": ".a | from_json | ... style=\"\"",
+    "expected": [
+      "D0, P[a], (!!map)::cool: thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "json",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#3"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "",
+    "document": "{a: {cool: \"thing\"}}",
+    "document2": "",
+    "expression": ".b = (.a | to_props)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {cool: \"thing\"}, b: \"cool = thing\\n\"}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#4"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode value as props string",
+    "document": "{a: {cool: \"thing\"}}",
+    "document2": "",
+    "expression": ".b = (.a | @props)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {cool: \"thing\"}, b: \"cool = thing\\n\"}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#5"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Decode props encoded string",
+    "document": "a: \"cats=great\\ndogs=cool as well\"",
+    "document2": "",
+    "expression": ".a |= @propsd",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    cats: great\n    dogs: cool as well\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#6"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Decode csv encoded string",
+    "document": "a: \"cats,dogs\\ngreat,cool as well\"",
+    "document2": "",
+    "expression": ".a |= @csvd",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    - cats: great\n      dogs: cool as well\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#7"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Decode tsv encoded string",
+    "document": "a: \"cats\tdogs\\ngreat\tcool as well\"",
+    "document2": "",
+    "expression": ".a |= @tsvd",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    - cats: great\n      dogs: cool as well\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#8"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "",
+    "document": "a:\n  cool:\n    bob: dylan",
+    "document2": "",
+    "expression": ".b = (.a | @yaml)",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    cool:\n        bob: dylan\nb: |\n    cool:\n      bob: dylan\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#9"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode value as yaml string",
+    "document": "a:\n  cool:\n    bob: dylan",
+    "document2": "",
+    "expression": ".b = (.a | to_yaml)",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    cool:\n        bob: dylan\nb: |\n    cool:\n      bob: dylan\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#10"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode value as yaml string, with custom indentation",
+    "document": "a:\n  cool:\n    bob: dylan",
+    "document2": "",
+    "expression": ".b = (.a | to_yaml(8))",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    cool:\n        bob: dylan\nb: |\n    cool:\n            bob: dylan\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#11"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "",
+    "document": "{a: {cool: \"thing\"}}",
+    "document2": "",
+    "expression": ".b = (.a | to_yaml)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {cool: \"thing\"}, b: \"{cool: \\\"thing\\\"}\\n\"}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#12"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Decode a yaml encoded string",
+    "document": "a: \"foo: bar\"",
+    "document2": "",
+    "expression": ".b = (.a | from_yaml)",
+    "expected": [
+      "D0, P[], (!!map)::a: \"foo: bar\"\nb:\n    foo: bar\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#13"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Update a multiline encoded yaml string",
+    "document": "a: |\n  foo: bar\n  baz: dog\n",
+    "document2": "",
+    "expression": ".a |= (from_yaml | .foo = \"cat\" | to_yaml)",
+    "expected": [
+      "D0, P[], (!!map)::a: |\n    foo: cat\n    baz: dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#14"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "",
+    "document": "a: |-\n  foo: bar\n  baz: dog\n",
+    "document2": "",
+    "expression": ".a |= (from_yaml | .foo = \"cat\" | to_yaml)",
+    "expected": [
+      "D0, P[], (!!map)::a: |-\n    foo: cat\n    baz: dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#15"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Update a single line encoded yaml string",
+    "document": "a: 'foo: bar'",
+    "document2": "",
+    "expression": ".a |= (from_yaml | .foo = \"cat\" | to_yaml)",
+    "expected": [
+      "D0, P[], (!!map)::a: 'foo: cat'\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#16"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode array of scalars as csv string",
+    "document": "[cat, \"thing1,thing2\", true, 3.40]",
+    "document2": "",
+    "expression": "@csv",
+    "expected": [
+      "D0, P[], (!!str)::cat,\"thing1,thing2\",true,3.40\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#17"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode array of arrays as csv string",
+    "document": "[[cat, \"thing1,thing2\", true, 3.40], [dog, thing3, false, 12]]",
+    "document2": "",
+    "expression": "@csv",
+    "expected": [
+      "D0, P[], (!!str)::cat,\"thing1,thing2\",true,3.40\ndog,thing3,false,12\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#18"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode array of arrays as tsv string",
+    "document": "[[cat, \"thing1,thing2\", true, 3.40], [dog, thing3, false, 12]]",
+    "document2": "",
+    "expression": "@tsv",
+    "expected": [
+      "D0, P[], (!!str)::cat\tthing1,thing2\ttrue\t3.40\ndog\tthing3\tfalse\t12\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#19"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "",
+    "document": "a: \"foo: bar\"",
+    "document2": "",
+    "expression": ".a |= (from_yaml | .foo = {\"a\": \"frog\"} | to_yaml)",
+    "expected": [
+      "D0, P[], (!!map)::a: \"foo:\\n  a: frog\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#20"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode value as xml string",
+    "document": "{a: {cool: {foo: \"bar\", +@id: hi}}}",
+    "document2": "",
+    "expression": ".a | to_xml",
+    "expected": [
+      "D0, P[a], (!!str)::<cool id=\"hi\">\n  <foo>bar</foo>\n</cool>\n\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "xml",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#21"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode value as xml string on a single line",
+    "document": "{a: {cool: {foo: \"bar\", +@id: hi}}}",
+    "document2": "",
+    "expression": ".a | @xml",
+    "expected": [
+      "D0, P[a], (!!str)::<cool id=\"hi\"><foo>bar</foo></cool>\n\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "xml",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#22"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode value as xml string with custom indentation",
+    "document": "{a: {cool: {foo: \"bar\", +@id: hi}}}",
+    "document2": "",
+    "expression": "{\"cat\": .a | to_xml(1)}",
+    "expected": [
+      "D0, P[], (!!map)::cat: |\n    <cool id=\"hi\">\n     <foo>bar</foo>\n    </cool>\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "xml",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#23"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Decode a xml encoded string",
+    "document": "a: \"<foo>bar</foo>\"",
+    "document2": "",
+    "expression": ".b = (.a | from_xml)",
+    "expected": [
+      "D0, P[], (!!map)::a: \"<foo>bar</foo>\"\nb:\n    foo: bar\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "xml",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#24"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode a string to base64",
+    "document": "coolData: a special string",
+    "document2": "",
+    "expression": ".coolData | @base64",
+    "expected": [
+      "D0, P[coolData], (!!str)::YSBzcGVjaWFsIHN0cmluZw==\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#25"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode a yaml document to base64",
+    "document": "a: apple",
+    "document2": "",
+    "expression": "@yaml | @base64",
+    "expected": [
+      "D0, P[], (!!str)::YTogYXBwbGUK\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#26"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode a string to uri",
+    "document": "coolData: this has & special () characters *",
+    "document2": "",
+    "expression": ".coolData | @uri",
+    "expected": [
+      "D0, P[coolData], (!!str)::this+has+%26+special+%28%29+characters+%2A\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#27"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Decode a URI to a string",
+    "document": "this+has+%26+special+%28%29+characters+%2A",
+    "document2": "",
+    "expression": "@urid",
+    "expected": [
+      "D0, P[], (!!str)::this has & special () characters *\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#28"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode a string to sh",
+    "document": "coolData: strings with spaces and a 'quote'",
+    "document2": "",
+    "expression": ".coolData | @sh",
+    "expected": [
+      "D0, P[coolData], (!!str)::strings' with spaces and a '\\'quote\\'\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#29"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Encode a string to sh",
+    "document": "coolData: \"'starts, contains more '' and ends with a quote'\"",
+    "document2": "",
+    "expression": ".coolData | @sh",
+    "expected": [
+      "D0, P[coolData], (!!str)::\\'starts,' contains more '\\'\\'' and ends with a quote'\\'\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#30"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Decode a base64 encoded string",
+    "document": "coolData: V29ya3Mgd2l0aCBVVEYtMTYg8J+Yig==",
+    "document2": "",
+    "expression": ".coolData | @base64d",
+    "expected": [
+      "D0, P[coolData], (!!str)::Works with UTF-16 😊\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#31"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "Decode a base64 encoded yaml document",
+    "document": "coolData: YTogYXBwbGUK",
+    "document2": "",
+    "expression": ".coolData |= (@base64d | from_yaml)",
+    "expected": [
+      "D0, P[], (!!map)::coolData:\n    a: apple\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#32"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "empty base64 decode",
+    "document": "",
+    "document2": "",
+    "expression": "\"\" | @base64d",
+    "expected": [
+      "D0, P[], (!!str)::\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#33"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "base64 missing padding test",
+    "document": "",
+    "document2": "",
+    "expression": "\"Y2F0cw\" | @base64d",
+    "expected": [
+      "D0, P[], (!!str)::cats\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#34"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "base64 missing padding test",
+    "document": "",
+    "document2": "",
+    "expression": "\"cats\" | @base64 | @base64d",
+    "expected": [
+      "D0, P[], (!!str)::cats\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#35"
+  },
+  {
+    "source": "operator_encoder_decoder_test.go",
+    "description": "empty xml decode",
+    "document": "",
+    "document2": "",
+    "expression": "\"\" | @xmld",
+    "expected": [
+      "D0, P[], (!!null)::\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "xml",
+    "unresolved": [],
+    "group": "encoderDecoderOperatorScenarios",
+    "id": "operator_encoder_decoder#36"
+  }
+]

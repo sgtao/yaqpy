@@ -1,0 +1,188 @@
+[
+  {
+    "source": "operator_keys_test.go",
+    "description": "Map keys",
+    "document": "{dog: woof, cat: meow}",
+    "document2": "",
+    "expression": "keys",
+    "expected": [
+      "D0, P[], (!!seq)::- dog\n- cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#0"
+  },
+  {
+    "source": "operator_keys_test.go",
+    "description": "Map keys with splat",
+    "document": "{dog: woof, cat: meow}",
+    "document2": "",
+    "expression": "keys[]",
+    "expected": [
+      "D0, P[0], (!!str)::dog\n",
+      "D0, P[1], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#1"
+  },
+  {
+    "source": "operator_keys_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": "keys",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#2"
+  },
+  {
+    "source": "operator_keys_test.go",
+    "description": "Array keys",
+    "document": "[apple, banana]",
+    "document2": "",
+    "expression": "keys",
+    "expected": [
+      "D0, P[], (!!seq)::- 0\n- 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#3"
+  },
+  {
+    "source": "operator_keys_test.go",
+    "description": "",
+    "document": "[]",
+    "document2": "",
+    "expression": "keys",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#4"
+  },
+  {
+    "source": "operator_keys_test.go",
+    "description": "Retrieve array key",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": ".[1] | key",
+    "expected": [
+      "D0, P[1], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#5"
+  },
+  {
+    "source": "operator_keys_test.go",
+    "description": "Retrieve map key",
+    "document": "a: thing",
+    "document2": "",
+    "expression": ".a | key",
+    "expected": [
+      "D0, P[a], (!!str)::a\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#6"
+  },
+  {
+    "source": "operator_keys_test.go",
+    "description": "No key",
+    "document": "{}",
+    "document2": "",
+    "expression": "key",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#7"
+  },
+  {
+    "source": "operator_keys_test.go",
+    "description": "Update map key",
+    "document": "a:\n  x: 3\n  y: 4",
+    "document2": "",
+    "expression": "(.a.x | key) = \"meow\"",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    meow: 3\n    y: 4\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#8"
+  },
+  {
+    "source": "operator_keys_test.go",
+    "description": "Get comment from map key",
+    "document": "a: \n  # comment on key\n  x: 3\n  y: 4",
+    "document2": "",
+    "expression": ".a.x | key | headComment",
+    "expected": [
+      "D0, P[a x], (!!str)::comment on key\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#9"
+  },
+  {
+    "source": "operator_keys_test.go",
+    "description": "Check node is a key",
+    "document": "a: \n  b: [cat]\n  c: frog\n",
+    "document2": "",
+    "expression": "[... | { \"p\": path | join(\".\"), \"isKey\": is_key, \"tag\": tag }]",
+    "expected": [
+      "D0, P[], (!!seq)::- p: \"\"\n  isKey: false\n  tag: '!!map'\n- p: a\n  isKey: true\n  tag: '!!str'\n- p: a\n  isKey: false\n  tag: '!!map'\n- p: a.b\n  isKey: true\n  tag: '!!str'\n- p: a.b\n  isKey: false\n  tag: '!!seq'\n- p: a.b.0\n  isKey: false\n  tag: '!!str'\n- p: a.c\n  isKey: true\n  tag: '!!str'\n- p: a.c\n  isKey: false\n  tag: '!!str'\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "keysOperatorScenarios",
+    "id": "operator_keys#10"
+  }
+]

@@ -1,0 +1,191 @@
+[
+  {
+    "source": "operator_unique_test.go",
+    "description": "Unique array of scalars (string/numbers)",
+    "document": "[2,1,3,2]",
+    "document2": "",
+    "expression": "unique",
+    "expected": [
+      "D0, P[], (!!seq)::[2, 1, 3]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#0"
+  },
+  {
+    "source": "operator_unique_test.go",
+    "description": "Unique splat",
+    "document": "[2,1,2]",
+    "document2": "",
+    "expression": "unique[]",
+    "expected": [
+      "D0, P[0], (!!int)::2\n",
+      "D0, P[1], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#1"
+  },
+  {
+    "source": "operator_unique_test.go",
+    "description": "Unique nulls",
+    "document": "[~,null, ~, null]",
+    "document2": "",
+    "expression": "unique",
+    "expected": [
+      "D0, P[], (!!seq)::[~, null]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#2"
+  },
+  {
+    "source": "operator_unique_test.go",
+    "description": "Unique all nulls",
+    "document": "[~,null, ~, null]",
+    "document2": "",
+    "expression": "unique_by(tag)",
+    "expected": [
+      "D0, P[], (!!seq)::[~]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#3"
+  },
+  {
+    "source": "operator_unique_test.go",
+    "description": "Unique array objects",
+    "document": "[{name: harry, pet: cat}, {name: billy, pet: dog}, {name: harry, pet: cat}]",
+    "document2": "",
+    "expression": "unique",
+    "expected": [
+      "D0, P[], (!!seq)::[{name: harry, pet: cat}, {name: billy, pet: dog}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#4"
+  },
+  {
+    "source": "operator_unique_test.go",
+    "description": "Unique array of objects by a field",
+    "document": "[{name: harry, pet: cat}, {name: billy, pet: dog}, {name: harry, pet: dog}]",
+    "document2": "",
+    "expression": "unique_by(.name)",
+    "expected": [
+      "D0, P[], (!!seq)::[{name: harry, pet: cat}, {name: billy, pet: dog}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#5"
+  },
+  {
+    "source": "operator_unique_test.go",
+    "description": "Unique array of arrays",
+    "document": "[[cat,dog], [cat, sheep], [cat,dog]]",
+    "document2": "",
+    "expression": "unique",
+    "expected": [
+      "D0, P[], (!!seq)::[[cat, dog], [cat, sheep]]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#6"
+  },
+  {
+    "source": "operator_unique_test.go",
+    "description": "",
+    "document": "[{name: harry, pet: cat}, {pet: fish}, {name: harry, pet: dog}]",
+    "document2": "",
+    "expression": "unique_by(.name)",
+    "expected": [
+      "D0, P[], (!!seq)::[{name: harry, pet: cat}, {pet: fish}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#7"
+  },
+  {
+    "source": "operator_unique_test.go",
+    "description": "unique by splat",
+    "document": "[{name: harry, pet: cat}, {pet: fish}, {name: harry, pet: dog}]",
+    "document2": "",
+    "expression": "unique_by(.name)[]",
+    "expected": [
+      "D0, P[0], (!!map)::{name: harry, pet: cat}\n",
+      "D0, P[1], (!!map)::{pet: fish}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#8"
+  },
+  {
+    "source": "operator_unique_test.go",
+    "description": "",
+    "document": "[{name: harry, pet: cat}, {pet: fish}, {name: harry, pet: dog}]",
+    "document2": "",
+    "expression": "unique_by(.cat.dog)",
+    "expected": [
+      "D0, P[], (!!seq)::[{name: harry, pet: cat}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#9"
+  },
+  {
+    "source": "operator_unique_test.go",
+    "description": "",
+    "document": "# abc\n[{name: harry, pet: cat}, {pet: fish}, {name: harry, pet: dog}]\n# xyz",
+    "document2": "",
+    "expression": "unique_by(.name)",
+    "expected": [
+      "D0, P[], (!!seq)::# abc\n[{name: harry, pet: cat}, {pet: fish}]\n# xyz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "uniqueOperatorScenarios",
+    "id": "operator_unique#10"
+  }
+]

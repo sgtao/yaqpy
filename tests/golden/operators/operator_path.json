@@ -1,0 +1,277 @@
+[
+  {
+    "source": "operator_path_test.go",
+    "description": "Map path",
+    "document": "{a: {b: cat}}",
+    "document2": "",
+    "expression": ".a.b | path",
+    "expected": [
+      "D0, P[a b], (!!seq)::- a\n- b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#0"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Map path",
+    "document": "{a: {b: cat}}",
+    "document2": "",
+    "expression": ".a.b | path[]",
+    "expected": [
+      "D0, P[a b 0], (!!str)::a\n",
+      "D0, P[a b 1], (!!str)::b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#1"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "",
+    "document": "a:\n  b:\n    c:\n    - 0\n    - 1\n    - 2\n    - 3",
+    "document2": "",
+    "expression": ".a.b.c.[]",
+    "expected": [
+      "D0, P[a b c 0], (!!int)::0\n",
+      "D0, P[a b c 1], (!!int)::1\n",
+      "D0, P[a b c 2], (!!int)::2\n",
+      "D0, P[a b c 3], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#2"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Get map key",
+    "document": "{a: {b: cat}}",
+    "document2": "",
+    "expression": ".a.b | path | .[-1]",
+    "expected": [
+      "D0, P[a b 1], (!!str)::b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#3"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Array path",
+    "document": "{a: [cat, dog]}",
+    "document2": "",
+    "expression": ".a.[] | select(. == \"dog\") | path",
+    "expected": [
+      "D0, P[a 1], (!!seq)::- a\n- 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#4"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Get array index",
+    "document": "{a: [cat, dog]}",
+    "document2": "",
+    "expression": ".a.[] | select(. == \"dog\") | path | .[-1]",
+    "expected": [
+      "D0, P[a 1 1], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#5"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Print path and value",
+    "document": "{a: [cat, dog, frog]}",
+    "document2": "",
+    "expression": ".a[] | select(. == \"*og\") | [{\"path\":path, \"value\":.}]",
+    "expected": [
+      "D0, P[a 1], (!!seq)::- path:\n    - a\n    - 1\n  value: dog\n",
+      "D0, P[a 2], (!!seq)::- path:\n    - a\n    - 2\n  value: frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#6"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Set path",
+    "document": "{a: {b: cat}}",
+    "document2": "",
+    "expression": "setpath([\"a\", \"b\"]; \"things\")",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: things}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#7"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Set on empty document",
+    "document": "",
+    "document2": "",
+    "expression": "setpath([\"a\", \"b\"]; \"things\")",
+    "expected": [
+      "D0, P[], ()::a:\n    b: things\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#8"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Set path to prune deep paths",
+    "document": "\nparentA: bob\nparentB:\n  child1: i am child1\n  child2: i am child2\nparentC:\n  child1: me child1\n  child2: me child2\n",
+    "document2": "",
+    "expression": "(.parentB.child2, .parentC.child1) as $i\n  ireduce({}; setpath($i | path; $i))",
+    "expected": [
+      "D0, P[], (!!map)::parentB:\n    child2: i am child2\nparentC:\n    child1: me child1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#9"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Set array path",
+    "document": "a: [cat, frog]",
+    "document2": "",
+    "expression": "setpath([\"a\", 0]; \"things\")",
+    "expected": [
+      "D0, P[], (!!map)::a: [things, frog]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#10"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Set array path empty",
+    "document": "",
+    "document2": "",
+    "expression": "setpath([\"a\", 0]; \"things\")",
+    "expected": [
+      "D0, P[], ()::a:\n    - things\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#11"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Delete path",
+    "document": "{a: {b: cat, c: dog, d: frog}}",
+    "document2": "",
+    "expression": "delpaths([[\"a\", \"c\"], [\"a\", \"d\"]])",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: cat}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#12"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Delete array path",
+    "document": "a: [cat, frog]",
+    "document2": "",
+    "expression": "delpaths([[\"a\", 0]])",
+    "expected": [
+      "D0, P[], (!!map)::a: [frog]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#13"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Delete splat",
+    "document": "a: [cat, frog]",
+    "document2": "",
+    "expression": "delpaths([[\"a\", 0]])[]",
+    "expected": [
+      "D0, P[a], (!!seq)::[frog]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#14"
+  },
+  {
+    "source": "operator_path_test.go",
+    "description": "Delete - wrong parameter",
+    "document": "a: [cat, frog]",
+    "document2": "",
+    "expression": "delpaths([\"a\", 0])",
+    "expected": [],
+    "expected_error": "DELPATHS: expected entry [0] to be a sequence, but its a !!str. Note that delpaths takes an array of path arrays, e.g. [[\"a\", \"b\"]]",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "pathOperatorScenarios",
+    "id": "operator_path#15"
+  }
+]

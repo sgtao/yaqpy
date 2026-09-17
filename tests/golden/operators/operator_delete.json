@@ -1,0 +1,525 @@
+[
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete entry in map",
+    "document": "{a: cat, b: dog}",
+    "document2": "",
+    "expression": "del(.b)",
+    "expected": [
+      "D0, P[], (!!map)::{a: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#0"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete nested entry in map",
+    "document": "{a: {a1: fred, a2: frood}}",
+    "document2": "",
+    "expression": "del(.a.a1)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {a2: frood}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#1"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "{a: {a1: fred, a2: frood}}",
+    "document2": "",
+    "expression": ".a | del(.a1)",
+    "expected": [
+      "D0, P[a], (!!map)::{a2: frood}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#2"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "delete whole document",
+    "document": "a: fast",
+    "document2": "a: slow",
+    "expression": "del(select(.a == \"fast\"))",
+    "expected": [
+      "D0, P[], (!!map)::a: slow\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#3"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "a: [1,2,3]",
+    "document2": "",
+    "expression": ".a | del(.[1])",
+    "expected": [
+      "D0, P[a], (!!seq)::[1, 3]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#4"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "[0, {a: cat, b: dog}]",
+    "document2": "",
+    "expression": ".[1] | del(.a)",
+    "expected": [
+      "D0, P[1], (!!map)::{b: dog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#5"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "[{a: cat, b: dog}]",
+    "document2": "",
+    "expression": ".[0] | del(.a)",
+    "expected": [
+      "D0, P[0], (!!map)::{b: dog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#6"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "[{a: {b: thing, c: frog}}]",
+    "document2": "",
+    "expression": ".[0].a | del(.b)",
+    "expected": [
+      "D0, P[0 a], (!!map)::{c: frog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#7"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "[{a: {b: thing, c: frog}}]",
+    "document2": "",
+    "expression": ".[0] | del(.a.b)",
+    "expected": [
+      "D0, P[0], (!!map)::{a: {c: frog}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#8"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "{a: [0, {b: thing, c: frog}]}",
+    "document2": "",
+    "expression": ".a[1] | del(.b)",
+    "expected": [
+      "D0, P[a 1], (!!map)::{c: frog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#9"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "{a: [0, {b: thing, c: frog}]}",
+    "document2": "",
+    "expression": ".a | del(.[1].b)",
+    "expected": [
+      "D0, P[a], (!!seq)::[0, {c: frog}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#10"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "{a: {a1: fred, a2: frood}}",
+    "document2": "",
+    "expression": "del(.. | select(.==\"frood\"))",
+    "expected": [
+      "D0, P[], (!!map)::{a: {a1: fred}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#11"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete entry in array",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": "del(.[1])",
+    "expected": [
+      "D0, P[], (!!seq)::[1, 3]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#12"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "a: [1,2,3]",
+    "document2": "",
+    "expression": "del(.a[])",
+    "expected": [
+      "D0, P[], (!!map)::a: []\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#13"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete all entries from list with inline key comment",
+    "document": "testList: # A comment\n- name: test1\n  value: 123\n- name: test2\n  value: 456",
+    "document2": "",
+    "expression": "del(.testList[])",
+    "expected": [
+      "D0, P[], (!!map)::testList: [] # A comment\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#14"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete all entries from map with inline key comment",
+    "document": "testMap: # A comment\n  name: test1\n  value: 123",
+    "document2": "",
+    "expression": "del(.testMap[])",
+    "expected": [
+      "D0, P[], (!!map)::testMap: {} # A comment\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#15"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete entry appended to an array",
+    "document": "[1,2]",
+    "document2": "",
+    "expression": ". += [3] | del(.[2])",
+    "expected": [
+      "D0, P[], (!!seq)::[1, 2]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#16"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete entry after sorting an array",
+    "document": "[3,2,1]",
+    "document2": "",
+    "expression": "sort | del(.[2])",
+    "expected": [
+      "D0, P[], (!!seq)::[1, 2]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#17"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete entry after reversing an array",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": "reverse | del(.[2])",
+    "expected": [
+      "D0, P[], (!!seq)::[3, 2]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#18"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete entry after shuffling an array",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": "shuffle | del(.[2])",
+    "expected": [
+      "D0, P[], (!!seq)::[3, 1]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#19"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete entry from keys array",
+    "document": "{\"a\": 1, \"b\": 2, \"c\": 3}",
+    "document2": "",
+    "expression": "keys | del(.[] | select(.==\"b\"))",
+    "expected": [
+      "D0, P[], (!!seq)::- \"a\"\n- \"c\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#20"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete entry after flattening an array",
+    "document": "[1,[2],[[3]]]",
+    "document2": "",
+    "expression": "flatten | del(.[2])",
+    "expected": [
+      "D0, P[], (!!seq)::[1, 2]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#21"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "a: [10,x,10, 10, x, 10]",
+    "document2": "",
+    "expression": "del(.a[] | select(. == 10))",
+    "expected": [
+      "D0, P[], (!!map)::a: [x, x]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#22"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "a: null",
+    "document2": "",
+    "expression": "del(..)",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#23"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "a: {thing1: yep, thing2: cool, thing3: hi, b: {thing1: cool, great: huh}}",
+    "document2": "",
+    "expression": "del(..)",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#24"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "",
+    "document": "a: {thing1: yep, thing2: cool, thing3: hi, b: {thing1: cool, great: huh}}",
+    "document2": "",
+    "expression": "del(.. | select(tag == \"!!map\") | (.b.thing1,.thing2))",
+    "expected": [
+      "D0, P[], (!!map)::a: {thing1: yep, thing3: hi, b: {great: huh}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#25"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete nested entry in array",
+    "document": "[{a: cat, b: dog}]",
+    "document2": "",
+    "expression": "del(.[0].a)",
+    "expected": [
+      "D0, P[], (!!seq)::[{b: dog}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#26"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete no matches",
+    "document": "{a: cat, b: dog}",
+    "document2": "",
+    "expression": "del(.c)",
+    "expected": [
+      "D0, P[], (!!map)::{a: cat, b: dog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#27"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Delete matching entries",
+    "document": "{a: cat, b: dog, c: bat}",
+    "document2": "",
+    "expression": "del( .[] | select(. == \"*at\") )",
+    "expected": [
+      "D0, P[], (!!map)::{b: dog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#28"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Recursively delete matching keys",
+    "document": "{a: {name: frog, b: {name: blog, age: 12}}}",
+    "document2": "",
+    "expression": "del(.. | select(has(\"name\")).name)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: {age: 12}}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#29"
+  },
+  {
+    "source": "operator_delete_test.go",
+    "description": "Repeatedly delete the first element of a list",
+    "document": "a: [0, 1, 2, 3]",
+    "document2": "",
+    "expression": "del(.a[0]) | del(.a[0])",
+    "expected": [
+      "D0, P[], (!!map)::a: [2, 3]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "deleteOperatorScenarios",
+    "id": "operator_delete#30"
+  }
+]

@@ -1,0 +1,733 @@
+[
+  {
+    "source": "operator_strings_test.go",
+    "description": "Interpolation",
+    "document": "value: things\nanother: stuff",
+    "document2": "",
+    "expression": ".message = \"I like \\(.value) and \\(.another)\"",
+    "expected": [
+      "D0, P[], (!!map)::value: things\nanother: stuff\nmessage: I like things and stuff\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#0"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Interpolation - not a string",
+    "document": "value: {an: apple}",
+    "document2": "",
+    "expression": ".message = \"I like \\(.value)\"",
+    "expected": [
+      "D0, P[], (!!map)::value: {an: apple}\nmessage: 'I like {an: apple}'\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#1"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Interpolation - just escape",
+    "document": "",
+    "document2": "",
+    "expression": "\"\\\\\"",
+    "expected": [
+      "D0, P[], (!!str)::\\\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#2"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Interpolation - nested",
+    "document": "value: things",
+    "document2": "",
+    "expression": "\"Hi \\( (.value) )\"",
+    "expected": [
+      "D0, P[], (!!str)::Hi things\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#3"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Interpolation - don't",
+    "document": "value: things",
+    "document2": "",
+    "expression": "\"Hi (.value)\"",
+    "expected": [
+      "D0, P[], (!!str)::Hi (.value)\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#4"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Interpolation - don't!",
+    "document": "value: things",
+    "document2": "",
+    "expression": "\"Hi \\\\(.value)\"",
+    "expected": [
+      "D0, P[], (!!str)::Hi \\(.value)\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#5"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Interpolation - random close bracket",
+    "document": "value: things",
+    "document2": "",
+    "expression": "\"Hi )\"",
+    "expected": [
+      "D0, P[], (!!str)::Hi )\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#6"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Interpolation - unclosed interpolation string",
+    "document": "value: things",
+    "document2": "",
+    "expression": "\"Hi \\(\"",
+    "expected": [
+      "D0, P[], (!!str)::Hi \\(\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#7"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Interpolation - unclosed interpolation string due to escape",
+    "document": "value: things",
+    "document2": "",
+    "expression": "\"Hi \\(\\)\"",
+    "expected": [
+      "D0, P[], (!!str)::Hi \\(\\)\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#8"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "To up (upper) case",
+    "document": "água",
+    "document2": "",
+    "expression": "upcase",
+    "expected": [
+      "D0, P[], (!!str)::ÁGUA\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#9"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "!camel água",
+    "document2": "",
+    "expression": "upcase",
+    "expected": [
+      "D0, P[], (!camel)::ÁGUA\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#10"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "To down (lower) case",
+    "document": "ÁgUA",
+    "document2": "",
+    "expression": "downcase",
+    "expected": [
+      "D0, P[], (!!str)::água\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#11"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "!camel ÁgUA",
+    "document2": "",
+    "expression": "downcase",
+    "expected": [
+      "D0, P[], (!camel)::água\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#12"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Join strings",
+    "document": "[cat, meow, 1, null, true]",
+    "document2": "",
+    "expression": "join(\"; \")",
+    "expected": [
+      "D0, P[], (!!str)::cat; meow; 1; ; true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#13"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Trim strings",
+    "document": "[\" cat\", \"dog \", \" cow cow \", horse]",
+    "document2": "",
+    "expression": ".[] | trim",
+    "expected": [
+      "D0, P[0], (!!str)::cat\n",
+      "D0, P[1], (!!str)::dog\n",
+      "D0, P[2], (!!str)::cow cow\n",
+      "D0, P[3], (!!str)::horse\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#14"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "[!horse cat, !goat meow, !frog 1, null, true]",
+    "document2": "",
+    "expression": "join(\"; \")",
+    "expected": [
+      "D0, P[], (!!str)::cat; meow; 1; ; true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#15"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Match string",
+    "document": "foo bar foo",
+    "document2": "",
+    "expression": "match(\"foo\")",
+    "expected": [
+      "D0, P[], (!!map)::string: foo\noffset: 0\nlength: 3\ncaptures: []\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#16"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "!horse foo bar foo",
+    "document2": "",
+    "expression": "match(\"foo\")",
+    "expected": [
+      "D0, P[], (!!map)::string: foo\noffset: 0\nlength: 3\ncaptures: []\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#17"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Match string, case insensitive",
+    "document": "foo bar FOO",
+    "document2": "",
+    "expression": "[match(\"(?i)foo\"; \"g\")]",
+    "expected": [
+      "D0, P[], (!!seq)::- string: foo\n  offset: 0\n  length: 3\n  captures: []\n- string: FOO\n  offset: 8\n  length: 3\n  captures: []\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#18"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Match with global capture group",
+    "document": "abc abc",
+    "document2": "",
+    "expression": "[match(\"(ab)(c)\"; \"g\")]",
+    "expected": [
+      "D0, P[], (!!seq)::- string: abc\n  offset: 0\n  length: 3\n  captures:\n    - string: ab\n      offset: 0\n      length: 2\n    - string: c\n      offset: 2\n      length: 1\n- string: abc\n  offset: 4\n  length: 3\n  captures:\n    - string: ab\n      offset: 4\n      length: 2\n    - string: c\n      offset: 6\n      length: 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#19"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Match with named capture groups",
+    "document": "foo bar foo foo  foo",
+    "document2": "",
+    "expression": "[match(\"foo (?P<bar123>bar)? foo\"; \"g\")]",
+    "expected": [
+      "D0, P[], (!!seq)::- string: foo bar foo\n  offset: 0\n  length: 11\n  captures:\n    - string: bar\n      offset: 4\n      length: 3\n      name: bar123\n- string: foo  foo\n  offset: 12\n  length: 8\n  captures:\n    - string: null\n      offset: -1\n      length: 0\n      name: bar123\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#20"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Capture named groups into a map",
+    "document": "xyzzy-14",
+    "document2": "",
+    "expression": "capture(\"(?P<a>[a-z]+)-(?P<n>[0-9]+)\")",
+    "expected": [
+      "D0, P[], (!!map)::a: xyzzy\nn: \"14\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#21"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "!horse xyzzy-14",
+    "document2": "",
+    "expression": "capture(\"(?P<a>[a-z]+)-(?P<n>[0-9]+)\")",
+    "expected": [
+      "D0, P[], (!!map)::a: xyzzy\nn: \"14\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#22"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Capture named groups into a map, with null",
+    "document": "xyzzy-14",
+    "document2": "",
+    "expression": "capture(\"(?P<a>[a-z]+)-(?P<n>[0-9]+)(?P<bar123>bar)?\")",
+    "expected": [
+      "D0, P[], (!!map)::a: xyzzy\nn: \"14\"\nbar123: null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#23"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Match without global flag",
+    "document": "cat cat",
+    "document2": "",
+    "expression": "match(\"cat\")",
+    "expected": [
+      "D0, P[], (!!map)::string: cat\noffset: 0\nlength: 3\ncaptures: []\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#24"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Match with global flag",
+    "document": "cat cat",
+    "document2": "",
+    "expression": "[match(\"cat\"; \"g\")]",
+    "expected": [
+      "D0, P[], (!!seq)::- string: cat\n  offset: 0\n  length: 3\n  captures: []\n- string: cat\n  offset: 4\n  length: 3\n  captures: []\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#25"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "!horse cat cat",
+    "document2": "",
+    "expression": "[match(\"cat\"; \"g\")]",
+    "expected": [
+      "D0, P[], (!!seq)::- string: cat\n  offset: 0\n  length: 3\n  captures: []\n- string: cat\n  offset: 4\n  length: 3\n  captures: []\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#26"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "No match",
+    "document": "dog",
+    "document2": "",
+    "expression": "match(\"cat\"; \"g\")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#27"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "No match",
+    "document": "",
+    "document2": "",
+    "expression": "\"dog\" | match(\"cat\", \"g\")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#28"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "No match",
+    "document": "",
+    "document2": "",
+    "expression": "\"dog\" | match(\"cat\")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#29"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Test using regex",
+    "document": "[\"cat\", \"dog\"]",
+    "document2": "",
+    "expression": ".[] | test(\"at\")",
+    "expected": [
+      "D0, P[0], (!!bool)::true\n",
+      "D0, P[1], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#30"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "[!horse \"cat\", !cat \"dog\"]",
+    "document2": "",
+    "expression": ".[] | test(\"at\")",
+    "expected": [
+      "D0, P[0], (!!bool)::true\n",
+      "D0, P[1], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#31"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "[\"cat*\", \"cat*\", \"cat\"]",
+    "document2": "",
+    "expression": ".[] | test(\"cat\\*\")",
+    "expected": [
+      "D0, P[0], (!!bool)::true\n",
+      "D0, P[1], (!!bool)::true\n",
+      "D0, P[2], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#32"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Substitute / Replace string",
+    "document": "a: dogs are great",
+    "document2": "",
+    "expression": ".a |= sub(\"dogs\", \"cats\")",
+    "expected": [
+      "D0, P[], (!!map)::a: cats are great\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#33"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Substitute / Replace string with regex",
+    "document": "a: cat\nb: heat",
+    "document2": "",
+    "expression": ".[] |= sub(\"(a)\", \"${1}r\")",
+    "expected": [
+      "D0, P[], (!!map)::a: cart\nb: heart\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#34"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Custom types: that are really strings",
+    "document": "a: !horse cat\nb: !goat heat",
+    "document2": "",
+    "expression": ".[] |= sub(\"(a)\", \"${1}r\")",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse cart\nb: !goat heart\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#35"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Split strings",
+    "document": "\"cat; meow; 1; ; true\"",
+    "document2": "",
+    "expression": "split(\"; \")",
+    "expected": [
+      "D0, P[], (!!seq)::- cat\n- meow\n- \"1\"\n- \"\"\n- \"true\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#36"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Split strings one match",
+    "document": "\"word\"",
+    "document2": "",
+    "expression": "split(\"; \")",
+    "expected": [
+      "D0, P[], (!!seq)::- word\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#37"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "Split splat",
+    "document": "\"word; cat\"",
+    "document2": "",
+    "expression": "split(\"; \")[]",
+    "expected": [
+      "D0, P[0], (!!str)::word\n",
+      "D0, P[1], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#38"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "!horse \"word\"",
+    "document2": "",
+    "expression": "split(\"; \")",
+    "expected": [
+      "D0, P[], (!!seq)::- word\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#39"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "\"\"",
+    "document2": "",
+    "expression": "split(\"; \")",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#40"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "split(\"; \")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#41"
+  },
+  {
+    "source": "operator_strings_test.go",
+    "description": "To string",
+    "document": "[1, true, null, ~, cat, {an: object}, [array, 2]]",
+    "document2": "",
+    "expression": ".[] |= to_string",
+    "expected": [
+      "D0, P[], (!!seq)::[\"1\", \"true\", \"null\", \"~\", cat, \"{an: object}\", \"[array, 2]\"]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "stringsOperatorScenarios",
+    "id": "operator_strings#42"
+  }
+]

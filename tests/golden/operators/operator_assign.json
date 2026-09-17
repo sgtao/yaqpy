@@ -1,0 +1,478 @@
+[
+  {
+    "source": "operator_assign_test.go",
+    "description": "Create yaml file",
+    "document": "",
+    "document2": "",
+    "expression": ".a.b = \"cat\" | .x = \"frog\"",
+    "expected": [
+      "D0, P[], ()::a:\n    b: cat\nx: frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#0"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Create yaml file",
+    "document": "a: {b: 3}",
+    "document2": "",
+    "expression": ".a |= .",
+    "expected": [
+      "D0, P[], (!!map)::a: {b: 3}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#1"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": ".a |= .b",
+    "expected": [
+      "D0, P[], (!!map)::a: null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#2"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "",
+    "document": "a: &a\n  x: OriginalValue\nb:\n  <<: *a",
+    "document2": "",
+    "expression": ".c = .b | .a.x = \"ModifiedValue\" | explode(.)",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    x: ModifiedValue\nb:\n    x: ModifiedValue\nc:\n    x: ModifiedValue\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#3"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": ".a = .b",
+    "expected": [
+      "D0, P[], (!!map)::a: null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#4"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "self reference",
+    "document": "a: cat",
+    "document2": "",
+    "expression": ".a = [.a]",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    - cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#5"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "change to number when old value is valid number",
+    "document": "a: \"3\"",
+    "document2": "",
+    "expression": ".a = 3",
+    "expected": [
+      "D0, P[], (!!map)::a: 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#6"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "change to bool when old value is valid bool",
+    "document": "a: \"true\"",
+    "document2": "",
+    "expression": ".a = true",
+    "expected": [
+      "D0, P[], (!!map)::a: true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#7"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "update custom tag string, dont clobber style",
+    "document": "a: !cat \"meow\"",
+    "document2": "",
+    "expression": ".a = \"woof\"",
+    "expected": [
+      "D0, P[], (!!map)::a: !cat \"woof\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#8"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Update node to be the child value",
+    "document": "{a: {b: {g: foof}}}",
+    "document2": "",
+    "expression": ".a |= .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: {g: foof}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#9"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Double elements in an array",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": ".[] |= . * 2",
+    "expected": [
+      "D0, P[], (!!seq)::[2, 4, 6]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#10"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Update node from another file",
+    "document": "{a: apples}",
+    "document2": "{b: bob}",
+    "expression": "select(fileIndex==0).a = select(fileIndex==1) | select(fileIndex==0)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: bob}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#11"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Update node to be the sibling value",
+    "document": "{a: {b: child}, b: sibling}",
+    "document2": "",
+    "expression": ".a = .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: sibling, b: sibling}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#12"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Updated multiple paths",
+    "document": "{a: fieldA, b: fieldB, c: fieldC}",
+    "document2": "",
+    "expression": "(.a, .c) = \"potato\"",
+    "expected": [
+      "D0, P[], (!!map)::{a: potato, b: fieldB, c: potato}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#13"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Update string value",
+    "document": "{a: {b: apple}}",
+    "document2": "",
+    "expression": ".a.b = \"frog\"",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: frog}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#14"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Update string value via |=",
+    "document": "{a: {b: apple}}",
+    "document2": "",
+    "expression": ".a.b |= \"frog\"",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: frog}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#15"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "",
+    "document": "{a: {b: apple}}",
+    "document2": "",
+    "expression": ".a.b | (. |= \"frog\")",
+    "expected": [
+      "D0, P[a b], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#16"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "",
+    "document": "{a: {b: apple}}",
+    "document2": "",
+    "expression": ".a.b |= 5",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: 5}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#17"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "",
+    "document": "{a: {b: apple}}",
+    "document2": "",
+    "expression": ".a.b |= 3.142",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: 3.142}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#18"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Update deeply selected results",
+    "document": "{a: {b: apple, c: cactus}}",
+    "document2": "",
+    "expression": "(.a[] | select(. == \"apple\")) = \"frog\"",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: frog, c: cactus}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#19"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "",
+    "document": "{a: {b: apple, c: cactus}}",
+    "document2": "",
+    "expression": "(.a.[] | select(. == \"apple\")) = \"frog\"",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: frog, c: cactus}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#20"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Update array values",
+    "document": "[candy, apple, sandy]",
+    "document2": "",
+    "expression": "(.[] | select(. == \"*andy\")) = \"bogs\"",
+    "expected": [
+      "D0, P[], (!!seq)::[bogs, apple, bogs]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#21"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Update empty object",
+    "document": "{}",
+    "document2": "",
+    "expression": ".a.b |= \"bogs\"",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    b: bogs\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#22"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Update node value that has an anchor",
+    "document": "a: &cool cat",
+    "document2": "",
+    "expression": ".a = \"dog\"",
+    "expected": [
+      "D0, P[], (!!map)::a: &cool dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#23"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Update empty object and array",
+    "document": "{}",
+    "document2": "",
+    "expression": ".a.b.[0] |= \"bogs\"",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    b:\n        - bogs\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#24"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": ".a.b.[1].c |= \"bogs\"",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    b:\n        - null\n        - c: bogs\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#25"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Custom types are maintained by default",
+    "document": "a: !cat meow\nb: !dog woof",
+    "document2": "",
+    "expression": ".a = .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !cat woof\nb: !dog woof\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#26"
+  },
+  {
+    "source": "operator_assign_test.go",
+    "description": "Custom types: clobber",
+    "document": "a: !cat meow\nb: !dog woof",
+    "document2": "",
+    "expression": ".a =c .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !dog woof\nb: !dog woof\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "assignOperatorScenarios",
+    "id": "operator_assign#27"
+  }
+]

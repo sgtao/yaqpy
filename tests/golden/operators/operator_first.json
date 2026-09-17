@@ -1,0 +1,362 @@
+[
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from array",
+    "document": "[{a: banana},{a: cat},{a: apple}]",
+    "document2": "",
+    "expression": "first(.a == \"cat\")",
+    "expected": [
+      "D0, P[1], (!!map)::{a: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#0"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from array with multiple matches",
+    "document": "[{a: banana},{a: cat, b: firstCat},{a: apple},{a: cat, b: secondCat}]",
+    "document2": "",
+    "expression": "first(.a == \"cat\")",
+    "expected": [
+      "D0, P[1], (!!map)::{a: cat, b: firstCat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#1"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from array with numeric condition",
+    "document": "[{a: 10},{a: 100},{a: 1},{a: 101}]",
+    "document2": "",
+    "expression": "first(.a > 50)",
+    "expected": [
+      "D0, P[1], (!!map)::{a: 100}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#2"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from array with boolean condition",
+    "document": "[{a: false},{a: true, b: firstTrue},{a: false}, {a: true, b: secondTrue}]",
+    "document2": "",
+    "expression": "first(.a == true)",
+    "expected": [
+      "D0, P[1], (!!map)::{a: true, b: firstTrue}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#3"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from array with null values",
+    "document": "[{a: null},{a: cat},{a: apple}]",
+    "document2": "",
+    "expression": "first(.a != null)",
+    "expected": [
+      "D0, P[1], (!!map)::{a: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#4"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from array with complex condition",
+    "document": "[{a: dog, b: 7},{a: cat, b: 3},{a: apple, b: 5}]",
+    "document2": "",
+    "expression": "first(.b > 4 and .b < 6)",
+    "expected": [
+      "D0, P[2], (!!map)::{a: apple, b: 5}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#5"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from map",
+    "document": "x: {a: banana}\ny: {a: cat}\nz: {a: apple}",
+    "document2": "",
+    "expression": "first(.a == \"cat\")",
+    "expected": [
+      "D0, P[y], (!!map)::{a: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#6"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from map with numeric condition",
+    "document": "x: {a: 10}\ny: {a: 100}\nz: {a: 101}",
+    "document2": "",
+    "expression": "first(.a > 50)",
+    "expected": [
+      "D0, P[y], (!!map)::{a: 100}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#7"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from nested structure",
+    "document": "items: [{a: banana},{a: cat},{a: apple}]",
+    "document2": "",
+    "expression": ".items | first(.a == \"cat\")",
+    "expected": [
+      "D0, P[items 1], (!!map)::{a: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#8"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element with no matches",
+    "document": "[{a: banana},{a: cat},{a: apple}]",
+    "document2": "",
+    "expression": "first(.a == \"dog\")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#9"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from empty array",
+    "document": "[]",
+    "document2": "",
+    "expression": "first(.a == \"cat\")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#10"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from scalar node",
+    "document": "hello",
+    "document2": "",
+    "expression": "first(. == \"hello\")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#11"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from null node",
+    "document": "null",
+    "document2": "",
+    "expression": "first(. == \"hello\")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#12"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element with string condition",
+    "document": "[{a: banana},{a: cat},{a: apple}]",
+    "document2": "",
+    "expression": "first(.a | test(\"^c\"))",
+    "expected": [
+      "D0, P[1], (!!map)::{a: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#13"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element with length condition",
+    "document": "[{a: hi},{a: hello},{a: world}]",
+    "document2": "",
+    "expression": "first(.a | length > 4)",
+    "expected": [
+      "D0, P[1], (!!map)::{a: hello}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#14"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from array of strings",
+    "document": "[banana, cat, apple]",
+    "document2": "",
+    "expression": "first(. == \"cat\")",
+    "expected": [
+      "D0, P[1], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#15"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First matching element from array of numbers",
+    "document": "[10, 100, 1]",
+    "document2": "",
+    "expression": "first(. > 50)",
+    "expected": [
+      "D0, P[1], (!!int)::100\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#16"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First element with no filter from array",
+    "document": "[10, 100, 1]",
+    "document2": "",
+    "expression": "first",
+    "expected": [
+      "D0, P[0], (!!int)::10\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#17"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "First element with no filter from array of maps",
+    "document": "[{a: 10},{a: 100}]",
+    "document2": "",
+    "expression": "first",
+    "expected": [
+      "D0, P[0], (!!map)::{a: 10}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#18"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "No filter on empty array returns nothing",
+    "document": "[]",
+    "document2": "",
+    "expression": "first",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#19"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "No filter on scalar returns nothing",
+    "document": "hello",
+    "document2": "",
+    "expression": "first",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#20"
+  },
+  {
+    "source": "operator_first_test.go",
+    "description": "No filter on null returns nothing",
+    "document": "null",
+    "document2": "",
+    "expression": "first",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "firstOperatorScenarios",
+    "id": "operator_first#21"
+  }
+]

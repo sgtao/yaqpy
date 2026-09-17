@@ -1,0 +1,54 @@
+[
+  {
+    "source": "operator_group_by_test.go",
+    "description": "Group by field",
+    "document": "[{foo: 1, bar: 10}, {foo: 3, bar: 100}, {foo: 1, bar: 1}]",
+    "document2": "",
+    "expression": "group_by(.foo)",
+    "expected": [
+      "D0, P[], (!!seq)::- - {foo: 1, bar: 10}\n  - {foo: 1, bar: 1}\n- - {foo: 3, bar: 100}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "groupByOperatorScenarios",
+    "id": "operator_group_by#0"
+  },
+  {
+    "source": "operator_group_by_test.go",
+    "description": "Group splat",
+    "document": "[{foo: 1, bar: 10}, {foo: 3, bar: 100}, {foo: 1, bar: 1}]",
+    "document2": "",
+    "expression": "group_by(.foo)[]",
+    "expected": [
+      "D0, P[0], (!!seq)::- {foo: 1, bar: 10}\n- {foo: 1, bar: 1}\n",
+      "D0, P[1], (!!seq)::- {foo: 3, bar: 100}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "groupByOperatorScenarios",
+    "id": "operator_group_by#1"
+  },
+  {
+    "source": "operator_group_by_test.go",
+    "description": "Group by field, with nulls",
+    "document": "[{cat: dog}, {foo: 1, bar: 10}, {foo: 3, bar: 100}, {no: foo for you}, {foo: 1, bar: 1}]",
+    "document2": "",
+    "expression": "group_by(.foo)",
+    "expected": [
+      "D0, P[], (!!seq)::- - {cat: dog}\n  - {no: foo for you}\n- - {foo: 1, bar: 10}\n  - {foo: 1, bar: 1}\n- - {foo: 3, bar: 100}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "groupByOperatorScenarios",
+    "id": "operator_group_by#2"
+  }
+]

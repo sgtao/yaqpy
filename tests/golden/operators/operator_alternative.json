@@ -1,0 +1,206 @@
+[
+  {
+    "source": "operator_alternative_test.go",
+    "description": "",
+    "document": "a: bridge",
+    "document2": "",
+    "expression": ".b // .c",
+    "expected": [
+      "D0, P[c], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#0"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "",
+    "document": "a: bridge",
+    "document2": "",
+    "expression": "(.b // \"hello\") as $x | .",
+    "expected": [
+      "D0, P[], (!!map)::a: bridge\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#1"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "",
+    "document": "a: 2",
+    "document2": "",
+    "expression": ".a // .b",
+    "expected": [
+      "D0, P[a], (!!int)::2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#2"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "LHS is defined",
+    "document": "{a: bridge}",
+    "document2": "",
+    "expression": ".a // \"hello\"",
+    "expected": [
+      "D0, P[a], (!!str)::bridge\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#3"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "",
+    "document": "a: frog",
+    "document2": "",
+    "expression": "select(tag == \"seq\") // \"cat\"",
+    "expected": [
+      "D0, P[], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#4"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "LHS is not defined",
+    "document": "{}",
+    "document2": "",
+    "expression": ".a // \"hello\"",
+    "expected": [
+      "D0, P[], (!!str)::hello\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#5"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "LHS is null",
+    "document": "{a: ~}",
+    "document2": "",
+    "expression": ".a // \"hello\"",
+    "expected": [
+      "D0, P[], (!!str)::hello\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#6"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "LHS is false",
+    "document": "{a: false}",
+    "document2": "",
+    "expression": ".a // \"hello\"",
+    "expected": [
+      "D0, P[], (!!str)::hello\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#7"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "RHS is an expression",
+    "document": "{a: false, b: cat}",
+    "document2": "",
+    "expression": ".a // .b",
+    "expected": [
+      "D0, P[b], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#8"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "false // true",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#9"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "Update or create - entity exists",
+    "document": "a: 1",
+    "document2": "",
+    "expression": "(.a // (.a = 0)) += 1",
+    "expected": [
+      "D0, P[], (!!map)::a: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#10"
+  },
+  {
+    "source": "operator_alternative_test.go",
+    "description": "Update or create - entity does not exist",
+    "document": "b: camel",
+    "document2": "",
+    "expression": "(.a // (.a = 0)) += 1",
+    "expected": [
+      "D0, P[], (!!map)::b: camel\na: 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "alternativeOperatorScenarios",
+    "id": "operator_alternative#11"
+  }
+]

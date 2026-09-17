@@ -1,0 +1,420 @@
+[
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": "..",
+    "expected": [
+      "D0, P[], (!!map)::{}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#0"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": "...",
+    "expected": [
+      "D0, P[], (!!map)::{}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#1"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "[]",
+    "document2": "",
+    "expression": "..",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#2"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "[]",
+    "document2": "",
+    "expression": "...",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#3"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "cat",
+    "document2": "",
+    "expression": "..",
+    "expected": [
+      "D0, P[], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#4"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "cat",
+    "document2": "",
+    "expression": "...",
+    "expected": [
+      "D0, P[], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#5"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "Recurse map (values only)",
+    "document": "{a: frog}",
+    "document2": "",
+    "expression": "..",
+    "expected": [
+      "D0, P[], (!!map)::{a: frog}\n",
+      "D0, P[a], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#6"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "Recursively find nodes with keys",
+    "document": "{a: {name: frog, b: {name: blog, age: 12}}}",
+    "document2": "",
+    "expression": "[.. | select(has(\"name\"))]",
+    "expected": [
+      "D0, P[], (!!seq)::- {name: frog, b: {name: blog, age: 12}}\n- {name: blog, age: 12}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#7"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "Recursively find nodes with values",
+    "document": "{a: {nameA: frog, b: {nameB: frog, age: 12}}}",
+    "document2": "",
+    "expression": ".. | select(. == \"frog\")",
+    "expected": [
+      "D0, P[a nameA], (!!str)::frog\n",
+      "D0, P[a b nameB], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#8"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "Recurse map (values and keys)",
+    "document": "{a: frog}",
+    "document2": "",
+    "expression": "...",
+    "expected": [
+      "D0, P[], (!!map)::{a: frog}\n",
+      "D0, P[a], (!!str)::a\n",
+      "D0, P[a], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#9"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "{a: {b: apple}}",
+    "document2": "",
+    "expression": "..",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: apple}}\n",
+      "D0, P[a], (!!map)::{b: apple}\n",
+      "D0, P[a b], (!!str)::apple\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#10"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "{a: {b: apple}}",
+    "document2": "",
+    "expression": "...",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: apple}}\n",
+      "D0, P[a], (!!str)::a\n",
+      "D0, P[a], (!!map)::{b: apple}\n",
+      "D0, P[a b], (!!str)::b\n",
+      "D0, P[a b], (!!str)::apple\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#11"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": "..",
+    "expected": [
+      "D0, P[], (!!seq)::[1, 2, 3]\n",
+      "D0, P[0], (!!int)::1\n",
+      "D0, P[1], (!!int)::2\n",
+      "D0, P[2], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#12"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": "...",
+    "expected": [
+      "D0, P[], (!!seq)::[1, 2, 3]\n",
+      "D0, P[0], (!!int)::1\n",
+      "D0, P[1], (!!int)::2\n",
+      "D0, P[2], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#13"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "[{a: cat},2,true]",
+    "document2": "",
+    "expression": "..",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: cat}, 2, true]\n",
+      "D0, P[0], (!!map)::{a: cat}\n",
+      "D0, P[0 a], (!!str)::cat\n",
+      "D0, P[1], (!!int)::2\n",
+      "D0, P[2], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#14"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "[{a: cat},2,true]",
+    "document2": "",
+    "expression": "...",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: cat}, 2, true]\n",
+      "D0, P[0], (!!map)::{a: cat}\n",
+      "D0, P[0 a], (!!str)::a\n",
+      "D0, P[0 a], (!!str)::cat\n",
+      "D0, P[1], (!!int)::2\n",
+      "D0, P[2], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#15"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "Aliases are not traversed",
+    "document": "{a: &cat {c: frog}, b: *cat}",
+    "document2": "",
+    "expression": "[..]",
+    "expected": [
+      "D0, P[], (!!seq)::- {a: &cat {c: frog}, b: *cat}\n- &cat {c: frog}\n- frog\n- *cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#16"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "{a: &cat {c: frog}, b: *cat}",
+    "document2": "",
+    "expression": "...",
+    "expected": [
+      "D0, P[], (!!map)::{a: &cat {c: frog}, b: *cat}\n",
+      "D0, P[a], (!!str)::a\n",
+      "D0, P[a], (!!map)::&cat {c: frog}\n",
+      "D0, P[a c], (!!str)::c\n",
+      "D0, P[a c], (!!str)::frog\n",
+      "D0, P[b], (!!str)::b\n",
+      "D0, P[b], (alias)::*cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#17"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "Merge docs are not traversed",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobar | [..]",
+    "expected": [
+      "D0, P[foobar], (!!seq)::- c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n- foobar_c\n- *foo\n- foobar_thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#18"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobar | [...]",
+    "expected": [
+      "D0, P[foobar], (!!seq)::- c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n- c\n- foobar_c\n- <<\n- *foo\n- thing\n- foobar_thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#19"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList | ..",
+    "expected": [
+      "D0, P[foobarList], (!!map)::b: foobarList_b\n<<: [*foo, *bar]\nc: foobarList_c\n",
+      "D0, P[foobarList b], (!!str)::foobarList_b\n",
+      "D0, P[foobarList <<], (!!seq)::[*foo, *bar]\n",
+      "D0, P[foobarList << 0], (alias)::*foo\n",
+      "D0, P[foobarList << 1], (alias)::*bar\n",
+      "D0, P[foobarList c], (!!str)::foobarList_c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#20"
+  },
+  {
+    "source": "operator_recursive_descent_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList | ...",
+    "expected": [
+      "D0, P[foobarList], (!!map)::b: foobarList_b\n<<: [*foo, *bar]\nc: foobarList_c\n",
+      "D0, P[foobarList b], (!!str)::b\n",
+      "D0, P[foobarList b], (!!str)::foobarList_b\n",
+      "D0, P[foobarList <<], (!!merge)::<<\n",
+      "D0, P[foobarList <<], (!!seq)::[*foo, *bar]\n",
+      "D0, P[foobarList << 0], (alias)::*foo\n",
+      "D0, P[foobarList << 1], (alias)::*bar\n",
+      "D0, P[foobarList c], (!!str)::c\n",
+      "D0, P[foobarList c], (!!str)::foobarList_c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "recursiveDescentOperatorScenarios",
+    "id": "operator_recursive_descent#21"
+  }
+]

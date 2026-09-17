@@ -1,0 +1,258 @@
+[
+  {
+    "source": "operator_entries_test.go",
+    "description": "to_entries splat",
+    "document": "{a: 1, b: 2}",
+    "document2": "",
+    "expression": "to_entries[]",
+    "expected": [
+      "D0, P[0], (!!map)::key: a\nvalue: 1\n",
+      "D0, P[1], (!!map)::key: b\nvalue: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#0"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "to_entries, delete key",
+    "document": "{a: 1, b: 2}",
+    "document2": "",
+    "expression": "to_entries | map(del(.key))",
+    "expected": [
+      "D0, P[], (!!seq)::- value: 1\n- value: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#1"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "to_entries Map",
+    "document": "{a: 1, b: 2}",
+    "document2": "",
+    "expression": "to_entries",
+    "expected": [
+      "D0, P[], (!!seq)::- key: a\n  value: 1\n- key: b\n  value: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#2"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "to_entries Array",
+    "document": "[a, b]",
+    "document2": "",
+    "expression": "to_entries",
+    "expected": [
+      "D0, P[], (!!seq)::- key: 0\n  value: a\n- key: 1\n  value: b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#3"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "to_entries null",
+    "document": "null",
+    "document2": "",
+    "expression": "to_entries",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#4"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "from_entries map",
+    "document": "{a: 1, b: 2}",
+    "document2": "",
+    "expression": "to_entries | from_entries",
+    "expected": [
+      "D0, P[], (!!map)::a: 1\nb: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#5"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "from_entries with numeric key indices",
+    "document": "[a,b]",
+    "document2": "",
+    "expression": "to_entries | from_entries",
+    "expected": [
+      "D0, P[], (!!map)::0: a\n1: b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#6"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "Use with_entries to update keys",
+    "document": "{a: 1, b: 2}",
+    "document2": "",
+    "expression": "with_entries(.key |= \"KEY_\" + .)",
+    "expected": [
+      "D0, P[], (!!map)::KEY_a: 1\nKEY_b: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#7"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "Use with_entries to update keys recursively",
+    "document": "{a: 1, b: {b_a: nested, b_b: thing}}",
+    "document2": "",
+    "expression": "(.. | select(tag==\"!!map\")) |= with_entries(.key |= \"KEY_\" + .)",
+    "expected": [
+      "D0, P[], (!!map)::{KEY_a: 1, KEY_b: {KEY_b_a: nested, KEY_b_b: thing}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#8"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "Use with_entries to update keys comment",
+    "document": "{a: 1, b: 2}",
+    "document2": "",
+    "expression": "with_entries(.key headComment= .value)",
+    "expected": [
+      "D0, P[], (!!map)::# 1\na: 1\n# 2\nb: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#9"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "Custom sort map keys",
+    "document": "{a: 1, c: 3, b: 2}",
+    "document2": "",
+    "expression": "to_entries | sort_by(.key) | reverse | from_entries",
+    "expected": [
+      "D0, P[], (!!map)::c: 3\nb: 2\na: 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#10"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "",
+    "document": "{a: 1, b: 2}",
+    "document2": "{c: 1, d: 2}",
+    "expression": "with_entries(.key |= \"KEY_\" + .)",
+    "expected": [
+      "D0, P[], (!!map)::KEY_a: 1\nKEY_b: 2\n",
+      "D0, P[], (!!map)::KEY_c: 1\nKEY_d: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#11"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "",
+    "document": "[{a: 1, b: 2}, {c: 1, d: 2}]",
+    "document2": "",
+    "expression": ".[] | with_entries(.key |= \"KEY_\" + .)",
+    "expected": [
+      "D0, P[], (!!map)::KEY_a: 1\nKEY_b: 2\n",
+      "D0, P[], (!!map)::KEY_c: 1\nKEY_d: 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#12"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "Use with_entries to filter the map",
+    "document": "{a: { b: bird }, c: { d: dog }}",
+    "document2": "",
+    "expression": "with_entries(select(.value | has(\"b\")))",
+    "expected": [
+      "D0, P[], (!!map)::a: {b: bird}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#13"
+  },
+  {
+    "source": "operator_entries_test.go",
+    "description": "Use with_entries to filter the map; head comment",
+    "document": "# abc\n{a: { b: bird }, c: { d: dog }}\n# xyz",
+    "document2": "",
+    "expression": "with_entries(select(.value | has(\"b\")))",
+    "expected": [
+      "D0, P[], (!!map)::# abc\na: {b: bird}\n# xyz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "entriesOperatorScenarios",
+    "id": "operator_entries#14"
+  }
+]

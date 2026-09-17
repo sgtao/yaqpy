@@ -1,0 +1,189 @@
+[
+  {
+    "source": "operator_contains_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "null | contains(~)",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#0"
+  },
+  {
+    "source": "operator_contains_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "3 | contains(3)",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#1"
+  },
+  {
+    "source": "operator_contains_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "3 | contains(32)",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#2"
+  },
+  {
+    "source": "operator_contains_test.go",
+    "description": "Array contains array",
+    "document": "[\"foobar\", \"foobaz\", \"blarp\"]",
+    "document2": "",
+    "expression": "contains([\"baz\", \"bar\"])",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#3"
+  },
+  {
+    "source": "operator_contains_test.go",
+    "description": "Array has a subset array",
+    "document": "[\"foobar\", \"foobaz\", \"blarp\"]",
+    "document2": "",
+    "expression": "[\"baz\", \"bar\"] - . | length == 0",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#4"
+  },
+  {
+    "source": "operator_contains_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[\"dog\", \"cat\", \"giraffe\"] | contains([\"camel\"])",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#5"
+  },
+  {
+    "source": "operator_contains_test.go",
+    "description": "Object included in array",
+    "document": "{\"foo\": 12, \"bar\":[1,2,{\"barp\":12, \"blip\":13}]}",
+    "document2": "",
+    "expression": "contains({\"bar\": [{\"barp\": 12}]})",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#6"
+  },
+  {
+    "source": "operator_contains_test.go",
+    "description": "Object not included in array",
+    "document": "{\"foo\": 12, \"bar\":[1,2,{\"barp\":12, \"blip\":13}]}",
+    "document2": "",
+    "expression": "contains({\"foo\": 12, \"bar\": [{\"barp\": 15}]})",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#7"
+  },
+  {
+    "source": "operator_contains_test.go",
+    "description": "",
+    "document": "? 1\n: ~\n? ~\n: x",
+    "document2": "",
+    "expression": "contains({~: \"x\"})",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#8"
+  },
+  {
+    "source": "operator_contains_test.go",
+    "description": "String contains substring",
+    "document": "\"foobar\"",
+    "document2": "",
+    "expression": "contains(\"bar\")",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#9"
+  },
+  {
+    "source": "operator_contains_test.go",
+    "description": "String equals string",
+    "document": "\"meow\"",
+    "document2": "",
+    "expression": "contains(\"meow\")",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "containsOperatorScenarios",
+    "id": "operator_contains#10"
+  }
+]

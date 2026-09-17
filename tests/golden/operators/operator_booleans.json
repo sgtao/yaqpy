@@ -1,0 +1,568 @@
+[
+  {
+    "source": "operator_booleans_test.go",
+    "description": "`or` example",
+    "document": "",
+    "document2": "",
+    "expression": "true or false",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#0"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "\"yes\" and \"no\" are strings",
+    "document": "[yes, no]",
+    "document2": "",
+    "expression": ".[] | tag",
+    "expected": [
+      "D0, P[0], (!!str)::!!str\n",
+      "D0, P[1], (!!str)::!!str\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#1"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "b: hi",
+    "document2": "",
+    "expression": ".a or .c",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#2"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "b: false",
+    "document2": "",
+    "expression": ".b or .c",
+    "expected": [
+      "D0, P[b], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#3"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "b: hi",
+    "document2": "",
+    "expression": "select(.a or .b)",
+    "expected": [
+      "D0, P[], (!!map)::b: hi\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#4"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "b: hi",
+    "document2": "",
+    "expression": "select((.a and .b) | not)",
+    "expected": [
+      "D0, P[], (!!map)::b: hi\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#5"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "And should not run 2nd arg if first is false",
+    "document": "",
+    "document2": "",
+    "expression": "false and test(3)",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#6"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "Or should not run 2nd arg if first is true",
+    "document": "",
+    "document2": "",
+    "expression": "true or test(3)",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#7"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "`and` example",
+    "document": "",
+    "document2": "",
+    "expression": "true and false",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#8"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "Matching nodes with select, equals and or",
+    "document": "[{a: bird, b: dog}, {a: frog, b: bird}, {a: cat, b: fly}]",
+    "document2": "",
+    "expression": "[.[] | select(.a == \"cat\" or .b == \"dog\")]",
+    "expected": [
+      "D0, P[], (!!seq)::- {a: bird, b: dog}\n- {a: cat, b: fly}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#9"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "`any` returns true if any boolean in a given array is true",
+    "document": "[false, true]",
+    "document2": "",
+    "expression": "any",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#10"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "`any` returns false for an empty array",
+    "document": "[]",
+    "document2": "",
+    "expression": "any",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#11"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "`any_c` returns true if any element in the array is true for the given condition.",
+    "document": "a: [rad, awesome]\nb: [meh, whatever]",
+    "document2": "",
+    "expression": ".[] |= any_c(. == \"awesome\")",
+    "expected": [
+      "D0, P[], (!!map)::a: true\nb: false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#12"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "[{pet: cat}]",
+    "document2": "",
+    "expression": "any_c(.name == \"harry\") as $c | .",
+    "expected": [
+      "D0, P[], (!!seq)::[{pet: cat}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#13"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "[{pet: cat}]",
+    "document2": "",
+    "expression": "any_c(.name == \"harry\") as $c | $c",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#14"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "[{pet: cat}]",
+    "document2": "",
+    "expression": "all_c(.name == \"harry\") as $c | $c",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#15"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "[false, false]",
+    "document2": "",
+    "expression": "any",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#16"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "`all` returns true if all booleans in a given array are true",
+    "document": "[true, true]",
+    "document2": "",
+    "expression": "all",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#17"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "[false, true]",
+    "document2": "",
+    "expression": "all",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#18"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "`all` returns true for an empty array",
+    "document": "[]",
+    "document2": "",
+    "expression": "all",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#19"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "`all_c` returns true if all elements in the array are true for the given condition.",
+    "document": "a: [rad, awesome]\nb: [meh, 12]",
+    "document2": "",
+    "expression": ".[] |= all_c(tag == \"!!str\")",
+    "expected": [
+      "D0, P[], (!!map)::a: true\nb: false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#20"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "false or false",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#21"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "{a: true, b: false}",
+    "document2": "",
+    "expression": ".[] or (false, true)",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n",
+      "D0, P[b], (!!bool)::false\n",
+      "D0, P[b], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#22"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "{a: true, b: false}",
+    "document2": "",
+    "expression": ".[] and (false, true)",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n",
+      "D0, P[a], (!!bool)::true\n",
+      "D0, P[b], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#23"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": "(.a.b or .c) as $x | .",
+    "expected": [
+      "D0, P[], (!!map)::{}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#24"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": "(.a.b and .c) as $x | .",
+    "expected": [
+      "D0, P[], (!!map)::{}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#25"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "Not true is false",
+    "document": "",
+    "document2": "",
+    "expression": "true | not",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#26"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "Not false is true",
+    "document": "",
+    "document2": "",
+    "expression": "false | not",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#27"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "String values considered to be true",
+    "document": "",
+    "document2": "",
+    "expression": "\"cat\" | not",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#28"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "Empty string value considered to be true",
+    "document": "",
+    "document2": "",
+    "expression": "\"\" | not",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#29"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "Numbers are considered to be true",
+    "document": "",
+    "document2": "",
+    "expression": "1 | not",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#30"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "Zero is considered to be true",
+    "document": "",
+    "document2": "",
+    "expression": "0 | not",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#31"
+  },
+  {
+    "source": "operator_booleans_test.go",
+    "description": "Null is considered to be false",
+    "document": "",
+    "document2": "",
+    "expression": "~ | not",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "booleanOperatorScenarios",
+    "id": "operator_booleans#32"
+  }
+]

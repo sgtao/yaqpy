@@ -1,0 +1,312 @@
+[
+  {
+    "source": "operator_select_test.go",
+    "description": "",
+    "document": "cat: pants",
+    "document2": "",
+    "expression": "select(.nope) | key + \" why though?\"",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#0"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "",
+    "document": "cat",
+    "document2": "",
+    "expression": "select(false, true)",
+    "expected": [
+      "D0, P[], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#1"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "",
+    "document": "cat",
+    "document2": "",
+    "expression": "select(true, false)",
+    "expected": [
+      "D0, P[], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#2"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "",
+    "document": "cat",
+    "document2": "",
+    "expression": "select(false)",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#3"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "Select elements from array using wildcard prefix",
+    "document": "[cat,goat,dog]",
+    "document2": "",
+    "expression": ".[] | select(. == \"*at\")",
+    "expected": [
+      "D0, P[0], (!!str)::cat\n",
+      "D0, P[1], (!!str)::goat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#4"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "Select elements from array using wildcard suffix",
+    "document": "[go-kart,goat,dog]",
+    "document2": "",
+    "expression": ".[] | select(. == \"go*\")",
+    "expected": [
+      "D0, P[0], (!!str)::go-kart\n",
+      "D0, P[1], (!!str)::goat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#5"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "Select elements from array using wildcard prefix and suffix",
+    "document": "[ago, go, meow, going]",
+    "document2": "",
+    "expression": ".[] | select(. == \"*go*\")",
+    "expected": [
+      "D0, P[0], (!!str)::ago\n",
+      "D0, P[1], (!!str)::go\n",
+      "D0, P[3], (!!str)::going\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#6"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "Select elements from array with regular expression",
+    "document": "[this_0, not_this, nor_0_this, thisTo_4]",
+    "document2": "",
+    "expression": ".[] | select(test(\"[a-zA-Z]+_[0-9]$\"))",
+    "expected": [
+      "D0, P[0], (!!str)::this_0\n",
+      "D0, P[3], (!!str)::thisTo_4\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#7"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "",
+    "document": "a: hello",
+    "document2": "b: world",
+    "expression": "select(.a == \"hello\" or .b == \"world\")",
+    "expected": [
+      "D0, P[], (!!map)::a: hello\n",
+      "D0, P[], (!!map)::b: world\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#8"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "select splat",
+    "document": "a: hello",
+    "document2": "b: world",
+    "expression": "select(.a == \"hello\" or .b == \"world\")[]",
+    "expected": [
+      "D0, P[a], (!!str)::hello\n",
+      "D0, P[b], (!!str)::world\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#9"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "select does not update the map",
+    "document": "[{animal: cat, legs: {cool: true}}, {animal: fish}]",
+    "document2": "",
+    "expression": "(.[] | select(.legs.cool == true).canWalk) = true | (.[] | .alive.things) = \"yes\"",
+    "expected": [
+      "D0, P[], (!!seq)::[{animal: cat, legs: {cool: true}, canWalk: true, alive: {things: yes}}, {animal: fish, alive: {things: yes}}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#10"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "",
+    "document": "[hot, fot, dog]",
+    "document2": "",
+    "expression": ".[] | select(. == \"*at\")",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#11"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "",
+    "document": "a: [cat,goat,dog]",
+    "document2": "",
+    "expression": ".a.[] | select(. == \"*at\")",
+    "expected": [
+      "D0, P[a 0], (!!str)::cat\n",
+      "D0, P[a 1], (!!str)::goat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#12"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "Select items from a map",
+    "document": "{ things: cat, bob: goat, horse: dog }",
+    "document2": "",
+    "expression": ".[] | select(. == \"cat\" or test(\"og$\"))",
+    "expected": [
+      "D0, P[things], (!!str)::cat\n",
+      "D0, P[horse], (!!str)::dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#13"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "Use select and with_entries to filter map keys",
+    "document": "{name: bob, legs: 2, game: poker}",
+    "document2": "",
+    "expression": "with_entries(select(.key | test(\"ame$\")))",
+    "expected": [
+      "D0, P[], (!!map)::name: bob\ngame: poker\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#14"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "Select multiple items in a map and update",
+    "document": "a: { things: cat, bob: goat, horse: dog }",
+    "document2": "",
+    "expression": "(.a.[] | select(. == \"cat\" or . == \"goat\")) |= \"rabbit\"",
+    "expected": [
+      "D0, P[], (!!map)::a: {things: rabbit, bob: rabbit, horse: dog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#15"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "",
+    "document": "a: { things: {include: true}, notMe: {include: false}, andMe: {include: fold} }",
+    "document2": "",
+    "expression": ".a.[] | select(.include)",
+    "expected": [
+      "D0, P[a things], (!!map)::{include: true}\n",
+      "D0, P[a andMe], (!!map)::{include: fold}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#16"
+  },
+  {
+    "source": "operator_select_test.go",
+    "description": "",
+    "document": "[cat,~,dog]",
+    "document2": "",
+    "expression": ".[] | select(. == ~)",
+    "expected": [
+      "D0, P[1], (!!null)::~\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "selectOperatorScenarios",
+    "id": "operator_select#17"
+  }
+]

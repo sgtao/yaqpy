@@ -1,0 +1,276 @@
+[
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[\"x\", \"y\"] | .[1]",
+    "expected": [
+      "D0, P[1], (!!str)::y\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#0"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": ".a += [0]",
+    "expected": [
+      "D0, P[], ()::a:\n    - 0\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#1"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[1,2,3]",
+    "expected": [
+      "D0, P[], (!!seq)::- 1\n- 2\n- 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#2"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "update in collect",
+    "document": "",
+    "document2": "",
+    "expression": "[.a = \"cat\"]",
+    "expected": [
+      "D0, P[], (!!seq)::- a: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#3"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "Collect empty",
+    "document": "",
+    "document2": "",
+    "expression": "[]",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#4"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "{a: apple}\n---\n{b: frog}",
+    "document2": "",
+    "expression": "[.]",
+    "expected": [
+      "D0, P[], (!!seq)::- {a: apple}\n- {b: frog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#5"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "with comments",
+    "document": "# abc\n[{a: apple}]\n\n# xyz\n",
+    "document2": "",
+    "expression": "[.[]]",
+    "expected": [
+      "D0, P[], (!!seq)::- {a: apple}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#6"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[3]",
+    "expected": [
+      "D0, P[], (!!seq)::- 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#7"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "Collect single",
+    "document": "",
+    "document2": "",
+    "expression": "[\"cat\"]",
+    "expected": [
+      "D0, P[], (!!seq)::- cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#8"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[true]",
+    "expected": [
+      "D0, P[], (!!seq)::- true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#9"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "Collect many",
+    "document": "{a: cat, b: dog}",
+    "document2": "",
+    "expression": "[.a, .b]",
+    "expected": [
+      "D0, P[], (!!seq)::- cat\n- dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#10"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "collect(1)",
+    "expected": [
+      "D0, P[], (!!seq)::- 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#11"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": "[.[]]",
+    "expected": [
+      "D0, P[], (!!seq)::- 1\n- 2\n- 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#12"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[1,2][]",
+    "expected": [
+      "D0, P[0], (!!int)::1\n",
+      "D0, P[1], (!!int)::2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#13"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "a: {b: [1,2,3]}",
+    "document2": "",
+    "expression": "[.a.b.[]]",
+    "expected": [
+      "D0, P[], (!!seq)::- 1\n- 2\n- 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#14"
+  },
+  {
+    "source": "operator_collect_test.go",
+    "description": "",
+    "document": "[{name: cat, thing: bor}, {name: dog}]",
+    "document2": "",
+    "expression": ".[] | [.name]",
+    "expected": [
+      "D0, P[0], (!!seq)::- cat\n",
+      "D0, P[1], (!!seq)::- dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "collectOperatorScenarios",
+    "id": "operator_collect#15"
+  }
+]

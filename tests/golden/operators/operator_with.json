@@ -1,0 +1,87 @@
+[
+  {
+    "source": "operator_with_test.go",
+    "description": "Update and style",
+    "document": "a: {deeply: {nested: value}}",
+    "document2": "",
+    "expression": "with(.a.deeply.nested; . = \"newValue\" | . style=\"single\")",
+    "expected": [
+      "D0, P[], (!!map)::a: {deeply: {nested: 'newValue'}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "withOperatorScenarios",
+    "id": "operator_with#0"
+  },
+  {
+    "source": "operator_with_test.go",
+    "description": "with splat",
+    "document": "a: {deeply: {nested: value}}",
+    "document2": "",
+    "expression": "with(.a.deeply.nested; . = \"newValue\" | . style=\"single\")[]",
+    "expected": [
+      "D0, P[a], (!!map)::{deeply: {nested: 'newValue'}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "withOperatorScenarios",
+    "id": "operator_with#1"
+  },
+  {
+    "source": "operator_with_test.go",
+    "description": "Update multiple deeply nested properties",
+    "document": "a: {deeply: {nested: value, other: thing}}",
+    "document2": "",
+    "expression": "with(.a.deeply; .nested = \"newValue\" | .other= \"newThing\")",
+    "expected": [
+      "D0, P[], (!!map)::a: {deeply: {nested: newValue, other: newThing}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "withOperatorScenarios",
+    "id": "operator_with#2"
+  },
+  {
+    "source": "operator_with_test.go",
+    "description": "Update array elements relatively",
+    "document": "myArray: [{a: apple},{a: banana}]",
+    "document2": "",
+    "expression": "with(.myArray[]; .b = .a + \" yum\")",
+    "expected": [
+      "D0, P[], (!!map)::myArray: [{a: apple, b: apple yum}, {a: banana, b: banana yum}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "withOperatorScenarios",
+    "id": "operator_with#3"
+  },
+  {
+    "source": "operator_with_test.go",
+    "description": "Update array elements relatively +=",
+    "document": "myArray: [{a: apple},{a: banana}]",
+    "document2": "",
+    "expression": "with(.myArray[]; .a += .a)",
+    "expected": [
+      "D0, P[], (!!map)::myArray: [{a: appleapple}, {a: bananabanana}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "withOperatorScenarios",
+    "id": "operator_with#4"
+  }
+]

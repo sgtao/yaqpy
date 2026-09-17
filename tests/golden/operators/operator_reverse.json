@@ -1,0 +1,122 @@
+[
+  {
+    "source": "operator_reverse_test.go",
+    "description": "Reverse",
+    "document": "[1, 2, 3]",
+    "document2": "",
+    "expression": "reverse",
+    "expected": [
+      "D0, P[], (!!seq)::[3, 2, 1]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "reverseOperatorScenarios",
+    "id": "operator_reverse#0"
+  },
+  {
+    "source": "operator_reverse_test.go",
+    "description": "Reverse",
+    "document": "[1, 2]",
+    "document2": "",
+    "expression": "reverse[]",
+    "expected": [
+      "D0, P[0], (!!int)::2\n",
+      "D0, P[1], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "reverseOperatorScenarios",
+    "id": "operator_reverse#1"
+  },
+  {
+    "source": "operator_reverse_test.go",
+    "description": "",
+    "document": "[]",
+    "document2": "",
+    "expression": "reverse",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "reverseOperatorScenarios",
+    "id": "operator_reverse#2"
+  },
+  {
+    "source": "operator_reverse_test.go",
+    "description": "",
+    "document": "[1]",
+    "document2": "",
+    "expression": "reverse",
+    "expected": [
+      "D0, P[], (!!seq)::[1]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "reverseOperatorScenarios",
+    "id": "operator_reverse#3"
+  },
+  {
+    "source": "operator_reverse_test.go",
+    "description": "",
+    "document": "[1,2]",
+    "document2": "",
+    "expression": "reverse",
+    "expected": [
+      "D0, P[], (!!seq)::[2, 1]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "reverseOperatorScenarios",
+    "id": "operator_reverse#4"
+  },
+  {
+    "source": "operator_reverse_test.go",
+    "description": "Sort descending by string field",
+    "document": "[{a: banana},{a: cat},{a: apple}]",
+    "document2": "",
+    "expression": "sort_by(.a) | reverse",
+    "expected": [
+      "D0, P[], (!!seq)::[{a: cat}, {a: banana}, {a: apple}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "reverseOperatorScenarios",
+    "id": "operator_reverse#5"
+  },
+  {
+    "source": "operator_reverse_test.go",
+    "description": "Sort descending by string field, with comments",
+    "document": "# abc\n[{a: banana},{a: cat},{a: apple}]\n# xyz",
+    "document2": "",
+    "expression": "sort_by(.a) | reverse",
+    "expected": [
+      "D0, P[], (!!seq)::# abc\n[{a: cat}, {a: banana}, {a: apple}]\n# xyz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "reverseOperatorScenarios",
+    "id": "operator_reverse#6"
+  }
+]

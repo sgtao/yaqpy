@@ -1,0 +1,315 @@
+[
+  {
+    "source": "operator_load_test.go",
+    "description": "Load empty file with a comment",
+    "document": "",
+    "document2": "",
+    "expression": "load(\"../../examples/empty.yaml\")",
+    "expected": [
+      "D0, P[], (!!null)::# comment\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#0"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Load and splat",
+    "document": "",
+    "document2": "",
+    "expression": "load(\"../../examples/small.yaml\")[]",
+    "expected": [
+      "D0, P[a], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#1"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Load and traverse",
+    "document": "",
+    "document2": "",
+    "expression": "load(\"../../examples/small.yaml\").a",
+    "expected": [
+      "D0, P[a], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#2"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Load file with a header comment into an array",
+    "document": "- \"../../examples/small.yaml\"",
+    "document2": "",
+    "expression": ".[] |= load(.)",
+    "expected": [
+      "D0, P[], (!!seq)::- # comment\n  # about things\n  a: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#3"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Load empty file with no comment",
+    "document": "",
+    "document2": "",
+    "expression": "load(\"../../examples/empty-no-comment.yaml\")",
+    "expected": [
+      "D0, P[], (!!null)::\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#4"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Load multiple documents",
+    "document": "",
+    "document2": "",
+    "expression": "load(\"../../examples/multiple_docs_small.yaml\")",
+    "expected": [
+      "D0, P[], ()::- a: Easy! as one two three\n- another:\n    document: here\n- - 1\n  - 2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#5"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Simple example",
+    "document": "{myFile: \"../../examples/thing.yml\"}",
+    "document2": "",
+    "expression": "load(.myFile)",
+    "expected": [
+      "D0, P[], (!!map)::a: apple is included\nb: cool.\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#6"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Replace node with referenced file",
+    "document": "{something: {file: \"thing.yml\"}}",
+    "document2": "",
+    "expression": ".something |= load(\"../../examples/\" + .file)",
+    "expected": [
+      "D0, P[], (!!map)::{something: {a: apple is included, b: cool.}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#7"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Replace _all_ nodes with referenced file",
+    "document": "{something: {file: \"thing.yml\"}, over: {here: [{file: \"thing.yml\"}]}}",
+    "document2": "",
+    "expression": "(.. | select(has(\"file\"))) |= load(\"../../examples/\" + .file)",
+    "expected": [
+      "D0, P[], (!!map)::{something: {a: apple is included, b: cool.}, over: {here: [{a: apple is included, b: cool.}]}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#8"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Replace node with referenced file as string",
+    "document": "{something: {file: \"thing.yml\"}}",
+    "document2": "",
+    "expression": ".something |= load_str(\"../../examples/\" + .file)",
+    "expected": [
+      "D0, P[], (!!map)::{something: \"a: apple is included\\nb: cool.\"}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#9"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Load from XML",
+    "document": "cool: things",
+    "document2": "",
+    "expression": ".more_stuff = load_xml(\"../../examples/small.xml\")",
+    "expected": [
+      "D0, P[], (!!map)::cool: things\nmore_stuff:\n    this: is some xml\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "xml",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#10"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Load from Properties",
+    "document": "cool: things",
+    "document2": "",
+    "expression": ".more_stuff = load_props(\"../../examples/small.properties\")",
+    "expected": [
+      "D0, P[], (!!map)::cool: things\nmore_stuff:\n    this:\n        is: a properties file\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#11"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Merge from properties",
+    "document": "this:\n  is: from yaml\n  cool: ay\n",
+    "document2": "",
+    "expression": ". *= load_props(\"../../examples/small.properties\")",
+    "expected": [
+      "D0, P[], (!!map)::this:\n    is: a properties file\n    cool: ay\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#12"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "Load from base64 encoded file",
+    "document": "cool: things",
+    "document2": "",
+    "expression": ".more_stuff = load_base64(\"../../examples/base64.txt\")",
+    "expected": [
+      "D0, P[], (!!map)::cool: things\nmore_stuff: my secret chilli recipe is....\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadScenarios",
+    "id": "operator_load#13"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "load() operation fails when security is enabled",
+    "document": "",
+    "document2": "",
+    "expression": "load(\"../../examples/thing.yml\")",
+    "expected": [],
+    "expected_error": "file operations have been disabled",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadOperatorSecurityDisabledScenarios",
+    "id": "operator_load#14"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "load_str() operation fails when security is enabled",
+    "document": "",
+    "document2": "",
+    "expression": "load_str(\"../../examples/thing.yml\")",
+    "expected": [],
+    "expected_error": "file operations have been disabled",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadOperatorSecurityDisabledScenarios",
+    "id": "operator_load#15"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "load_xml() operation fails when security is enabled",
+    "document": "",
+    "document2": "",
+    "expression": "load_xml(\"../../examples/small.xml\")",
+    "expected": [],
+    "expected_error": "file operations have been disabled",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadOperatorSecurityDisabledScenarios",
+    "id": "operator_load#16"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "load_props() operation fails when security is enabled",
+    "document": "",
+    "document2": "",
+    "expression": "load_props(\"../../examples/small.properties\")",
+    "expected": [],
+    "expected_error": "file operations have been disabled",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadOperatorSecurityDisabledScenarios",
+    "id": "operator_load#17"
+  },
+  {
+    "source": "operator_load_test.go",
+    "description": "load_base64() operation fails when security is enabled",
+    "document": "",
+    "document2": "",
+    "expression": "load_base64(\"../../examples/base64.txt\")",
+    "expected": [],
+    "expected_error": "file operations have been disabled",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "loadOperatorSecurityDisabledScenarios",
+    "id": "operator_load#18"
+  }
+]

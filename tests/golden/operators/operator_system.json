@@ -1,0 +1,145 @@
+[
+  {
+    "source": "operator_system_test.go",
+    "description": "system operator returns error when disabled",
+    "document": "country: Australia",
+    "document2": "",
+    "expression": ".country = system(\"/usr/bin/echo\"; \"test\")",
+    "expected": [],
+    "expected_error": "system operations are disabled, use --security-enable-system-operator to enable",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "systemOperatorDisabledScenarios",
+    "id": "operator_system#0"
+  },
+  {
+    "source": "operator_system_test.go",
+    "description": "Run a command with an argument",
+    "document": "country: Australia",
+    "document2": "",
+    "expression": "",
+    "expected": [
+      "D0, P[], (!!map)::country: test\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "expression: identifier echoPath"
+    ],
+    "group": "",
+    "id": "operator_system#1"
+  },
+  {
+    "source": "operator_system_test.go",
+    "description": "Run a command without arguments",
+    "document": "a: hello",
+    "document2": "",
+    "expression": "",
+    "expected": [
+      "D0, P[], (!!map)::a: \"\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "expression: identifier echoPath"
+    ],
+    "group": "",
+    "id": "operator_system#2"
+  },
+  {
+    "source": "operator_system_test.go",
+    "description": "Run a command with multiple arguments",
+    "document": "a: hello",
+    "document2": "",
+    "expression": "",
+    "expected": [
+      "D0, P[], (!!map)::a: foo bar\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "expression: identifier echoPath"
+    ],
+    "group": "",
+    "id": "operator_system#3"
+  },
+  {
+    "source": "operator_system_test.go",
+    "description": "Command and args are evaluated per matched node",
+    "document": "",
+    "document2": "",
+    "expression": ".result = system(.cmd; .arg)",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "document: identifier echoPath",
+      "expected: identifier echoPath"
+    ],
+    "group": "",
+    "id": "operator_system#4"
+  },
+  {
+    "source": "operator_system_test.go",
+    "description": "Command failure returns error",
+    "document": "a: hello",
+    "document2": "",
+    "expression": "",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "expression: identifier falsePath",
+      "expectedError: identifier falsePath"
+    ],
+    "group": "",
+    "id": "operator_system#5"
+  },
+  {
+    "source": "operator_system_test.go",
+    "description": "Null command returns error",
+    "document": "a: hello",
+    "document2": "",
+    "expression": ".a = system(null)",
+    "expected": [],
+    "expected_error": "system operator: command must be a string scalar",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "",
+    "id": "operator_system#6"
+  },
+  {
+    "source": "operator_system_test.go",
+    "description": "System operator processes multiple matched nodes",
+    "document": "a: first",
+    "document2": "a: second",
+    "expression": "",
+    "expected": [
+      "D0, P[], (!!map)::a: replaced\n",
+      "D0, P[], (!!map)::a: replaced\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "expression: identifier echoPath"
+    ],
+    "group": "",
+    "id": "operator_system#7"
+  }
+]

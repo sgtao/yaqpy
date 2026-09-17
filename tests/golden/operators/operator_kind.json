@@ -1,0 +1,63 @@
+[
+  {
+    "source": "operator_kind_test.go",
+    "description": "Get kind",
+    "document": "{a: cat, b: 5, c: 3.2, e: true, f: [], g: {}, h: null}",
+    "document2": "",
+    "expression": ".. | kind",
+    "expected": [
+      "D0, P[], (!!str)::map\n",
+      "D0, P[a], (!!str)::scalar\n",
+      "D0, P[b], (!!str)::scalar\n",
+      "D0, P[c], (!!str)::scalar\n",
+      "D0, P[e], (!!str)::scalar\n",
+      "D0, P[f], (!!str)::seq\n",
+      "D0, P[g], (!!str)::map\n",
+      "D0, P[h], (!!str)::scalar\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "kindOperatorScenarios",
+    "id": "operator_kind#0"
+  },
+  {
+    "source": "operator_kind_test.go",
+    "description": "Get kind, ignores custom tags",
+    "document": "{a: !!thing cat, b: !!foo {}, c: !!bar []}",
+    "document2": "",
+    "expression": ".. | kind",
+    "expected": [
+      "D0, P[], (!!str)::map\n",
+      "D0, P[a], (!!str)::scalar\n",
+      "D0, P[b], (!!str)::map\n",
+      "D0, P[c], (!!str)::seq\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "kindOperatorScenarios",
+    "id": "operator_kind#1"
+  },
+  {
+    "source": "operator_kind_test.go",
+    "description": "Add comments only to scalars",
+    "document": "a:\n  b: 5\n  c: 3.2\ne: true\nf: []\ng: {}\nh: null",
+    "document2": "",
+    "expression": "(.. | select(kind == \"scalar\")) line_comment = \"this is a scalar\"",
+    "expected": [
+      "D0, P[], (!!map)::a:\n    b: 5 # this is a scalar\n    c: 3.2 # this is a scalar\ne: true # this is a scalar\nf: []\ng: {}\nh: null # this is a scalar\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "kindOperatorScenarios",
+    "id": "operator_kind#2"
+  }
+]

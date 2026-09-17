@@ -1,0 +1,70 @@
+[
+  {
+    "source": "yaml_test.go",
+    "description": "",
+    "document": "a: hello # things",
+    "document2": "",
+    "expression": "",
+    "expected": [
+      "D0, P[], (!!map)::a: hello # things\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "yamlParseScenarios",
+    "id": "yaml#0"
+  },
+  {
+    "source": "yaml_test.go",
+    "description": "",
+    "document": "a: &a apple\nb: *a",
+    "document2": "",
+    "expression": ".b | explode(.)",
+    "expected": [
+      "D0, P[b], (!!str)::apple\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "yamlParseScenarios",
+    "id": "yaml#1"
+  },
+  {
+    "source": "yaml_test.go",
+    "description": "",
+    "document": "a: [1,2]",
+    "document2": "",
+    "expression": "",
+    "expected": [
+      "D0, P[], (!!map)::a: [1, 2]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "yamlParseScenarios",
+    "id": "yaml#2"
+  },
+  {
+    "source": "yaml_test.go",
+    "description": "",
+    "document": "a: !horse [a]",
+    "document2": "",
+    "expression": "",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse [a]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "yamlParseScenarios",
+    "id": "yaml#3"
+  }
+]

@@ -1,0 +1,129 @@
+[
+  {
+    "source": "operator_has_test.go",
+    "description": "",
+    "document": "a: hello",
+    "document2": "",
+    "expression": "has(\"a\")",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "hasOperatorScenarios",
+    "id": "operator_has#0"
+  },
+  {
+    "source": "operator_has_test.go",
+    "description": "",
+    "document": "a: hello",
+    "document2": "",
+    "expression": "has(.b) as $c | .",
+    "expected": [
+      "D0, P[], (!!map)::a: hello\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "hasOperatorScenarios",
+    "id": "operator_has#1"
+  },
+  {
+    "source": "operator_has_test.go",
+    "description": "",
+    "document": "a: hello",
+    "document2": "",
+    "expression": "has(.b)",
+    "expected": [
+      "D0, P[], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "hasOperatorScenarios",
+    "id": "operator_has#2"
+  },
+  {
+    "source": "operator_has_test.go",
+    "description": "Has map key",
+    "document": "- a: \"yes\"\n- a: ~\n- a: \n- b: nope\n",
+    "document2": "",
+    "expression": ".[] | has(\"a\")",
+    "expected": [
+      "D0, P[0], (!!bool)::true\n",
+      "D0, P[1], (!!bool)::true\n",
+      "D0, P[2], (!!bool)::true\n",
+      "D0, P[3], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "hasOperatorScenarios",
+    "id": "operator_has#3"
+  },
+  {
+    "source": "operator_has_test.go",
+    "description": "Select, checking for existence of deep paths",
+    "document": "- {a: {b: {c: cat}}}\n- {a: {b: {d: dog}}}",
+    "document2": "",
+    "expression": ".[] | select(.a.b | has(\"c\"))",
+    "expected": [
+      "D0, P[0], (!!map)::{a: {b: {c: cat}}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "hasOperatorScenarios",
+    "id": "operator_has#4"
+  },
+  {
+    "source": "operator_has_test.go",
+    "description": "Has array index",
+    "document": "- []\n- [1]\n- [1, 2]\n- [1, null]\n- [1, 2, 3]\n",
+    "document2": "",
+    "expression": ".[] | has(1)",
+    "expected": [
+      "D0, P[0], (!!bool)::false\n",
+      "D0, P[1], (!!bool)::false\n",
+      "D0, P[2], (!!bool)::true\n",
+      "D0, P[3], (!!bool)::true\n",
+      "D0, P[4], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "hasOperatorScenarios",
+    "id": "operator_has#5"
+  },
+  {
+    "source": "operator_has_test.go",
+    "description": "Negative array index is never present",
+    "document": "[[1, 2, 3], []]",
+    "document2": "",
+    "expression": ".[] | has(-1)",
+    "expected": [
+      "D0, P[0], (!!bool)::false\n",
+      "D0, P[1], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "hasOperatorScenarios",
+    "id": "operator_has#6"
+  }
+]

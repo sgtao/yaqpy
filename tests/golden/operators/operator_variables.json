@@ -1,0 +1,170 @@
+[
+  {
+    "source": "operator_variables_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": ".a.b as $foo | .",
+    "expected": [
+      "D0, P[], (!!map)::{}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "variableOperatorScenarios",
+    "id": "operator_variables#0"
+  },
+  {
+    "source": "operator_variables_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": ".a.b as $foo",
+    "expected": [],
+    "expected_error": "must use variable with a pipe, e.g. `exp as $x | ...`",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "variableOperatorScenarios",
+    "id": "operator_variables#1"
+  },
+  {
+    "source": "operator_variables_test.go",
+    "description": "",
+    "document": "a: [cat]",
+    "document2": "",
+    "expression": "(.[] | {.name: .}) as $item | .",
+    "expected": [],
+    "expected_error": "cannot index array with 'name' (strconv.ParseInt: parsing \"name\": invalid syntax)",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "variableOperatorScenarios",
+    "id": "operator_variables#2"
+  },
+  {
+    "source": "operator_variables_test.go",
+    "description": "Single value variable",
+    "document": "a: cat",
+    "document2": "",
+    "expression": ".a as $foo | $foo",
+    "expected": [
+      "D0, P[a], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "variableOperatorScenarios",
+    "id": "operator_variables#3"
+  },
+  {
+    "source": "operator_variables_test.go",
+    "description": "Multi value variable",
+    "document": "[cat, dog]",
+    "document2": "",
+    "expression": ".[] as $foo | $foo",
+    "expected": [
+      "D0, P[0], (!!str)::cat\n",
+      "D0, P[1], (!!str)::dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "variableOperatorScenarios",
+    "id": "operator_variables#4"
+  },
+  {
+    "source": "operator_variables_test.go",
+    "description": "",
+    "document": "[1, 2]",
+    "document2": "",
+    "expression": ".[] | . as $f | select($f == 2)",
+    "expected": [
+      "D0, P[1], (!!int)::2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "variableOperatorScenarios",
+    "id": "operator_variables#5"
+  },
+  {
+    "source": "operator_variables_test.go",
+    "description": "",
+    "document": "[1, 2]",
+    "document2": "",
+    "expression": "[.[] | . as $f | $f + 1]",
+    "expected": [
+      "D0, P[], (!!seq)::- 2\n- 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "variableOperatorScenarios",
+    "id": "operator_variables#6"
+  },
+  {
+    "source": "operator_variables_test.go",
+    "description": "Using variables as a lookup",
+    "document": "{\"posts\": [{\"title\": \"First post\", \"author\": \"anon\"},\n\t\t\t{\"title\": \"A well-written article\", \"author\": \"person1\"}],\n\t\"realnames\": {\"anon\": \"Anonymous Coward\",\n\t\t\t\t\t\"person1\": \"Person McPherson\"}}",
+    "document2": "",
+    "expression": ".realnames as $names | .posts[] | {\"title\":.title, \"author\": $names[.author]}",
+    "expected": [
+      "D0, P[], (!!map)::title: \"First post\"\nauthor: \"Anonymous Coward\"\n",
+      "D0, P[], (!!map)::title: \"A well-written article\"\nauthor: \"Person McPherson\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "variableOperatorScenarios",
+    "id": "operator_variables#7"
+  },
+  {
+    "source": "operator_variables_test.go",
+    "description": "Using variables to swap values",
+    "document": "a: a_value\nb: b_value",
+    "document2": "",
+    "expression": ".a as $x  | .b as $y | .b = $x | .a = $y",
+    "expected": [
+      "D0, P[], (!!map)::a: b_value\nb: a_value\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "variableOperatorScenarios",
+    "id": "operator_variables#8"
+  },
+  {
+    "source": "operator_variables_test.go",
+    "description": "Use ref to reference a path repeatedly",
+    "document": "a: {b: thing, c: something}",
+    "document2": "",
+    "expression": ".a.b ref $x | $x = \"new\" | $x style=\"double\"",
+    "expected": [
+      "D0, P[], (!!map)::a: {b: \"new\", c: something}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "variableOperatorScenarios",
+    "id": "operator_variables#9"
+  }
+]

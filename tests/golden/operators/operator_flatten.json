@@ -1,0 +1,108 @@
+[
+  {
+    "source": "operator_flatten_test.go",
+    "description": "Flatten",
+    "document": "[1, [2], [[3]]]",
+    "document2": "",
+    "expression": "flatten",
+    "expected": [
+      "D0, P[], (!!seq)::[1, 2, 3]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "flattenOperatorScenarios",
+    "id": "operator_flatten#0"
+  },
+  {
+    "source": "operator_flatten_test.go",
+    "description": "Flatten splat",
+    "document": "[1, [2], [[3]]]",
+    "document2": "",
+    "expression": "flatten[]",
+    "expected": [
+      "D0, P[0], (!!int)::1\n",
+      "D0, P[1], (!!int)::2\n",
+      "D0, P[2], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "flattenOperatorScenarios",
+    "id": "operator_flatten#1"
+  },
+  {
+    "source": "operator_flatten_test.go",
+    "description": "Flatten with depth of one",
+    "document": "[1, [2], [[3]]]",
+    "document2": "",
+    "expression": "flatten(1)",
+    "expected": [
+      "D0, P[], (!!seq)::[1, 2, [3]]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "flattenOperatorScenarios",
+    "id": "operator_flatten#2"
+  },
+  {
+    "source": "operator_flatten_test.go",
+    "description": "Flatten with depth and splat",
+    "document": "[1, [2], [[3]]]",
+    "document2": "",
+    "expression": "flatten(1)[]",
+    "expected": [
+      "D0, P[0], (!!int)::1\n",
+      "D0, P[1], (!!int)::2\n",
+      "D0, P[2], (!!seq)::[3]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "flattenOperatorScenarios",
+    "id": "operator_flatten#3"
+  },
+  {
+    "source": "operator_flatten_test.go",
+    "description": "Flatten empty array",
+    "document": "[[]]",
+    "document2": "",
+    "expression": "flatten",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "flattenOperatorScenarios",
+    "id": "operator_flatten#4"
+  },
+  {
+    "source": "operator_flatten_test.go",
+    "description": "Flatten array of objects",
+    "document": "[{foo: bar}, [{foo: baz}]]",
+    "document2": "",
+    "expression": "flatten",
+    "expected": [
+      "D0, P[], (!!seq)::[{foo: bar}, {foo: baz}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "flattenOperatorScenarios",
+    "id": "operator_flatten#5"
+  }
+]

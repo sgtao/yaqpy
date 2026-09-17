@@ -1,0 +1,1280 @@
+[
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "FIXED: Traversing merge anchors with override",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobar.c",
+    "expected": [
+      "D0, P[foobar c], (!!str)::foobar_c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedTraversePathOperatorScenarios",
+    "id": "operator_traverse_path#0"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "FIXED: Traversing merge anchor lists",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList.thing",
+    "expected": [
+      "D0, P[foo thing], (!!str)::foo_thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedTraversePathOperatorScenarios",
+    "id": "operator_traverse_path#1"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "FIXED: Splatting merge anchors",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobar[]",
+    "expected": [
+      "D0, P[foo a], (!!str)::foo_a\n",
+      "D0, P[foobar thing], (!!str)::foobar_thing\n",
+      "D0, P[foobar c], (!!str)::foobar_c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedTraversePathOperatorScenarios",
+    "id": "operator_traverse_path#2"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "FIXED: Splatting merge anchor lists",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList[]",
+    "expected": [
+      "D0, P[foobarList b], (!!str)::foobarList_b\n",
+      "D0, P[foo thing], (!!str)::foo_thing\n",
+      "D0, P[foobarList c], (!!str)::foobarList_c\n",
+      "D0, P[foo a], (!!str)::foo_a\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedTraversePathOperatorScenarios",
+    "id": "operator_traverse_path#3"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList.b",
+    "expected": [
+      "D0, P[foobarList b], (!!str)::foobarList_b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "fixedTraversePathOperatorScenarios",
+    "id": "operator_traverse_path#4"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "LEGACY: Traversing merge anchors with override",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobar.c",
+    "expected": [
+      "D0, P[foo c], (!!str)::foo_c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badTraversePathOperatorScenarios",
+    "id": "operator_traverse_path#5"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "LEGACY: Traversing merge anchor lists",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList.thing",
+    "expected": [
+      "D0, P[bar thing], (!!str)::bar_thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badTraversePathOperatorScenarios",
+    "id": "operator_traverse_path#6"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "LEGACY: Splatting merge anchors",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobar[]",
+    "expected": [
+      "D0, P[foo c], (!!str)::foo_c\n",
+      "D0, P[foo a], (!!str)::foo_a\n",
+      "D0, P[foobar thing], (!!str)::foobar_thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badTraversePathOperatorScenarios",
+    "id": "operator_traverse_path#7"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "LEGACY: Splatting merge anchor lists",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList[]",
+    "expected": [
+      "D0, P[bar b], (!!str)::bar_b\n",
+      "D0, P[foo a], (!!str)::foo_a\n",
+      "D0, P[bar thing], (!!str)::bar_thing\n",
+      "D0, P[foobarList c], (!!str)::foobarList_c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badTraversePathOperatorScenarios",
+    "id": "operator_traverse_path#8"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList.b",
+    "expected": [
+      "D0, P[bar b], (!!str)::bar_b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "badTraversePathOperatorScenarios",
+    "id": "operator_traverse_path#9"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "strange map with key but no value",
+    "document": "!!null\n-",
+    "document2": "",
+    "expression": ".x",
+    "expected": [
+      "D0, P[x], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#10"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "access merge anchors",
+    "document": "foo: &foo {x: y}\nbar:\n  <<: *foo\n",
+    "document2": "",
+    "expression": ".bar[\"<<\"] | alias",
+    "expected": [
+      "D0, P[bar <<], (!!str)::foo\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#11"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "dynamically set parent and key",
+    "document": "",
+    "document2": "",
+    "expression": ".a.b.c = 3 | .a.b.c",
+    "expected": [
+      "D0, P[a b c], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#12"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "dynamically set parent and key in array",
+    "document": "",
+    "document2": "",
+    "expression": ".a.b[0] = 3 | .a.b[0]",
+    "expected": [
+      "D0, P[a b 0], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#13"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "dynamically set parent and key",
+    "document": "",
+    "document2": "",
+    "expression": ".a.b = [\"x\",\"y\"] | .a.b[1]",
+    "expected": [
+      "D0, P[a b 1], (!!str)::y\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#14"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "splat empty map",
+    "document": "{}",
+    "document2": "",
+    "expression": ".[]",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#15"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "[[1]]",
+    "document2": "",
+    "expression": ".[0][0]",
+    "expected": [
+      "D0, P[0 0], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#16"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": ".cat[\"12\"] = \"things\"",
+    "expected": [
+      "D0, P[], ()::cat:\n    \"12\": things\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#17"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "blah: {}",
+    "document2": "",
+    "expression": ".blah.cat = \"cool\"",
+    "expected": [
+      "D0, P[], (!!map)::blah:\n    cat: cool\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#18"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "blah: []",
+    "document2": "",
+    "expression": ".blah.0 = \"cool\"",
+    "expected": [
+      "D0, P[], (!!map)::blah:\n    - cool\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#19"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "b: cat",
+    "document2": "",
+    "expression": ".b\n",
+    "expected": [
+      "D0, P[b], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#20"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "[[[1]]]",
+    "document2": "",
+    "expression": ".[0][0][0]",
+    "expected": [
+      "D0, P[0 0 0], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#21"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": ".[\"cat\"] = \"thing\"",
+    "expected": [
+      "D0, P[], ()::cat: thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#22"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Simple map navigation",
+    "document": "{a: {b: apple}}",
+    "document2": "",
+    "expression": ".a",
+    "expected": [
+      "D0, P[a], (!!map)::{b: apple}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#23"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Splat",
+    "document": "[{b: apple}, {c: banana}]",
+    "document2": "",
+    "expression": ".[]",
+    "expected": [
+      "D0, P[0], (!!map)::{b: apple}\n",
+      "D0, P[1], (!!map)::{c: banana}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#24"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Optional Splat",
+    "document": "\"cat\"",
+    "document2": "",
+    "expression": ".[]",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#25"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Special characters",
+    "document": "{\"{}\": frog}",
+    "document2": "",
+    "expression": ".[\"{}\"]",
+    "expected": [
+      "D0, P[{}], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#26"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Nested special characters",
+    "document": "a: {\"key.withdots\": {\"another.key\": apple}}",
+    "document2": "",
+    "expression": ".a[\"key.withdots\"][\"another.key\"]",
+    "expected": [
+      "D0, P[a key.withdots another.key], (!!str)::apple\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#27"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Keys with spaces",
+    "document": "{\"red rabbit\": frog}",
+    "document2": "",
+    "expression": ".[\"red rabbit\"]",
+    "expected": [
+      "D0, P[red rabbit], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#28"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{\"flying fox\": frog}",
+    "document2": "",
+    "expression": ".[\"flying fox\"]",
+    "expected": [
+      "D0, P[flying fox], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#29"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "c: dog",
+    "document2": "",
+    "expression": ".[.a.b] as $x | .",
+    "expected": [
+      "D0, P[], (!!map)::c: dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#30"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Dynamic keys",
+    "document": "{b: apple, apple: crispy yum, banana: soft yum}",
+    "document2": "",
+    "expression": ".[.b]",
+    "expected": [
+      "D0, P[apple], (!!str)::crispy yum\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#31"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{b: apple, fruit: {apple: yum, banana: smooth}}",
+    "document2": "",
+    "expression": ".fruit[.b]",
+    "expected": [
+      "D0, P[fruit apple], (!!str)::yum\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#32"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Children don't exist",
+    "document": "{c: banana}",
+    "document2": "",
+    "expression": ".a.b",
+    "expected": [
+      "D0, P[a b], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#33"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Optional identifier",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": ".a?",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#34"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "[[1,2,3], {a: frog}]",
+    "document2": "",
+    "expression": ".[] | .[\"a\"]?",
+    "expected": [
+      "D0, P[1 a], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#35"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": ".[1].a",
+    "expected": [
+      "D0, P[1 a], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#36"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": ".a[1]",
+    "expected": [
+      "D0, P[a 1], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#37"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Wildcard matching",
+    "document": "{a: {cat: apple, mad: things}}",
+    "document2": "",
+    "expression": ".a.\"*a*\"",
+    "expected": [
+      "D0, P[a cat], (!!str)::apple\n",
+      "D0, P[a mad], (!!str)::things\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#38"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: {cat: {b: 3}, mad: {b: 4}, fad: {c: t}}}",
+    "document2": "",
+    "expression": ".a.\"*a*\".b",
+    "expected": [
+      "D0, P[a cat b], (!!int)::3\n",
+      "D0, P[a mad b], (!!int)::4\n",
+      "D0, P[a fad b], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#39"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: {cat: apple, mad: things}}",
+    "document2": "",
+    "expression": ".a | (.cat, .mad)",
+    "expected": [
+      "D0, P[a cat], (!!str)::apple\n",
+      "D0, P[a mad], (!!str)::things\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#40"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: {cat: apple, mad: things}}",
+    "document2": "",
+    "expression": ".a | (.cat, .mad, .fad)",
+    "expected": [
+      "D0, P[a cat], (!!str)::apple\n",
+      "D0, P[a mad], (!!str)::things\n",
+      "D0, P[a fad], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#41"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: {cat: apple, mad: things}}",
+    "document2": "",
+    "expression": ".a | (.cat, .mad, .fad) | select( (. == null) | not)",
+    "expected": [
+      "D0, P[a cat], (!!str)::apple\n",
+      "D0, P[a mad], (!!str)::things\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#42"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Aliases",
+    "document": "{a: &cat {c: frog}, b: *cat}",
+    "document2": "",
+    "expression": ".b",
+    "expected": [
+      "D0, P[b], (alias)::*cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#43"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Traversing aliases with splat",
+    "document": "{a: &cat {c: frog}, b: *cat}",
+    "document2": "",
+    "expression": ".b[]",
+    "expected": [
+      "D0, P[a c], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#44"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Traversing aliases explicitly",
+    "document": "{a: &cat {c: frog}, b: *cat}",
+    "document2": "",
+    "expression": ".b.c",
+    "expected": [
+      "D0, P[a c], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#45"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Traversing arrays by index",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": ".[0]",
+    "expected": [
+      "D0, P[0], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#46"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Traversing nested arrays by index",
+    "document": "[[], [cat]]",
+    "document2": "",
+    "expression": ".[1][0]",
+    "expected": [
+      "D0, P[1 0], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#47"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Maps with numeric keys",
+    "document": "{2: cat}",
+    "document2": "",
+    "expression": ".[2]",
+    "expected": [
+      "D0, P[2], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#48"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Maps with non existing numeric keys",
+    "document": "{a: b}",
+    "document2": "",
+    "expression": ".[0]",
+    "expected": [
+      "D0, P[0], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#49"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Merge anchor with inline map",
+    "document": "{<<: {a: 42}}",
+    "document2": "",
+    "expression": ".a",
+    "expected": [
+      "D0, P[<< a], (!!int)::42\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#50"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Merge anchor with sequence with inline map",
+    "document": "{<<: [{a: 42}]}",
+    "document2": "",
+    "expression": ".a",
+    "expected": [
+      "D0, P[<< 0 a], (!!int)::42\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#51"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Merge anchor with aliased sequence with inline map",
+    "document": "{s: &s [{a: 42}], m: {<<: *s}}",
+    "document2": "",
+    "expression": ".m.a",
+    "expected": [
+      "D0, P[s 0 a], (!!int)::42\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#52"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobar",
+    "expected": [
+      "D0, P[foobar], (!!map)::c: foobar_c\n<<: *foo\nthing: foobar_thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#53"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Traversing merge anchors",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobar.a",
+    "expected": [
+      "D0, P[foo a], (!!str)::foo_a\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#54"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Traversing merge anchors with local override",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobar.thing",
+    "expected": [
+      "D0, P[foobar thing], (!!str)::foobar_thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#55"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList",
+    "expected": [
+      "D0, P[foobarList], (!!map)::b: foobarList_b\n<<: [*foo, *bar]\nc: foobarList_c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#56"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList.a",
+    "expected": [
+      "D0, P[foo a], (!!str)::foo_a\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#57"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobarList.c",
+    "expected": [
+      "D0, P[foobarList c], (!!str)::foobarList_c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#58"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "[a,b,c]",
+    "document2": "",
+    "expression": ".[]",
+    "expected": [
+      "D0, P[0], (!!str)::a\n",
+      "D0, P[1], (!!str)::b\n",
+      "D0, P[2], (!!str)::c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#59"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "[a,b,c]",
+    "document2": "",
+    "expression": "[]",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#60"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: [a,b,c]}",
+    "document2": "",
+    "expression": ".a[0]",
+    "expected": [
+      "D0, P[a 0], (!!str)::a\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#61"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Select multiple indices",
+    "document": "{a: [a,b,c]}",
+    "document2": "",
+    "expression": ".a[0, 2]",
+    "expected": [
+      "D0, P[a 0], (!!str)::a\n",
+      "D0, P[a 2], (!!str)::c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#62"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: [a,b,c]}",
+    "document2": "",
+    "expression": ".a[0, 2]",
+    "expected": [
+      "D0, P[a 0], (!!str)::a\n",
+      "D0, P[a 2], (!!str)::c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#63"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: [a,b,c]}",
+    "document2": "",
+    "expression": ".a[-1]",
+    "expected": [
+      "D0, P[a 2], (!!str)::c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#64"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: [a,b,c]}",
+    "document2": "",
+    "expression": ".a[-2]",
+    "expected": [
+      "D0, P[a 1], (!!str)::b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#65"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: [a,b,c]}",
+    "document2": "",
+    "expression": ".a[]",
+    "expected": [
+      "D0, P[a 0], (!!str)::a\n",
+      "D0, P[a 1], (!!str)::b\n",
+      "D0, P[a 2], (!!str)::c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#66"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: [a,b,c]}",
+    "document2": "",
+    "expression": ".a[]",
+    "expected": [
+      "D0, P[a 0], (!!str)::a\n",
+      "D0, P[a 1], (!!str)::b\n",
+      "D0, P[a 2], (!!str)::c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#67"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "{a: [a,b,c]}",
+    "document2": "",
+    "expression": ".a | .[]",
+    "expected": [
+      "D0, P[a 0], (!!str)::a\n",
+      "D0, P[a 1], (!!str)::b\n",
+      "D0, P[a 2], (!!str)::c\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#68"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Duplicate keys",
+    "document": "{a: 1, a: 2}",
+    "document2": "",
+    "expression": ".a",
+    "expected": [
+      "D0, P[a], (!!int)::2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#69"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Traversing map with invalid merge anchor should not fail",
+    "document": "{a: 42, <<: 37}",
+    "document2": "",
+    "expression": ".a",
+    "expected": [
+      "D0, P[a], (!!int)::42\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#70"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "Directly accessing invalid merge anchor should not fail",
+    "document": "{<<: 37}",
+    "document2": "",
+    "expression": ".<<",
+    "expected": [
+      "D0, P[<<], (!!int)::37\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#71"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "!!str << should not be treated as merge anchor",
+    "document": "{!!str <<: {a: 37}}",
+    "document2": "",
+    "expression": ".a",
+    "expected": [
+      "D0, P[a], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#72"
+  },
+  {
+    "source": "operator_traverse_path_test.go",
+    "description": "",
+    "document": "&-- a\n---\n*--",
+    "document2": "",
+    "expression": ". = (.x = 1)",
+    "expected": [],
+    "expected_error": "alias cycle detected",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "traversePathOperatorScenarios",
+    "id": "operator_traverse_path#73"
+  }
+]

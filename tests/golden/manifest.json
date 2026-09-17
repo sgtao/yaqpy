@@ -1,0 +1,4392 @@
+{
+ "summary": {
+  "all": {
+   "counts": {
+    "exact": 808,
+    "unsupported": 228,
+    "semantic": 29,
+    "skipped": 10,
+    "unresolved": 12,
+    "fail": 4
+   },
+   "pass_rate": 0.995243757431629,
+   "total": 1091
+  },
+  "mvp": {
+   "counts": {
+    "exact": 734,
+    "unsupported": 27,
+    "semantic": 14,
+    "unresolved": 5
+   },
+   "pass_rate": 1.0,
+   "total": 780
+  }
+ },
+ "scenarios": {
+  "all_at_once_evaluator#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "all_at_once_evaluator#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "all_at_once_evaluator#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#26": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#28": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#29": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#30": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#31": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#32": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#33": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#34": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#35": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#36": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#37": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#38": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#39": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#40": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#41": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#42": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#43": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#44": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#45": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#46": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#47": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_add#48": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_add#49": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#50": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#51": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#52": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#53": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#54": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#55": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#56": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#57": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#58": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#59": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#60": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_add#61": {
+   "status": "exact",
+   "detail": "expected error '!!seq () cannot be added to a !!map (a)', got '!!seq () cannot be added to a !!map (a)'"
+  },
+  "operator_add#62": {
+   "status": "exact",
+   "detail": "expected error '!!seq () cannot be added to a !!str (a)', got '!!seq () cannot be added to a !!str (a)'"
+  },
+  "operator_add#63": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_alternative#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_alternative#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#6": {
+   "status": "unsupported",
+   "detail": "unknown operator SORT_KEYS"
+  },
+  "operator_anchors_aliases#7": {
+   "status": "unsupported",
+   "detail": "unknown operator SORT_KEYS"
+  },
+  "operator_anchors_aliases#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#17": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_anchors_aliases#18": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_anchors_aliases#19": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_anchors_aliases#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#21": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_anchors_aliases#22": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_anchors_aliases#23": {
+   "status": "unsupported",
+   "detail": "unknown operator REDUCE"
+  },
+  "operator_anchors_aliases#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#26": {
+   "status": "exact",
+   "detail": "expected error 'can only use merge anchors with maps (!!map) or sequences (!!seq) of maps, but got sequence containing !!seq', got 'can only use merge anchors with maps (!!map) or sequences (!!seq) of maps, but got sequence containing !!seq'"
+  },
+  "operator_anchors_aliases#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#28": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#29": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#30": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#31": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#32": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#33": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#34": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#35": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#36": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#37": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#38": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#39": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#40": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#41": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#42": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#43": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#44": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#45": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#46": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#47": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#48": {
+   "status": "unsupported",
+   "detail": "unknown operator SORT_KEYS"
+  },
+  "operator_anchors_aliases#49": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_anchors_aliases#50": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_array_to_map#0": {
+   "status": "unsupported",
+   "detail": "unknown operator REDUCE"
+  },
+  "operator_assign#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#26": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_assign#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#26": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#28": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#29": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#30": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#31": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_booleans#32": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#1": {
+   "status": "exact",
+   "detail": "expected error 'CollectObject: mismatching node sizes; are you creating a map with mismatching key value pairs?', got 'CollectObject: mismatching node sizes; are you creating a map with mismatching key value pairs?'"
+  },
+  "operator_collect_object#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_collect_object#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_column#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_column#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_column#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_column#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#5": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_comments#6": {
+   "status": "unsupported",
+   "detail": "unknown operator JOIN"
+  },
+  "operator_comments#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#8": {
+   "status": "unsupported",
+   "detail": "unknown operator JOIN"
+  },
+  "operator_comments#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#26": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_comments#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_contains#0": {
+   "status": "unsupported",
+   "detail": "unknown operator CONTAINS"
+  },
+  "operator_contains#1": {
+   "status": "unsupported",
+   "detail": "unknown operator CONTAINS"
+  },
+  "operator_contains#2": {
+   "status": "unsupported",
+   "detail": "unknown operator CONTAINS"
+  },
+  "operator_contains#3": {
+   "status": "unsupported",
+   "detail": "unknown operator CONTAINS"
+  },
+  "operator_contains#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_contains#5": {
+   "status": "unsupported",
+   "detail": "unknown operator CONTAINS"
+  },
+  "operator_contains#6": {
+   "status": "unsupported",
+   "detail": "unknown operator CONTAINS"
+  },
+  "operator_contains#7": {
+   "status": "unsupported",
+   "detail": "unknown operator CONTAINS"
+  },
+  "operator_contains#8": {
+   "status": "unsupported",
+   "detail": "unknown operator CONTAINS"
+  },
+  "operator_contains#9": {
+   "status": "unsupported",
+   "detail": "unknown operator CONTAINS"
+  },
+  "operator_contains#10": {
+   "status": "unsupported",
+   "detail": "unknown operator CONTAINS"
+  },
+  "operator_create_map#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_create_map#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_datetime#0": {
+   "status": "unsupported",
+   "detail": "unknown operator FORMAT_DATE_TIME"
+  },
+  "operator_datetime#1": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_datetime#2": {
+   "status": "unsupported",
+   "detail": "unknown operator FORMAT_DATE_TIME"
+  },
+  "operator_datetime#3": {
+   "status": "unsupported",
+   "detail": "unknown operator NOW"
+  },
+  "operator_datetime#4": {
+   "status": "unsupported",
+   "detail": "unknown operator FROM_UNIX"
+  },
+  "operator_datetime#5": {
+   "status": "unsupported",
+   "detail": "unknown operator NOW"
+  },
+  "operator_datetime#6": {
+   "status": "unsupported",
+   "detail": "unknown operator NOW"
+  },
+  "operator_datetime#7": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_datetime#8": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_datetime#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_datetime#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_datetime#11": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_datetime#12": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_datetime#13": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_delete#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#18": {
+   "status": "unsupported",
+   "detail": "unknown operator REVERSE"
+  },
+  "operator_delete#19": {
+   "status": "unsupported",
+   "detail": "unknown operator SHUFFLE"
+  },
+  "operator_delete#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#21": {
+   "status": "unsupported",
+   "detail": "unknown operator FLATTEN_BY"
+  },
+  "operator_delete#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#26": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#28": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#29": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_delete#30": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_divide#10": {
+   "status": "exact",
+   "detail": "expected error '!!int cannot be divided by !!str', got '!!int cannot be divided by !!str'"
+  },
+  "operator_divide#11": {
+   "status": "exact",
+   "detail": "expected error '!!str cannot be divided by !!int', got '!!str cannot be divided by !!int'"
+  },
+  "operator_divide#12": {
+   "status": "exact",
+   "detail": "expected error '!!map (a) cannot be divided by !!int (b)', got '!!map (a) cannot be divided by !!int (b)'"
+  },
+  "operator_divide#13": {
+   "status": "exact",
+   "detail": "expected error '!!seq (a) cannot be divided by !!str (b)', got '!!seq (a) cannot be divided by !!str (b)'"
+  },
+  "operator_document_index#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_document_index#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_document_index#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_document_index#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_document_index#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_encoder_decoder#0": {
+   "status": "skipped",
+   "detail": "requires format json"
+  },
+  "operator_encoder_decoder#1": {
+   "status": "skipped",
+   "detail": "requires format json"
+  },
+  "operator_encoder_decoder#2": {
+   "status": "skipped",
+   "detail": "requires format json"
+  },
+  "operator_encoder_decoder#3": {
+   "status": "skipped",
+   "detail": "requires format json"
+  },
+  "operator_encoder_decoder#4": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#5": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#6": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#7": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#8": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#9": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#10": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#11": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#12": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#13": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#14": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#15": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#16": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#17": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#18": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#19": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#20": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#21": {
+   "status": "skipped",
+   "detail": "requires format xml"
+  },
+  "operator_encoder_decoder#22": {
+   "status": "skipped",
+   "detail": "requires format xml"
+  },
+  "operator_encoder_decoder#23": {
+   "status": "skipped",
+   "detail": "requires format xml"
+  },
+  "operator_encoder_decoder#24": {
+   "status": "skipped",
+   "detail": "requires format xml"
+  },
+  "operator_encoder_decoder#25": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#26": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#27": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#28": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#29": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#30": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#31": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#32": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#33": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#34": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "operator_encoder_decoder#35": {
+   "status": "unsupported",
+   "detail": "unknown operator ENCODE"
+  },
+  "operator_encoder_decoder#36": {
+   "status": "skipped",
+   "detail": "requires format xml"
+  },
+  "operator_entries#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#10": {
+   "status": "unsupported",
+   "detail": "unknown operator REVERSE"
+  },
+  "operator_entries#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_entries#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_env#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_env#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_env#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_env#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_env#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_env#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_env#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_env#7": {
+   "status": "unsupported",
+   "detail": "unknown operator EVAL"
+  },
+  "operator_env#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_env#9": {
+   "status": "unsupported",
+   "detail": "unknown operator ENVSUBST"
+  },
+  "operator_env#10": {
+   "status": "unsupported",
+   "detail": "unknown operator ENVSUBST"
+  },
+  "operator_env#11": {
+   "status": "semantic",
+   "detail": "expected error 'variable ${myenvnonexisting} not set', got 'unknown operator ENVSUBST'"
+  },
+  "operator_env#12": {
+   "status": "unsupported",
+   "detail": "unknown operator ENVSUBST"
+  },
+  "operator_env#13": {
+   "status": "semantic",
+   "detail": "expected error 'variable ${myenv} set but empty', got 'unknown operator ENVSUBST'"
+  },
+  "operator_env#14": {
+   "status": "unsupported",
+   "detail": "unknown operator ENVSUBST"
+  },
+  "operator_env#15": {
+   "status": "unsupported",
+   "detail": "unknown operator ENVSUBST"
+  },
+  "operator_env#16": {
+   "status": "semantic",
+   "detail": "expected error 'variable ${myEmptyEnv} set but empty', got 'unknown operator ENVSUBST'"
+  },
+  "operator_env#17": {
+   "status": "unsupported",
+   "detail": "unknown operator ENVSUBST"
+  },
+  "operator_env#18": {
+   "status": "semantic",
+   "detail": "expected error 'variable ${notThere} not set\\nvariable ${alsoNotThere} not set', got 'unknown operator ENVSUBST'"
+  },
+  "operator_env#19": {
+   "status": "semantic",
+   "detail": "expected error 'variable ${notThere} not set', got 'unknown operator ENVSUBST'"
+  },
+  "operator_env#20": {
+   "status": "unsupported",
+   "detail": "unknown operator ENVSUBST"
+  },
+  "operator_env#21": {
+   "status": "exact",
+   "detail": "env operations have been disabled"
+  },
+  "operator_env#22": {
+   "status": "exact",
+   "detail": "env operations have been disabled"
+  },
+  "operator_env#23": {
+   "status": "semantic",
+   "detail": "expected error 'env operations have been disabled', got 'unknown operator ENVSUBST'"
+  },
+  "operator_equals#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_equals#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_error#0": {
+   "status": "semantic",
+   "detail": "expected error '.a [hello] is not howdy!', got 'unknown operator ERROR'"
+  },
+  "operator_error#1": {
+   "status": "semantic",
+   "detail": "expected error 'numberOfCats is not a number :(', got 'unknown operator ERROR'"
+  },
+  "operator_error#2": {
+   "status": "unresolved",
+   "detail": "expression: unsupported value starting with 'validationExpression'"
+  },
+  "operator_eval#0": {
+   "status": "unsupported",
+   "detail": "unknown operator EVAL"
+  },
+  "operator_eval#1": {
+   "status": "unsupported",
+   "detail": "unknown operator EVAL"
+  },
+  "operator_eval#2": {
+   "status": "unsupported",
+   "detail": "unknown operator EVAL"
+  },
+  "operator_file#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_file#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_file#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_file#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_file#4": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_filter#0": {
+   "status": "unsupported",
+   "detail": "unknown operator FILTER"
+  },
+  "operator_filter#1": {
+   "status": "unsupported",
+   "detail": "unknown operator FILTER"
+  },
+  "operator_filter#2": {
+   "status": "unsupported",
+   "detail": "unknown operator FILTER"
+  },
+  "operator_filter#3": {
+   "status": "unsupported",
+   "detail": "unknown operator FILTER"
+  },
+  "operator_filter#4": {
+   "status": "unsupported",
+   "detail": "unknown operator FILTER"
+  },
+  "operator_filter#5": {
+   "status": "unsupported",
+   "detail": "unknown operator FILTER"
+  },
+  "operator_first#0": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#1": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#2": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#3": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#4": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#5": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#6": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#7": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#8": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#9": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#10": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#11": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#12": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#13": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#14": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#15": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#16": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#17": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#18": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#19": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#20": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_first#21": {
+   "status": "unsupported",
+   "detail": "unknown operator FIRST"
+  },
+  "operator_flatten#0": {
+   "status": "unsupported",
+   "detail": "unknown operator FLATTEN_BY"
+  },
+  "operator_flatten#1": {
+   "status": "unsupported",
+   "detail": "unknown operator FLATTEN_BY"
+  },
+  "operator_flatten#2": {
+   "status": "unsupported",
+   "detail": "unknown operator FLATTEN_BY"
+  },
+  "operator_flatten#3": {
+   "status": "unsupported",
+   "detail": "unknown operator FLATTEN_BY"
+  },
+  "operator_flatten#4": {
+   "status": "unsupported",
+   "detail": "unknown operator FLATTEN_BY"
+  },
+  "operator_flatten#5": {
+   "status": "unsupported",
+   "detail": "unknown operator FLATTEN_BY"
+  },
+  "operator_group_by#0": {
+   "status": "unsupported",
+   "detail": "unknown operator GROUP_BY"
+  },
+  "operator_group_by#1": {
+   "status": "unsupported",
+   "detail": "unknown operator GROUP_BY"
+  },
+  "operator_group_by#2": {
+   "status": "unsupported",
+   "detail": "unknown operator GROUP_BY"
+  },
+  "operator_has#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_has#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_has#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_has#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_has#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_has#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_has#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_keys#10": {
+   "status": "unsupported",
+   "detail": "unknown operator JOIN"
+  },
+  "operator_kind#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_kind#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_kind#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_length#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_length#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_length#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_length#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_length#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_length#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_line#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_line#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_line#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_line#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_load#0": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#1": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#2": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#3": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#4": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#5": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#6": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#7": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#8": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#9": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD_STRING"
+  },
+  "operator_load#10": {
+   "status": "skipped",
+   "detail": "requires format xml"
+  },
+  "operator_load#11": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#12": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#13": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_load#14": {
+   "status": "semantic",
+   "detail": "expected error 'file operations have been disabled', got 'unknown operator LOAD'"
+  },
+  "operator_load#15": {
+   "status": "semantic",
+   "detail": "expected error 'file operations have been disabled', got 'unknown operator LOAD_STRING'"
+  },
+  "operator_load#16": {
+   "status": "semantic",
+   "detail": "expected error 'file operations have been disabled', got 'unknown operator LOAD'"
+  },
+  "operator_load#17": {
+   "status": "semantic",
+   "detail": "expected error 'file operations have been disabled', got 'unknown operator LOAD'"
+  },
+  "operator_load#18": {
+   "status": "semantic",
+   "detail": "expected error 'file operations have been disabled', got 'unknown operator LOAD'"
+  },
+  "operator_map#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_map#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_modulo#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_modulo#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_modulo#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_modulo#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_modulo#4": {
+   "status": "exact",
+   "detail": "expected error 'cannot modulo by 0', got 'cannot modulo by 0'"
+  },
+  "operator_modulo#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_modulo#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_modulo#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_modulo#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_modulo#9": {
+   "status": "exact",
+   "detail": "expected error '!!int cannot modulo by !!str', got '!!int cannot modulo by !!str'"
+  },
+  "operator_modulo#10": {
+   "status": "exact",
+   "detail": "expected error '!!str cannot modulo by !!int', got '!!str cannot modulo by !!int'"
+  },
+  "operator_modulo#11": {
+   "status": "exact",
+   "detail": "expected error '!!map (a) cannot modulo by !!int (b)', got '!!map (a) cannot modulo by !!int (b)'"
+  },
+  "operator_modulo#12": {
+   "status": "exact",
+   "detail": "expected error '!!seq (a) cannot modulo by !!str (b)', got '!!seq (a) cannot modulo by !!str (b)'"
+  },
+  "operator_multiply#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#9": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_multiply#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#12": {
+   "status": "unresolved",
+   "detail": "expected: identifier fmt"
+  },
+  "operator_multiply#13": {
+   "status": "unresolved",
+   "detail": "expected: identifier fmt"
+  },
+  "operator_multiply#14": {
+   "status": "unresolved",
+   "detail": "expected: identifier fmt"
+  },
+  "operator_multiply#15": {
+   "status": "exact",
+   "detail": "expected error 'cannot repeat string by a negative number (-4)', got 'cannot repeat string by a negative number (-4)'"
+  },
+  "operator_multiply#16": {
+   "status": "exact",
+   "detail": "expected error 'result of repeating string (6 bytes) by 100000001 would exceed 10485760 bytes', got 'result of repeating string (6 bytes) by 100000001 would exceed 10485760 bytes'"
+  },
+  "operator_multiply#17": {
+   "status": "unresolved",
+   "detail": "expected: identifier fmt"
+  },
+  "operator_multiply#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#26": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#28": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#29": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#30": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#31": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#32": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#33": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#34": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#35": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#36": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#37": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#38": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#39": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#40": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#41": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#42": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#43": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#44": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#45": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#46": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#47": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#48": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#49": {
+   "status": "unsupported",
+   "detail": "unknown operator REDUCE"
+  },
+  "operator_multiply#50": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#51": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#52": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#53": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#54": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#55": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#56": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#57": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#58": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#59": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#60": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#61": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#62": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#63": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#64": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_multiply#65": {
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
+  },
+  "operator_multiply#66": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#67": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#68": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#69": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#70": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_multiply#71": {
+   "status": "exact",
+   "detail": "expected error 'result of repeating string (3 bytes) by 99999999 would exceed 10485760 bytes', got 'result of repeating string (3 bytes) by 99999999 would exceed 10485760 bytes'"
+  },
+  "operator_multiply#72": {
+   "status": "exact",
+   "detail": "expected error 'result of repeating string (1 bytes) by 99999999 would exceed 10485760 bytes', got 'result of repeating string (1 bytes) by 99999999 would exceed 10485760 bytes'"
+  },
+  "operator_multiply#73": {
+   "status": "unresolved",
+   "detail": "expression: unsupported value starting with 'fmt'; expectedError: unsupported value starting with 'fmt'"
+  },
+  "operator_omit#0": {
+   "status": "unsupported",
+   "detail": "unknown operator OMIT"
+  },
+  "operator_omit#1": {
+   "status": "unsupported",
+   "detail": "unknown operator OMIT"
+  },
+  "operator_omit#2": {
+   "status": "unsupported",
+   "detail": "unknown operator OMIT"
+  },
+  "operator_omit#3": {
+   "status": "unsupported",
+   "detail": "unknown operator OMIT"
+  },
+  "operator_omit#4": {
+   "status": "unsupported",
+   "detail": "unknown operator OMIT"
+  },
+  "operator_omit#5": {
+   "status": "unsupported",
+   "detail": "unknown operator OMIT"
+  },
+  "operator_parent#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_parent#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#6": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_path#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#9": {
+   "status": "unsupported",
+   "detail": "unknown operator REDUCE"
+  },
+  "operator_path#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_path#15": {
+   "status": "exact",
+   "detail": "expected error 'DELPATHS: expected entry [0] to be a sequence, but its a !!str. Note that delpaths takes an array of path arrays, e.g. [[\"a\", \"b\"]]', got 'DELPATHS: expected entry [0] to be a sequence, but its a !!str. Note that delpaths takes an array of path arrays, e.g. [[\"a\", \"b\"]]'"
+  },
+  "operator_pick#0": {
+   "status": "unsupported",
+   "detail": "unknown operator PICK"
+  },
+  "operator_pick#1": {
+   "status": "unsupported",
+   "detail": "unknown operator PICK"
+  },
+  "operator_pick#2": {
+   "status": "unsupported",
+   "detail": "unknown operator PICK"
+  },
+  "operator_pick#3": {
+   "status": "unsupported",
+   "detail": "unknown operator PICK"
+  },
+  "operator_pick#4": {
+   "status": "unsupported",
+   "detail": "unknown operator PICK"
+  },
+  "operator_pick#5": {
+   "status": "unsupported",
+   "detail": "unknown operator PICK"
+  },
+  "operator_pick#6": {
+   "status": "unsupported",
+   "detail": "unknown operator PICK"
+  },
+  "operator_pipe#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_pipe#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_pipe#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_pivot#0": {
+   "status": "unsupported",
+   "detail": "unknown operator PIVOT"
+  },
+  "operator_pivot#1": {
+   "status": "unsupported",
+   "detail": "unknown operator PIVOT"
+  },
+  "operator_pivot#2": {
+   "status": "unsupported",
+   "detail": "unknown operator PIVOT"
+  },
+  "operator_pivot#3": {
+   "status": "unsupported",
+   "detail": "unknown operator PIVOT"
+  },
+  "operator_pivot#4": {
+   "status": "unsupported",
+   "detail": "unknown operator PIVOT"
+  },
+  "operator_recursive_descent#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_recursive_descent#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_reduce#0": {
+   "status": "unsupported",
+   "detail": "unknown operator REDUCE"
+  },
+  "operator_reduce#1": {
+   "status": "unsupported",
+   "detail": "unknown operator REDUCE"
+  },
+  "operator_reduce#2": {
+   "status": "unsupported",
+   "detail": "unknown operator REDUCE"
+  },
+  "operator_reverse#0": {
+   "status": "unsupported",
+   "detail": "unknown operator REVERSE"
+  },
+  "operator_reverse#1": {
+   "status": "unsupported",
+   "detail": "unknown operator REVERSE"
+  },
+  "operator_reverse#2": {
+   "status": "unsupported",
+   "detail": "unknown operator REVERSE"
+  },
+  "operator_reverse#3": {
+   "status": "unsupported",
+   "detail": "unknown operator REVERSE"
+  },
+  "operator_reverse#4": {
+   "status": "unsupported",
+   "detail": "unknown operator REVERSE"
+  },
+  "operator_reverse#5": {
+   "status": "unsupported",
+   "detail": "unknown operator REVERSE"
+  },
+  "operator_reverse#6": {
+   "status": "unsupported",
+   "detail": "unknown operator REVERSE"
+  },
+  "operator_select#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_select#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_shuffle#0": {
+   "status": "unsupported",
+   "detail": "unknown operator SHUFFLE"
+  },
+  "operator_shuffle#1": {
+   "status": "unsupported",
+   "detail": "unknown operator SHUFFLE"
+  },
+  "operator_shuffle#2": {
+   "status": "unsupported",
+   "detail": "unknown operator SHUFFLE"
+  },
+  "operator_slice#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_slice#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#6": {
+   "status": "unsupported",
+   "detail": "unknown operator REVERSE"
+  },
+  "operator_sort#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#10": {
+   "status": "unsupported",
+   "detail": "unknown operator CHANGE_CASE"
+  },
+  "operator_sort#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#13": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_sort#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_sort_keys#0": {
+   "status": "unsupported",
+   "detail": "unknown operator SORT_KEYS"
+  },
+  "operator_sort_keys#1": {
+   "status": "unsupported",
+   "detail": "unknown operator SORT_KEYS"
+  },
+  "operator_sort_keys#2": {
+   "status": "unsupported",
+   "detail": "unknown operator SORT_KEYS"
+  },
+  "operator_sort_keys#3": {
+   "status": "unsupported",
+   "detail": "unknown operator SORT_KEYS"
+  },
+  "operator_split_document#0": {
+   "status": "unsupported",
+   "detail": "unknown operator SPLIT_DOC"
+  },
+  "operator_split_document#1": {
+   "status": "unsupported",
+   "detail": "unknown operator SPLIT_DOC"
+  },
+  "operator_split_document#2": {
+   "status": "unsupported",
+   "detail": "unknown operator SPLIT_DOC"
+  },
+  "operator_strings#0": {
+   "status": "fail",
+   "detail": ""
+  },
+  "operator_strings#1": {
+   "status": "fail",
+   "detail": ""
+  },
+  "operator_strings#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_strings#3": {
+   "status": "fail",
+   "detail": ""
+  },
+  "operator_strings#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_strings#5": {
+   "status": "fail",
+   "detail": ""
+  },
+  "operator_strings#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_strings#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_strings#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_strings#9": {
+   "status": "unsupported",
+   "detail": "unknown operator CHANGE_CASE"
+  },
+  "operator_strings#10": {
+   "status": "unsupported",
+   "detail": "unknown operator CHANGE_CASE"
+  },
+  "operator_strings#11": {
+   "status": "unsupported",
+   "detail": "unknown operator CHANGE_CASE"
+  },
+  "operator_strings#12": {
+   "status": "unsupported",
+   "detail": "unknown operator CHANGE_CASE"
+  },
+  "operator_strings#13": {
+   "status": "unsupported",
+   "detail": "unknown operator JOIN"
+  },
+  "operator_strings#14": {
+   "status": "unsupported",
+   "detail": "unknown operator TRIM"
+  },
+  "operator_strings#15": {
+   "status": "unsupported",
+   "detail": "unknown operator JOIN"
+  },
+  "operator_strings#16": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#17": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#18": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#19": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#20": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#21": {
+   "status": "unsupported",
+   "detail": "unknown operator CAPTURE"
+  },
+  "operator_strings#22": {
+   "status": "unsupported",
+   "detail": "unknown operator CAPTURE"
+  },
+  "operator_strings#23": {
+   "status": "unsupported",
+   "detail": "unknown operator CAPTURE"
+  },
+  "operator_strings#24": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#25": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#26": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#27": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#28": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#29": {
+   "status": "unsupported",
+   "detail": "unknown operator MATCH"
+  },
+  "operator_strings#30": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_strings#31": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_strings#32": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_strings#33": {
+   "status": "unsupported",
+   "detail": "unknown operator SUBSTR"
+  },
+  "operator_strings#34": {
+   "status": "unsupported",
+   "detail": "unknown operator SUBSTR"
+  },
+  "operator_strings#35": {
+   "status": "unsupported",
+   "detail": "unknown operator SUBSTR"
+  },
+  "operator_strings#36": {
+   "status": "unsupported",
+   "detail": "unknown operator SPLIT"
+  },
+  "operator_strings#37": {
+   "status": "unsupported",
+   "detail": "unknown operator SPLIT"
+  },
+  "operator_strings#38": {
+   "status": "unsupported",
+   "detail": "unknown operator SPLIT"
+  },
+  "operator_strings#39": {
+   "status": "unsupported",
+   "detail": "unknown operator SPLIT"
+  },
+  "operator_strings#40": {
+   "status": "unsupported",
+   "detail": "unknown operator SPLIT"
+  },
+  "operator_strings#41": {
+   "status": "unsupported",
+   "detail": "unknown operator SPLIT"
+  },
+  "operator_strings#42": {
+   "status": "unsupported",
+   "detail": "unknown operator TO_STRING"
+  },
+  "operator_style#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#1": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH"
+  },
+  "operator_style#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#7": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_style#8": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "operator_style#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_style#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#13": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_subtract#14": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+  },
+  "operator_subtract#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_subtract#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_system#0": {
+   "status": "semantic",
+   "detail": "expected error 'system operations are disabled, use --security-enable-system-operator to enable', got 'unknown operator SYSTEM'"
+  },
+  "operator_system#1": {
+   "status": "unresolved",
+   "detail": "expression: identifier echoPath"
+  },
+  "operator_system#2": {
+   "status": "unresolved",
+   "detail": "expression: identifier echoPath"
+  },
+  "operator_system#3": {
+   "status": "unresolved",
+   "detail": "expression: identifier echoPath"
+  },
+  "operator_system#4": {
+   "status": "unresolved",
+   "detail": "document: identifier echoPath; expected: identifier echoPath"
+  },
+  "operator_system#5": {
+   "status": "unresolved",
+   "detail": "expression: identifier falsePath; expectedError: identifier falsePath"
+  },
+  "operator_system#6": {
+   "status": "semantic",
+   "detail": "expected error 'system operator: command must be a string scalar', got 'unknown operator SYSTEM'"
+  },
+  "operator_system#7": {
+   "status": "unresolved",
+   "detail": "expression: identifier echoPath"
+  },
+  "operator_tag#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_tag#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_tag#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_tag#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_tag#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_tag#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_tag#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_tag#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_tag#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_to_number#0": {
+   "status": "unsupported",
+   "detail": "unknown operator TO_NUMBER"
+  },
+  "operator_to_number#1": {
+   "status": "unsupported",
+   "detail": "unknown operator TO_NUMBER"
+  },
+  "operator_to_number#2": {
+   "status": "unsupported",
+   "detail": "unknown operator TO_NUMBER"
+  },
+  "operator_to_number#3": {
+   "status": "semantic",
+   "detail": "expected error 'cannot convert node value [null] at path a.b of tag !!null to number', got 'unknown operator TO_NUMBER'"
+  },
+  "operator_traverse_path#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#26": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#28": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#29": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#30": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#31": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#32": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#33": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#34": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#35": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#36": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#37": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#38": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#39": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#40": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#41": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#42": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#43": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#44": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#45": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#46": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#47": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#48": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#49": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#50": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#51": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#52": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#53": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#54": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#55": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#56": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#57": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#58": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#59": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#60": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#61": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#62": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#63": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#64": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#65": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#66": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#67": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#68": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#69": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#70": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#71": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#72": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_traverse_path#73": {
+   "status": "exact",
+   "detail": "expected error 'alias cycle detected', got 'alias cycle detected'"
+  },
+  "operator_union#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_union#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_union#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_union#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_union#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_unique#0": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE"
+  },
+  "operator_unique#1": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE"
+  },
+  "operator_unique#2": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE"
+  },
+  "operator_unique#3": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE_BY"
+  },
+  "operator_unique#4": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE"
+  },
+  "operator_unique#5": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE_BY"
+  },
+  "operator_unique#6": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE"
+  },
+  "operator_unique#7": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE_BY"
+  },
+  "operator_unique#8": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE_BY"
+  },
+  "operator_unique#9": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE_BY"
+  },
+  "operator_unique#10": {
+   "status": "unsupported",
+   "detail": "unknown operator UNIQUE_BY"
+  },
+  "operator_value#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_value#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_variables#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_variables#1": {
+   "status": "exact",
+   "detail": "expected error 'must use variable with a pipe, e.g. `exp as $x | ...`', got 'must use variable with a pipe, e.g. `exp as $x | ...`'"
+  },
+  "operator_variables#2": {
+   "status": "semantic",
+   "detail": "expected error 'cannot index array with \\'name\\' (strconv.ParseInt: parsing \"name\": invalid syntax)', got \"cannot index array with 'name'\""
+  },
+  "operator_variables#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_variables#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_variables#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_variables#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_variables#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_variables#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_variables#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operator_with#0": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH"
+  },
+  "operator_with#1": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH"
+  },
+  "operator_with#2": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH"
+  },
+  "operator_with#3": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH"
+  },
+  "operator_with#4": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH"
+  },
+  "operators_compare#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#26": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#28": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#29": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#30": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#31": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#32": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#33": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#34": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#35": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#36": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#37": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#38": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#39": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#40": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#41": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#42": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#43": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#44": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#45": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#46": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#47": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#48": {
+   "status": "exact",
+   "detail": ""
+  },
+  "operators_compare#49": {
+   "status": "exact",
+   "detail": ""
+  },
+  "recipes#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "recipes#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "recipes#2": {
+   "status": "unsupported",
+   "detail": "unknown operator REDUCE"
+  },
+  "recipes#3": {
+   "status": "unsupported",
+   "detail": "unknown operator WITH"
+  },
+  "recipes#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "recipes#5": {
+   "status": "unsupported",
+   "detail": "unknown operator FLATTEN_BY"
+  },
+  "recipes#6": {
+   "status": "unsupported",
+   "detail": "unknown operator JOIN"
+  },
+  "recipes#7": {
+   "status": "unsupported",
+   "detail": "unknown operator JOIN"
+  },
+  "yaml#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "yaml#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "yaml#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "yaml#3": {
+   "status": "exact",
+   "detail": ""
+  }
+ }
+}

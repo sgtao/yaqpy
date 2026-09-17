@@ -1,0 +1,71 @@
+[
+  {
+    "source": "operator_sort_keys_test.go",
+    "description": "Sort keys of map",
+    "document": "{c: frog, a: blah, b: bing}",
+    "document2": "",
+    "expression": "sort_keys(.)",
+    "expected": [
+      "D0, P[], (!!map)::{a: blah, b: bing, c: frog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortKeysOperatorScenarios",
+    "id": "operator_sort_keys#0"
+  },
+  {
+    "source": "operator_sort_keys_test.go",
+    "description": "Sort keys of map",
+    "document": "{c: frog, a: zoo}",
+    "document2": "",
+    "expression": "sort_keys(.)[]",
+    "expected": [
+      "D0, P[a], (!!str)::zoo\n",
+      "D0, P[c], (!!str)::frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortKeysOperatorScenarios",
+    "id": "operator_sort_keys#1"
+  },
+  {
+    "source": "operator_sort_keys_test.go",
+    "description": "",
+    "document": "{c: frog}",
+    "document2": "",
+    "expression": "sort_keys(.d)",
+    "expected": [
+      "D0, P[], (!!map)::{c: frog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortKeysOperatorScenarios",
+    "id": "operator_sort_keys#2"
+  },
+  {
+    "source": "operator_sort_keys_test.go",
+    "description": "Sort keys recursively",
+    "document": "{bParent: {c: dog, array: [3,1,2]}, aParent: {z: donkey, x: [{c: yum, b: delish}, {b: ew, a: apple}]}}",
+    "document2": "",
+    "expression": "sort_keys(..)",
+    "expected": [
+      "D0, P[], (!!map)::{aParent: {x: [{b: delish, c: yum}, {a: apple, b: ew}], z: donkey}, bParent: {array: [3, 1, 2], c: dog}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "sortKeysOperatorScenarios",
+    "id": "operator_sort_keys#3"
+  }
+]

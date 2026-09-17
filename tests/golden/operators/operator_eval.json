@@ -1,0 +1,56 @@
+[
+  {
+    "source": "operator_eval_test.go",
+    "description": "Dynamically evaluate a path",
+    "document": "{pathExp: '.a.b[] | select(.name == \"cat\")', a: {b: [{name: dog}, {name: cat}]}}",
+    "document2": "",
+    "expression": "eval(.pathExp)",
+    "expected": [
+      "D0, P[a b 1], (!!map)::{name: cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "evalOperatorScenarios",
+    "id": "operator_eval#0"
+  },
+  {
+    "source": "operator_eval_test.go",
+    "description": "eval splat",
+    "document": "{pathExp: '.a.b[] | select(.name == \"cat\")', a: {b: [{name: dog}, {name: cat}]}}",
+    "document2": "",
+    "expression": "eval(.pathExp)[]",
+    "expected": [
+      "D0, P[a b 1 name], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "evalOperatorScenarios",
+    "id": "operator_eval#1"
+  },
+  {
+    "source": "operator_eval_test.go",
+    "description": "Dynamically update a path from an environment variable",
+    "document": "{a: {b: [{name: dog}, {name: cat}]}}",
+    "document2": "",
+    "expression": "eval(strenv(pathEnv)) = strenv(valueEnv)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: [{name: moo}, {name: cat}]}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "pathEnv": ".a.b[0].name",
+      "valueEnv": "moo"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "evalOperatorScenarios",
+    "id": "operator_eval#2"
+  }
+]

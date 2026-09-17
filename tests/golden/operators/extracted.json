@@ -1,0 +1,274 @@
+{
+  "total": 1091,
+  "unresolved": 12,
+  "files": {
+    "all_at_once_evaluator": {
+      "count": 3,
+      "unresolved": 0
+    },
+    "operator_add": {
+      "count": 64,
+      "unresolved": 0
+    },
+    "operator_alternative": {
+      "count": 12,
+      "unresolved": 0
+    },
+    "operator_anchors_aliases": {
+      "count": 51,
+      "unresolved": 0
+    },
+    "operator_array_to_map": {
+      "count": 1,
+      "unresolved": 0
+    },
+    "operator_assign": {
+      "count": 28,
+      "unresolved": 0
+    },
+    "operator_booleans": {
+      "count": 33,
+      "unresolved": 0
+    },
+    "operator_collect_object": {
+      "count": 23,
+      "unresolved": 0
+    },
+    "operator_collect": {
+      "count": 16,
+      "unresolved": 0
+    },
+    "operator_column": {
+      "count": 4,
+      "unresolved": 0
+    },
+    "operator_comments": {
+      "count": 28,
+      "unresolved": 0
+    },
+    "operator_contains": {
+      "count": 11,
+      "unresolved": 0
+    },
+    "operator_create_map": {
+      "count": 13,
+      "unresolved": 0
+    },
+    "operator_datetime": {
+      "count": 14,
+      "unresolved": 0
+    },
+    "operator_delete": {
+      "count": 31,
+      "unresolved": 0
+    },
+    "operator_divide": {
+      "count": 14,
+      "unresolved": 0
+    },
+    "operator_document_index": {
+      "count": 5,
+      "unresolved": 0
+    },
+    "operator_encoder_decoder": {
+      "count": 37,
+      "unresolved": 0
+    },
+    "operator_entries": {
+      "count": 15,
+      "unresolved": 0
+    },
+    "operator_env": {
+      "count": 24,
+      "unresolved": 0
+    },
+    "operator_equals": {
+      "count": 22,
+      "unresolved": 0
+    },
+    "operator_error": {
+      "count": 3,
+      "unresolved": 1
+    },
+    "operator_eval": {
+      "count": 3,
+      "unresolved": 0
+    },
+    "operator_file": {
+      "count": 5,
+      "unresolved": 0
+    },
+    "operator_filter": {
+      "count": 6,
+      "unresolved": 0
+    },
+    "operator_first": {
+      "count": 22,
+      "unresolved": 0
+    },
+    "operator_flatten": {
+      "count": 6,
+      "unresolved": 0
+    },
+    "operator_group_by": {
+      "count": 3,
+      "unresolved": 0
+    },
+    "operator_has": {
+      "count": 7,
+      "unresolved": 0
+    },
+    "operator_keys": {
+      "count": 11,
+      "unresolved": 0
+    },
+    "operator_kind": {
+      "count": 3,
+      "unresolved": 0
+    },
+    "operator_length": {
+      "count": 6,
+      "unresolved": 0
+    },
+    "operator_line": {
+      "count": 4,
+      "unresolved": 0
+    },
+    "operator_load": {
+      "count": 19,
+      "unresolved": 0
+    },
+    "operator_map": {
+      "count": 13,
+      "unresolved": 0
+    },
+    "operator_modulo": {
+      "count": 13,
+      "unresolved": 0
+    },
+    "operator_multiply": {
+      "count": 74,
+      "unresolved": 5
+    },
+    "operator_omit": {
+      "count": 6,
+      "unresolved": 0
+    },
+    "operator_parent": {
+      "count": 14,
+      "unresolved": 0
+    },
+    "operator_path": {
+      "count": 16,
+      "unresolved": 0
+    },
+    "operator_pick": {
+      "count": 7,
+      "unresolved": 0
+    },
+    "operator_pipe": {
+      "count": 3,
+      "unresolved": 0
+    },
+    "operator_pivot": {
+      "count": 5,
+      "unresolved": 0
+    },
+    "operator_recursive_descent": {
+      "count": 22,
+      "unresolved": 0
+    },
+    "operator_reduce": {
+      "count": 3,
+      "unresolved": 0
+    },
+    "operator_reverse": {
+      "count": 7,
+      "unresolved": 0
+    },
+    "operator_select": {
+      "count": 18,
+      "unresolved": 0
+    },
+    "operator_shuffle": {
+      "count": 3,
+      "unresolved": 0
+    },
+    "operator_slice": {
+      "count": 23,
+      "unresolved": 0
+    },
+    "operator_sort_keys": {
+      "count": 4,
+      "unresolved": 0
+    },
+    "operator_sort": {
+      "count": 20,
+      "unresolved": 0
+    },
+    "operator_split_document": {
+      "count": 3,
+      "unresolved": 0
+    },
+    "operator_strings": {
+      "count": 43,
+      "unresolved": 0
+    },
+    "operator_style": {
+      "count": 15,
+      "unresolved": 0
+    },
+    "operator_subtract": {
+      "count": 18,
+      "unresolved": 0
+    },
+    "operator_system": {
+      "count": 8,
+      "unresolved": 6
+    },
+    "operator_tag": {
+      "count": 9,
+      "unresolved": 0
+    },
+    "operator_to_number": {
+      "count": 4,
+      "unresolved": 0
+    },
+    "operator_traverse_path": {
+      "count": 74,
+      "unresolved": 0
+    },
+    "operator_union": {
+      "count": 5,
+      "unresolved": 0
+    },
+    "operator_unique": {
+      "count": 11,
+      "unresolved": 0
+    },
+    "operator_value": {
+      "count": 26,
+      "unresolved": 0
+    },
+    "operator_variables": {
+      "count": 10,
+      "unresolved": 0
+    },
+    "operator_with": {
+      "count": 5,
+      "unresolved": 0
+    },
+    "operators_compare": {
+      "count": 50,
+      "unresolved": 0
+    },
+    "recipes": {
+      "count": 8,
+      "unresolved": 0
+    },
+    "yaml": {
+      "count": 4,
+      "unresolved": 0
+    }
+  }
+}

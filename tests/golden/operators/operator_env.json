@@ -1,0 +1,424 @@
+[
+  {
+    "source": "operator_env_test.go",
+    "description": "Read string environment variable",
+    "document": "",
+    "document2": "",
+    "expression": "env(myenv)[]",
+    "expected": [
+      "D0, P[0], (!!str)::cat\n",
+      "D0, P[1], (!!str)::dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {
+      "myenv": "[cat,dog]"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#0"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Read string environment variable",
+    "document": "",
+    "document2": "",
+    "expression": ".a = env(myenv)",
+    "expected": [
+      "D0, P[], ()::a: cat meow\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "myenv": "cat meow"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#1"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Read boolean environment variable",
+    "document": "",
+    "document2": "",
+    "expression": ".a = env(myenv)",
+    "expected": [
+      "D0, P[], ()::a: true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "myenv": "true"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#2"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Read numeric environment variable",
+    "document": "",
+    "document2": "",
+    "expression": ".a = env(myenv)",
+    "expected": [
+      "D0, P[], ()::a: 12\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "myenv": "12"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#3"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Read yaml environment variable",
+    "document": "",
+    "document2": "",
+    "expression": ".a = env(myenv)",
+    "expected": [
+      "D0, P[], ()::a: {b: fish}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "myenv": "{b: fish}"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#4"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Read boolean environment variable as a string",
+    "document": "",
+    "document2": "",
+    "expression": ".a = strenv(myenv)",
+    "expected": [
+      "D0, P[], ()::a: \"true\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "myenv": "true"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#5"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Read numeric environment variable as a string",
+    "document": "",
+    "document2": "",
+    "expression": ".a = strenv(myenv)",
+    "expected": [
+      "D0, P[], ()::a: \"12\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "myenv": "12"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#6"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Dynamically update a path from an environment variable",
+    "document": "{a: {b: [{name: dog}, {name: cat}]}}",
+    "document2": "",
+    "expression": "eval(strenv(pathEnv)) = strenv(valueEnv)",
+    "expected": [
+      "D0, P[], (!!map)::{a: {b: [{name: moo}, {name: cat}]}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "pathEnv": ".a.b[0].name",
+      "valueEnv": "moo"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#7"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Dynamic key lookup with environment variable",
+    "document": "{cat: meow, dog: woof}",
+    "document2": "",
+    "expression": ".[env(myenv)]",
+    "expected": [
+      "D0, P[cat], (!!str)::meow\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "myenv": "cat"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#8"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Replace strings with envsubst",
+    "document": "",
+    "document2": "",
+    "expression": "\"the ${myenv} meows\" | envsubst",
+    "expected": [
+      "D0, P[], (!!str)::the cat meows\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "myenv": "cat"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#9"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Replace strings with envsubst, missing variables",
+    "document": "",
+    "document2": "",
+    "expression": "\"the ${myenvnonexisting} meows\" | envsubst",
+    "expected": [
+      "D0, P[], (!!str)::the  meows\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#10"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Replace strings with envsubst(nu), missing variables",
+    "document": "",
+    "document2": "",
+    "expression": "\"the ${myenvnonexisting} meows\" | envsubst(nu)",
+    "expected": [],
+    "expected_error": "variable ${myenvnonexisting} not set",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#11"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Replace strings with envsubst(ne), missing variables",
+    "document": "",
+    "document2": "",
+    "expression": "\"the ${myenvnonexisting} meows\" | envsubst(ne)",
+    "expected": [
+      "D0, P[], (!!str)::the  meows\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#12"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Replace strings with envsubst(ne), empty variable",
+    "document": "",
+    "document2": "",
+    "expression": "\"the ${myenv} meows\" | envsubst(ne)",
+    "expected": [],
+    "expected_error": "variable ${myenv} set but empty",
+    "skip_doc": false,
+    "environment": {
+      "myenv": ""
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#13"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Replace strings with envsubst, missing variables with defaults",
+    "document": "",
+    "document2": "",
+    "expression": "\"the ${myenvnonexisting-dog} meows\" | envsubst",
+    "expected": [
+      "D0, P[], (!!str)::the dog meows\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#14"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Replace strings with envsubst(nu), missing variables with defaults",
+    "document": "",
+    "document2": "",
+    "expression": "\"the ${myenvnonexisting-dog} meows\" | envsubst(nu)",
+    "expected": [
+      "D0, P[], (!!str)::the dog meows\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#15"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Replace strings with envsubst(ne), missing variables with defaults",
+    "document": "",
+    "document2": "",
+    "expression": "\"the ${myEmptyEnv-dog} meows\" | envsubst(ne)",
+    "expected": [],
+    "expected_error": "variable ${myEmptyEnv} set but empty",
+    "skip_doc": false,
+    "environment": {
+      "myEmptyEnv": ""
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#16"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Replace string environment variable in document",
+    "document": "{v: \"${myenv}\"}",
+    "document2": "",
+    "expression": ".v |= envsubst",
+    "expected": [
+      "D0, P[], (!!map)::{v: \"cat meow\"}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "myenv": "cat meow"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#17"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "(Default) Return all envsubst errors",
+    "document": "",
+    "document2": "",
+    "expression": "\"the ${notThere} ${alsoNotThere}\" | envsubst(nu)",
+    "expected": [],
+    "expected_error": "variable ${notThere} not set\nvariable ${alsoNotThere} not set",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#18"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "Fail fast, return the first envsubst error (and abort)",
+    "document": "",
+    "document2": "",
+    "expression": "\"the ${notThere} ${alsoNotThere}\" | envsubst(nu,ff)",
+    "expected": [],
+    "expected_error": "variable ${notThere} not set",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#19"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "with header/footer",
+    "document": "# abc\n{v: \"${myenv}\"}\n# xyz\n",
+    "document2": "",
+    "expression": "(.. | select(tag == \"!!str\")) |= envsubst",
+    "expected": [
+      "D0, P[], (!!map)::# abc\n{v: \"cat meow\"}\n# xyz\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {
+      "myenv": "cat meow"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorScenarios",
+    "id": "operator_env#20"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "env() operation fails when security is enabled",
+    "document": "",
+    "document2": "",
+    "expression": "env(\"MYENV\")",
+    "expected": [],
+    "expected_error": "env operations have been disabled",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorSecurityDisabledScenarios",
+    "id": "operator_env#21"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "strenv() operation fails when security is enabled",
+    "document": "",
+    "document2": "",
+    "expression": "strenv(\"MYENV\")",
+    "expected": [],
+    "expected_error": "env operations have been disabled",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorSecurityDisabledScenarios",
+    "id": "operator_env#22"
+  },
+  {
+    "source": "operator_env_test.go",
+    "description": "envsubst() operation fails when security is enabled",
+    "document": "",
+    "document2": "",
+    "expression": "\"value: ${MYENV}\" | envsubst",
+    "expected": [],
+    "expected_error": "env operations have been disabled",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "envOperatorSecurityDisabledScenarios",
+    "id": "operator_env#23"
+  }
+]

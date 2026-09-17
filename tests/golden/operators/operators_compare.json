@@ -1,0 +1,848 @@
+[
+  {
+    "source": "operators_compare_test.go",
+    "description": "Compare numbers (>)",
+    "document": "a: 5\nb: 4",
+    "document2": "",
+    "expression": ".a > .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#0"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "(.k | length) >= 0",
+    "expected": [
+      "D0, P[k], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#1"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "\"2022-01-30T15:53:09Z\" > \"2020-01-30T15:53:09Z\"",
+    "expected": [
+      "D0, P[], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#2"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5\nb: 4",
+    "document2": "",
+    "expression": ".a < .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#3"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Compare integers (>=)",
+    "document": "a: 5\nb: 4",
+    "document2": "",
+    "expression": ".a >= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#4"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5\nb: 4",
+    "document2": "",
+    "expression": ".a <= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#5"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Compare equal numbers (>)",
+    "document": "a: 5\nb: 5",
+    "document2": "",
+    "expression": ".a > .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#6"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5\nb: 5",
+    "document2": "",
+    "expression": ".a < .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#7"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Compare equal numbers (>=)",
+    "document": "a: 5\nb: 5",
+    "document2": "",
+    "expression": ".a >= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#8"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5\nb: 5",
+    "document2": "",
+    "expression": ".a <= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#9"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5.2\nb: 4.1",
+    "document2": "",
+    "expression": ".a > .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#10"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5.2\nb: 4.1",
+    "document2": "",
+    "expression": ".a < .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#11"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5.2\nb: 4.1",
+    "document2": "",
+    "expression": ".a >= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#12"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5.5\nb: 4.1",
+    "document2": "",
+    "expression": ".a <= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#13"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5.5\nb: 5.5",
+    "document2": "",
+    "expression": ".a > .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#14"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5.5\nb: 5.5",
+    "document2": "",
+    "expression": ".a < .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#15"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5.1\nb: 5.1",
+    "document2": "",
+    "expression": ".a >= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#16"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5.1\nb: 5.1",
+    "document2": "",
+    "expression": ".a <= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#17"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Compare strings",
+    "document": "a: zoo\nb: apple",
+    "document2": "",
+    "expression": ".a > .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#18"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: zoo\nb: apple",
+    "document2": "",
+    "expression": ".a < .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#19"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: zoo\nb: apple",
+    "document2": "",
+    "expression": ".a >= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#20"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: zoo\nb: apple",
+    "document2": "",
+    "expression": ".a <= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#21"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: cat\nb: cat",
+    "document2": "",
+    "expression": ".a > .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#22"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: cat\nb: cat",
+    "document2": "",
+    "expression": ".a < .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#23"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: cat\nb: cat",
+    "document2": "",
+    "expression": ".a >= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#24"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: cat\nb: cat",
+    "document2": "",
+    "expression": ".a <= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#25"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Compare date times",
+    "document": "a: 2021-01-01T03:10:00Z\nb: 2020-01-01T03:10:00Z",
+    "document2": "",
+    "expression": ".a > .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#26"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 2021-01-01T03:10:00Z\nb: 2020-01-01T03:10:00Z",
+    "document2": "",
+    "expression": ".a < .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#27"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 2021-01-01T03:10:00Z\nb: 2020-01-01T03:10:00Z",
+    "document2": "",
+    "expression": ".a >= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#28"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 2021-01-01T03:10:00Z\nb: 2020-01-01T03:10:00Z",
+    "document2": "",
+    "expression": ".a <= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#29"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 2021-01-01T03:10:00Z\nb: 2021-01-01T03:10:00Z",
+    "document2": "",
+    "expression": ".a > .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#30"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 2021-01-01T03:10:00Z\nb: 2021-01-01T03:10:00Z",
+    "document2": "",
+    "expression": ".a < .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#31"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 2021-01-01T03:10:00Z\nb: 2021-01-01T03:10:00Z",
+    "document2": "",
+    "expression": ".a >= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#32"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 2021-01-01T03:10:00Z\nb: 2021-01-01T03:10:00Z",
+    "document2": "",
+    "expression": ".a <= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#33"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Both sides are null: > is false",
+    "document": "",
+    "document2": "",
+    "expression": ".a > .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#34"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": ".a < .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#35"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Both sides are null: >= is true",
+    "document": "",
+    "document2": "",
+    "expression": ".a >= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#36"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": ".a <= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::true\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#37"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "One side is null: > is false",
+    "document": "a: 5",
+    "document2": "",
+    "expression": ".a > .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#38"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5",
+    "document2": "",
+    "expression": ".a < .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#39"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "One side is null: >= is false",
+    "document": "a: 5",
+    "document2": "",
+    "expression": ".a >= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#40"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5",
+    "document2": "",
+    "expression": ".a <= .b",
+    "expected": [
+      "D0, P[a], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#41"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5",
+    "document2": "",
+    "expression": ".b <= .a",
+    "expected": [
+      "D0, P[b], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#42"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "",
+    "document": "a: 5",
+    "document2": "",
+    "expression": ".b < .a",
+    "expected": [
+      "D0, P[b], (!!bool)::false\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "compareOperatorScenarios",
+    "id": "operators_compare#43"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Minimum int",
+    "document": "[99, 16, 12, 6, 66]\n",
+    "document2": "",
+    "expression": "min",
+    "expected": [
+      "D0, P[3], (!!int)::6\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "minOperatorScenarios",
+    "id": "operators_compare#44"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Minimum string",
+    "document": "[foo, bar, baz]\n",
+    "document2": "",
+    "expression": "min",
+    "expected": [
+      "D0, P[1], (!!str)::bar\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "minOperatorScenarios",
+    "id": "operators_compare#45"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Minimum of empty",
+    "document": "[]\n",
+    "document2": "",
+    "expression": "min",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "minOperatorScenarios",
+    "id": "operators_compare#46"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Maximum int",
+    "document": "[99, 16, 12, 6, 66]\n",
+    "document2": "",
+    "expression": "max",
+    "expected": [
+      "D0, P[0], (!!int)::99\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "maxOperatorScenarios",
+    "id": "operators_compare#47"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Maximum string",
+    "document": "[foo, bar, baz]\n",
+    "document2": "",
+    "expression": "max",
+    "expected": [
+      "D0, P[0], (!!str)::foo\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "maxOperatorScenarios",
+    "id": "operators_compare#48"
+  },
+  {
+    "source": "operators_compare_test.go",
+    "description": "Maximum of empty",
+    "document": "[]\n",
+    "document2": "",
+    "expression": "max",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "maxOperatorScenarios",
+    "id": "operators_compare#49"
+  }
+]

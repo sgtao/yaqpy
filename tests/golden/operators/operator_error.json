@@ -1,0 +1,55 @@
+[
+  {
+    "source": "operator_error_test.go",
+    "description": "Validate a particular value",
+    "document": "a: hello",
+    "document2": "",
+    "expression": "select(.a == \"howdy\") or error(\".a [\" + .a + \"] is not howdy!\")",
+    "expected": [],
+    "expected_error": ".a [hello] is not howdy!",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "errorOperatorScenarios",
+    "id": "operator_error#0"
+  },
+  {
+    "source": "operator_error_test.go",
+    "description": "Validate the environment variable is a number - invalid",
+    "document": "",
+    "document2": "",
+    "expression": "env(numberOfCats) | select(tag == \"!!int\") or error(\"numberOfCats is not a number :(\")",
+    "expected": [],
+    "expected_error": "numberOfCats is not a number :(",
+    "skip_doc": false,
+    "environment": {
+      "numberOfCats": "please"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "errorOperatorScenarios",
+    "id": "operator_error#1"
+  },
+  {
+    "source": "operator_error_test.go",
+    "description": "Validate the environment variable is a number - valid",
+    "document": "name: Bob\nfavouriteAnimal: cat\n",
+    "document2": "",
+    "expression": "",
+    "expected": [
+      "D0, P[], (!!map)::name: Bob\nfavouriteAnimal: cat\nnumPets: 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "numberOfCats": "3"
+    },
+    "requires_format": "",
+    "unresolved": [
+      "expression: unsupported value starting with 'validationExpression'"
+    ],
+    "group": "errorOperatorScenarios",
+    "id": "operator_error#2"
+  }
+]

@@ -1,0 +1,70 @@
+[
+  {
+    "source": "operator_line_test.go",
+    "description": "Returns line of _value_ node",
+    "document": "a: cat\nb:\n   c: cat",
+    "document2": "",
+    "expression": ".b | line",
+    "expected": [
+      "D0, P[b], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "lineOperatorScenarios",
+    "id": "operator_line#0"
+  },
+  {
+    "source": "operator_line_test.go",
+    "description": "Returns line of _key_ node",
+    "document": "a: cat\nb:\n   c: cat",
+    "document2": "",
+    "expression": ".b | key | line",
+    "expected": [
+      "D0, P[b], (!!int)::2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "lineOperatorScenarios",
+    "id": "operator_line#1"
+  },
+  {
+    "source": "operator_line_test.go",
+    "description": "First line is 1",
+    "document": "a: cat",
+    "document2": "",
+    "expression": ".a | line",
+    "expected": [
+      "D0, P[a], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "lineOperatorScenarios",
+    "id": "operator_line#2"
+  },
+  {
+    "source": "operator_line_test.go",
+    "description": "No line data is 0",
+    "document": "",
+    "document2": "",
+    "expression": "{\"a\": \"new entry\"} | line",
+    "expected": [
+      "D0, P[], (!!int)::0\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "lineOperatorScenarios",
+    "id": "operator_line#3"
+  }
+]

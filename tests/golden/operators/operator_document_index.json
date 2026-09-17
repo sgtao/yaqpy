@@ -1,0 +1,90 @@
+[
+  {
+    "source": "operator_document_index_test.go",
+    "description": "Retrieve a document index",
+    "document": "a: cat\n---\na: frog\n",
+    "document2": "",
+    "expression": ".a | document_index",
+    "expected": [
+      "D0, P[a], (!!int)::0\n",
+      "D1, P[a], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "documentIndexScenarios",
+    "id": "operator_document_index#0"
+  },
+  {
+    "source": "operator_document_index_test.go",
+    "description": "Retrieve a document index, shorthand",
+    "document": "a: cat\n---\na: frog\n",
+    "document2": "",
+    "expression": ".a | di",
+    "expected": [
+      "D0, P[a], (!!int)::0\n",
+      "D1, P[a], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "documentIndexScenarios",
+    "id": "operator_document_index#1"
+  },
+  {
+    "source": "operator_document_index_test.go",
+    "description": "Filter by document index",
+    "document": "a: cat\n---\na: frog\n",
+    "document2": "",
+    "expression": "select(document_index == 1)",
+    "expected": [
+      "D1, P[], (!!map)::a: frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "documentIndexScenarios",
+    "id": "operator_document_index#2"
+  },
+  {
+    "source": "operator_document_index_test.go",
+    "description": "Filter by document index shorthand",
+    "document": "a: cat\n---\na: frog\n",
+    "document2": "",
+    "expression": "select(di == 1)",
+    "expected": [
+      "D1, P[], (!!map)::a: frog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "documentIndexScenarios",
+    "id": "operator_document_index#3"
+  },
+  {
+    "source": "operator_document_index_test.go",
+    "description": "Print Document Index with matches",
+    "document": "a: cat\n---\na: frog\n",
+    "document2": "",
+    "expression": ".a | ({\"match\": ., \"doc\": document_index})",
+    "expected": [
+      "D0, P[], (!!map)::match: cat\ndoc: 0\n",
+      "D1, P[], (!!map)::match: frog\ndoc: 1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "documentIndexScenarios",
+    "id": "operator_document_index#4"
+  }
+]

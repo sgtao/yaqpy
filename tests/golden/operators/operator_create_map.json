@@ -1,0 +1,228 @@
+[
+  {
+    "source": "operator_create_map_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "\"frog\": \"jumps\"",
+    "expected": [
+      "D0, P[], (!!seq)::- [{frog: jumps}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#0"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "sets key properly",
+    "document": "",
+    "document2": "",
+    "expression": "(\"frog\": \"jumps\") | .[0][0] | .frog",
+    "expected": [
+      "D0, P[0 0 frog], (!!str)::jumps\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#1"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "sets key properly on map",
+    "document": "",
+    "document2": "",
+    "expression": "{\"frog\": \"jumps\"} | .frog",
+    "expected": [
+      "D0, P[frog], (!!str)::jumps\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#2"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "",
+    "document": "{name: Mike, pets: [cat, dog]}",
+    "document2": "",
+    "expression": "(.name: .pets.[]) | .[0][0] | ..",
+    "expected": [
+      "D0, P[0 0], (!!map)::Mike: cat\n",
+      "D0, P[0 0 Mike], (!!str)::cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#3"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "check path of nested child",
+    "document": "pets:\n  cows: value",
+    "document2": "",
+    "expression": "(\"b\":.pets) | .[0][0] | .b.cows",
+    "expected": [
+      "D0, P[0 0 b cows], (!!str)::value\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#4"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "",
+    "document": "{name: Mike, age: 32}",
+    "document2": "",
+    "expression": ".name: .age",
+    "expected": [
+      "D0, P[], (!!seq)::- [{Mike: 32}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#5"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "",
+    "document": "{name: Mike, pets: [cat, dog]}",
+    "document2": "",
+    "expression": ".name: .pets.[]",
+    "expected": [
+      "D0, P[], (!!seq)::- [{Mike: cat}, {Mike: dog}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#6"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "",
+    "document": "{name: Mike, pets: [cat, dog], food: [hotdog, burger]}",
+    "document2": "",
+    "expression": ".name: .pets.[], \"f\":.food.[]",
+    "expected": [
+      "D0, P[], (!!seq)::- [{Mike: cat}, {Mike: dog}]\n",
+      "D0, P[], (!!seq)::- [{f: hotdog}, {f: burger}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#7"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "",
+    "document": "{name: Mike, pets: [cat, dog], food: [hotdog, burger]}\n---\n{name: Fred, pets: [mouse], food: [pizza, onion, apple]}",
+    "document2": "",
+    "expression": ".name: .pets.[], \"f\":.food.[]",
+    "expected": [
+      "D0, P[], (!!seq)::- [{Mike: cat}, {Mike: dog}]\n- [{Fred: mouse}]\n",
+      "D0, P[], (!!seq)::- [{f: hotdog}, {f: burger}]\n- [{f: pizza}, {f: onion}, {f: apple}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#8"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "",
+    "document": "{name: Mike, pets: {cows: [apl, bba]}}",
+    "document2": "",
+    "expression": "\"a\":.name, \"b\":.pets",
+    "expected": [
+      "D0, P[], (!!seq)::- [{a: Mike}]\n",
+      "D0, P[], (!!seq)::- [{b: {cows: [apl, bba]}}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#9"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "",
+    "document": "{name: Mike}",
+    "document2": "",
+    "expression": "\"wrap\": .",
+    "expected": [
+      "D0, P[], (!!seq)::- [{wrap: {name: Mike}}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#10"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "",
+    "document": "{name: Mike}\n---\n{name: Bob}",
+    "document2": "",
+    "expression": "\"wrap\": .",
+    "expected": [
+      "D0, P[], (!!seq)::- [{wrap: {name: Mike}}]\n- [{wrap: {name: Bob}}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#11"
+  },
+  {
+    "source": "operator_create_map_test.go",
+    "description": "",
+    "document": "{name: Mike}\n---\n{name: Bob}",
+    "document2": "",
+    "expression": "\"wrap\": ., .name: \"great\"",
+    "expected": [
+      "D0, P[], (!!seq)::- [{wrap: {name: Mike}}]\n- [{wrap: {name: Bob}}]\n",
+      "D0, P[], (!!seq)::- [{Mike: great}]\n- [{Bob: great}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "createMapOperatorScenarios",
+    "id": "operator_create_map#12"
+  }
+]

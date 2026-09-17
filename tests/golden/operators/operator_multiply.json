@@ -1,0 +1,1261 @@
+[
+  {
+    "source": "operator_multiply_test.go",
+    "description": "multiple should be readonly",
+    "document": "",
+    "document2": "",
+    "expression": ".x |= (root | (.a * .b))",
+    "expected": [
+      "D0, P[], ()::x: null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#0"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "glob keys are treated as literals when merging",
+    "document": "\n\"**cat\": things,\n\"meow**cat\": stuff\n",
+    "document2": "\n\"**cat\": newThings,\n",
+    "expression": "select(fi == 0) * select(fi == 1)",
+    "expected": [
+      "D0, P[], (!!map)::\n\"**cat\": newThings,\n\"meow**cat\": stuff\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#1"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "sample:\n- &a\n- <<: *a\n",
+    "document2": "",
+    "expression": ". * .",
+    "expected": [
+      "D0, P[], (!!map)::sample:\n    - &a\n    - <<: *a\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#2"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "[[c], [b]]",
+    "document2": "",
+    "expression": ".[] | . *+ [\"a\"]",
+    "expected": [
+      "D0, P[0], (!!seq)::[c, a]\n",
+      "D0, P[1], (!!seq)::[b, a]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#3"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "# here\n\na: apple\n",
+    "document2": "b: banana\n",
+    "expression": "select(fi == 0) * select(fi == 1)",
+    "expected": [
+      "D0, P[], (!!map)::# here\n\na: apple\nb: banana\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#4"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "node:\n  # here\n  a: apple\n",
+    "document2": "b: banana\n",
+    "expression": "(select(fi == 0) | .node) * select(fi == 1)",
+    "expected": [
+      "D0, P[node], (!!map)::# here\na: apple\nb: banana\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#5"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "b: banana\n",
+    "document2": "# here\n\na: apple\n",
+    "expression": "select(fi == 0) * select(fi == 1)",
+    "expected": [
+      "D0, P[], (!!map)::# here\n\nb: banana\na: apple\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#6"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "b: banana\n",
+    "document2": "node:\n  # here\n  a: apple\n",
+    "expression": "select(fi == 0) * (select(fi == 1) | .node)",
+    "expected": [
+      "D0, P[], (!!map)::b: banana\n# here\na: apple\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#7"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "a: apple\n\n# footer\n",
+    "document2": "b: banana\n",
+    "expression": "select(fi == 0) * select(fi == 1)",
+    "expected": [
+      "D0, P[], (!!map)::a: apple\nb: banana\n# footer\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#8"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "a: apple\n# footer",
+    "document2": "b: banana\n",
+    "expression": "select(fi == 0) * select(fi == 1)",
+    "expected": [
+      "D0, P[], (!!map)::a: apple\n# footer\n\nb: banana\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#9"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "doc 2 has footer",
+    "document": "b: banana\n",
+    "document2": "a: apple\n\n# footer\n",
+    "expression": "select(fi == 0) * select(fi == 1)",
+    "expected": [
+      "D0, P[], (!!map)::b: banana\na: apple\n# footer\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#10"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Multiply integers",
+    "document": "a: 3\nb: 4",
+    "document2": "",
+    "expression": ".a *= .b",
+    "expected": [
+      "D0, P[], (!!map)::a: 12\nb: 4\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#11"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Multiply string node X int",
+    "document": "b: banana\n",
+    "document2": "",
+    "expression": ".b * 4",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "expected: identifier fmt"
+    ],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#12"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Multiply int X string node",
+    "document": "b: banana\n",
+    "document2": "",
+    "expression": "4 * .b",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "expected: identifier fmt"
+    ],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#13"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Multiply string X int node",
+    "document": "n: 4\n",
+    "document2": "",
+    "expression": "\"banana\" * .n",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "expected: identifier fmt"
+    ],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#14"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Multiply string X by negative int",
+    "document": "n: -4",
+    "document2": "",
+    "expression": "\"banana\" * .n",
+    "expected": [],
+    "expected_error": "cannot repeat string by a negative number (-4)",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#15"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Multiply string by count that exceeds result size limit",
+    "document": "n: 100000001",
+    "document2": "",
+    "expression": "\"banana\" * .n",
+    "expected": [],
+    "expected_error": "result of repeating string (6 bytes) by 100000001 would exceed 10485760 bytes",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#16"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Multiply int node X string",
+    "document": "n: 4\n",
+    "document2": "",
+    "expression": ".n * \"banana\"",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "expected: identifier fmt"
+    ],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#17"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "list:\n# Hi this is a comment.\n# Hello this is another comment.\n- \"abc\"",
+    "document2": "list2:\n# This is yet another comment.\n# Indeed this is yet another comment.\n- \"123\"",
+    "expression": "select(fi == 0) * select(fi == 1)",
+    "expected": [
+      "D0, P[], (!!map)::list:\n    # Hi this is a comment.\n    # Hello this is another comment.\n    - \"abc\"\nlist2:\n    # This is yet another comment.\n    # Indeed this is yet another comment.\n    - \"123\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#18"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": ".x =  {\"things\": \"whatever\"} * {}",
+    "expected": [
+      "D0, P[], ()::x:\n    things: whatever\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#19"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": ".x = {} * {\"things\": \"whatever\"}",
+    "expected": [
+      "D0, P[], ()::x:\n    things: whatever\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#20"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "3 * 4.5",
+    "expected": [
+      "D0, P[], (!!float)::13.5\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#21"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "4.5 * 3",
+    "expected": [
+      "D0, P[], (!!float)::13.5\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#22"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: {also: [1]}, b: {also: me}}",
+    "document2": "",
+    "expression": ". * {\"a\" : .b}",
+    "expected": [
+      "D0, P[], (!!map)::{a: {also: me}, b: {also: me}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#23"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "# b\nb:\n  # a\n  a: cat",
+    "document2": "",
+    "expression": "{} * .",
+    "expected": [
+      "D0, P[], (!!map)::# b\nb:\n    # a\n    a: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#24"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "# b\nb:\n  # a\n  a: cat",
+    "document2": "",
+    "expression": ". * {}",
+    "expected": [
+      "D0, P[], (!!map)::# b\nb:\n    # a\n    a: cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#25"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: &a { b: &b { c: &c cat } } }",
+    "document2": "",
+    "expression": "{} * .",
+    "expected": [
+      "D0, P[], (!!map)::a: &a\n    b: &b\n        c: &c cat\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#26"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: 2, b: 5}",
+    "document2": "{a: 3, b: 10}",
+    "expression": ".a * .b",
+    "expected": [
+      "D0, P[a], (!!int)::10\n",
+      "D0, P[a], (!!int)::20\n",
+      "D0, P[a], (!!int)::15\n",
+      "D0, P[a], (!!int)::30\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#27"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: 2}",
+    "document2": "{b: 10}",
+    "expression": "select(fi ==0) * select(fi==1)",
+    "expected": [
+      "D0, P[], (!!map)::{a: 2, b: 10}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#28"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "{} * {\"cat\":\"dog\"}",
+    "expected": [
+      "D0, P[], (!!map)::cat: dog\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#29"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: {also: me}, b: {also: [1]}}",
+    "document2": "",
+    "expression": ". * {\"a\":.b}",
+    "expected": [
+      "D0, P[], (!!map)::{a: {also: [1]}, b: {also: [1]}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#30"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge objects together, returning merged result only",
+    "document": "{a: {field: me, fieldA: cat}, b: {field: {g: wizz}, fieldB: dog}}",
+    "document2": "",
+    "expression": ".a * .b",
+    "expected": [
+      "D0, P[a], (!!map)::{field: {g: wizz}, fieldA: cat, fieldB: dog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#31"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge objects together, returning parent object",
+    "document": "{a: {field: me, fieldA: cat}, b: {field: {g: wizz}, fieldB: dog}}",
+    "document2": "",
+    "expression": ". * {\"a\":.b}",
+    "expected": [
+      "D0, P[], (!!map)::{a: {field: {g: wizz}, fieldA: cat, fieldB: dog}, b: {field: {g: wizz}, fieldB: dog}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#32"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: {also: {g: wizz}}, b: {also: me}}",
+    "document2": "",
+    "expression": ". * {\"a\":.b}",
+    "expected": [
+      "D0, P[], (!!map)::{a: {also: me}, b: {also: me}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#33"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: {also: {g: wizz}}, b: {also: [1]}}",
+    "document2": "",
+    "expression": ". * {\"a\":.b}",
+    "expected": [
+      "D0, P[], (!!map)::{a: {also: [1]}, b: {also: [1]}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#34"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: {also: [1]}, b: {also: {g: wizz}}}",
+    "document2": "",
+    "expression": ". * {\"a\":.b}",
+    "expected": [
+      "D0, P[], (!!map)::{a: {also: {g: wizz}}, b: {also: {g: wizz}}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#35"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: {things: great}, b: {also: me}}",
+    "document2": "",
+    "expression": ". * {\"a\": .b}",
+    "expected": [
+      "D0, P[], (!!map)::{a: {things: great, also: me}, b: {also: me}}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#36"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge keeps style of LHS",
+    "document": "a: {things: great}\nb:\n  also: \"me\"",
+    "document2": "",
+    "expression": ". * {\"a\":.b}",
+    "expected": [
+      "D0, P[], (!!map)::a: {things: great, also: \"me\"}\nb:\n    also: \"me\"\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#37"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge arrays",
+    "document": "{a: [1,2,3], b: [3,4,5]}",
+    "document2": "",
+    "expression": ". * {\"a\":.b}",
+    "expected": [
+      "D0, P[], (!!map)::{a: [3, 4, 5], b: [3, 4, 5]}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#38"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: [1], b: [2]}",
+    "document2": "",
+    "expression": ".a *+ .b",
+    "expected": [
+      "D0, P[a], (!!seq)::[1, 2]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#39"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge, only existing fields",
+    "document": "{a: {thing: one, cat: frog}, b: {missing: two, thing: two}}",
+    "document2": "",
+    "expression": ".a *? .b",
+    "expected": [
+      "D0, P[a], (!!map)::{thing: two, cat: frog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#40"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge, only new fields",
+    "document": "{a: {thing: one, cat: frog}, b: {missing: two, thing: two}}",
+    "document2": "",
+    "expression": ".a *n .b",
+    "expected": [
+      "D0, P[a], (!!map)::{thing: one, cat: frog, missing: two}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#41"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: [{thing: one}], b: [{missing: two, thing: two}]}",
+    "document2": "",
+    "expression": ".a *?d .b",
+    "expected": [
+      "D0, P[a], (!!seq)::[{thing: two}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#42"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: [{thing: one}], b: [{missing: two, thing: two}]}",
+    "document2": "",
+    "expression": ".a *nd .b",
+    "expected": [
+      "D0, P[a], (!!seq)::[{thing: one, missing: two}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#43"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "{a: {array: [1]}, b: {}}",
+    "document2": "",
+    "expression": ".b *+ .a",
+    "expected": [
+      "D0, P[b], (!!map)::array: [1]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#44"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge, appending arrays",
+    "document": "{a: {array: [1, 2, animal: dog], value: coconut}, b: {array: [3, 4, animal: cat], value: banana}}",
+    "document2": "",
+    "expression": ".a *+ .b",
+    "expected": [
+      "D0, P[a], (!!map)::{array: [1, 2, {animal: dog}, 3, 4, {animal: cat}], value: banana}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#45"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge, only existing fields, appending arrays",
+    "document": "{a: {thing: [1,2]}, b: {thing: [3,4], another: [1]}}",
+    "document2": "",
+    "expression": ".a *?+ .b",
+    "expected": [
+      "D0, P[a], (!!map)::{thing: [1, 2, 3, 4]}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#46"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge, only new fields, appending arrays",
+    "document": "{a: {thing: [1,2]}, b: {thing: [3,4], another: [1]}}",
+    "document2": "",
+    "expression": ".a *n+ .b",
+    "expected": [
+      "D0, P[a], (!!map)::{thing: [1, 2], another: [1]}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#47"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge, deeply merging arrays",
+    "document": "{a: [{name: fred, age: 12}, {name: bob, age: 32}], b: [{name: fred, age: 34}]}",
+    "document2": "",
+    "expression": ".a *d .b",
+    "expected": [
+      "D0, P[a], (!!seq)::[{name: fred, age: 34}, {name: bob, age: 32}]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#48"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge arrays of objects together, matching on a key",
+    "document": "{myArray: [{a: apple, b: appleB}, {a: kiwi, b: kiwiB}, {a: banana, b: bananaB}], something: else}",
+    "document2": "newArray: [{a: banana, c: bananaC}, {a: apple, b: appleB2}, {a: dingo, c: dingoC}]",
+    "expression": "\n(\n  (( (eval(strenv(originalPath)) + eval(strenv(otherPath)))  | .[] | {(eval(strenv(idPath))):  .}) as $item ireduce ({}; . * $item )) as $uniqueMap\n  | ( $uniqueMap  | to_entries | .[]) as $item ireduce([]; . + $item.value)\n) as $mergedArray\n| select(fi == 0) | (eval(strenv(originalPath))) = $mergedArray\n",
+    "expected": [
+      "D0, P[], (!!map)::{myArray: [{a: apple, b: appleB2}, {a: kiwi, b: kiwiB}, {a: banana, b: bananaB, c: bananaC}, {a: dingo, c: dingoC}], something: else}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {
+      "originalPath": ".myArray",
+      "otherPath": ".newArray",
+      "idPath": ".a"
+    },
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#49"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge to prefix an element",
+    "document": "{a: cat, b: dog}",
+    "document2": "",
+    "expression": ". * {\"a\": {\"c\": .a}}",
+    "expected": [
+      "D0, P[], (!!map)::{a: {c: cat}, b: dog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#50"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge with simple aliases",
+    "document": "{a: &cat {c: frog}, b: {f: *cat}, c: {g: thongs}}",
+    "document2": "",
+    "expression": ".c * .b",
+    "expected": [
+      "D0, P[c], (!!map)::{g: thongs, f: *cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#51"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge copies anchor names",
+    "document": "{a: {c: &cat frog}, b: {f: *cat}, c: {g: thongs}}",
+    "document2": "",
+    "expression": ".c * .a",
+    "expected": [
+      "D0, P[c], (!!map)::{g: thongs, c: &cat frog}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#52"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merge with merge anchors",
+    "document": "foo: &foo\n  a: foo_a\n  thing: foo_thing\n  c: foo_c\n\nbar: &bar\n  b: bar_b\n  thing: bar_thing\n  c: bar_c\n\nfoobarList:\n  b: foobarList_b\n  <<: [*foo,*bar]\n  c: foobarList_c\n\nfoobar:\n  c: foobar_c\n  <<: *foo\n  thing: foobar_thing\n",
+    "document2": "",
+    "expression": ".foobar * .foobarList",
+    "expected": [
+      "D0, P[foobar], (!!map)::c: foobarList_c\n<<: [*foo, *bar]\nthing: foobar_thing\nb: foobarList_b\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#53"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "a: &cat {name: cat}\nb: {name: dog}\nc:\n  <<: *cat\n",
+    "document2": "",
+    "expression": ".b * .c",
+    "expected": [
+      "D0, P[b], (!!map)::{name: dog, <<: *cat}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#54"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Custom types: that are really numbers",
+    "document": "a: !horse 2\nb: !goat 3",
+    "document2": "",
+    "expression": ".a = .a * .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse 6\nb: !goat 3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#55"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Custom types: that are really numbers",
+    "document": "a: !horse 2.5\nb: !goat 3.5",
+    "document2": "",
+    "expression": ".a = .a * .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse 8.75\nb: !goat 3.5\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#56"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Custom types: that are really numbers",
+    "document": "a: 2\nb: !goat 3.5",
+    "document2": "",
+    "expression": ".a = .a * .b",
+    "expected": [
+      "D0, P[], (!!map)::a: 7\nb: !goat 3.5\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#57"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Custom types: that are really arrays",
+    "document": "a: !horse [1,2]\nb: !goat [3]",
+    "document2": "",
+    "expression": ".a = .a * .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse [3]\nb: !goat [3]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#58"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Custom types: that are really maps",
+    "document": "a: !horse {cat: meow}\nb: !goat {dog: woof}",
+    "document2": "",
+    "expression": ".a = .a * .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse {cat: meow, dog: woof}\nb: !goat {dog: woof}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#59"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Custom types: clobber tags",
+    "document": "a: !horse {cat: meow}\nb: !goat {dog: woof}",
+    "document2": "",
+    "expression": ".a *=c .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !goat {cat: meow, dog: woof}\nb: !goat {dog: woof}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#60"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Custom types: clobber tags - *=",
+    "document": "a: !horse {cat: meow}\nb: !goat {dog: woof}",
+    "document2": "",
+    "expression": ".a =c .a *c .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !goat {cat: meow, dog: woof}\nb: !goat {dog: woof}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#61"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Custom types: dont clobber tags - *=",
+    "document": "a: !horse {cat: meow}\nb: !goat {dog: woof}",
+    "document2": "",
+    "expression": ".a *= .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse {cat: meow, dog: woof}\nb: !goat {dog: woof}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#62"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Custom types: that are really maps",
+    "document": "a: {cat: !horse meow}\nb: {cat: 5}",
+    "document2": "",
+    "expression": ".a = .a * .b",
+    "expected": [
+      "D0, P[], (!!map)::a: {cat: !horse 5}\nb: {cat: 5}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#63"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Relative merge, new fields only",
+    "document": "a: {a: original}\n",
+    "document2": "",
+    "expression": ".a *=n load(\"../../examples/thing.yml\")",
+    "expected": [
+      "D0, P[], (!!map)::a: {a: original, b: cool.}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#64"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Relative merge",
+    "document": "a: {a: original}\n",
+    "document2": "",
+    "expression": ".a *= load(\"../../examples/thing.yml\")",
+    "expected": [
+      "D0, P[], (!!map)::a: {a: apple is included, b: cool.}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#65"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merging a null with a map",
+    "document": "",
+    "document2": "",
+    "expression": "null * {\"some\": \"thing\"}",
+    "expected": [
+      "D0, P[], (!!map)::some: thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#66"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merging a map with null",
+    "document": "",
+    "document2": "",
+    "expression": "{\"some\": \"thing\"} * null",
+    "expected": [
+      "D0, P[], (!!map)::some: thing\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#67"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merging a null with an array",
+    "document": "",
+    "document2": "",
+    "expression": "null * [\"some\"]",
+    "expected": [
+      "D0, P[], (!!seq)::- some\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#68"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "Merging an array with null",
+    "document": "",
+    "document2": "",
+    "expression": "[\"some\"] * null",
+    "expected": [
+      "D0, P[], (!!seq)::- some\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#69"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "null * null",
+    "expected": [
+      "D0, P[], (!!null)::null\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#70"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "\"abc\" * 99999999",
+    "expected": [],
+    "expected_error": "result of repeating string (3 bytes) by 99999999 would exceed 10485760 bytes",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#71"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "\"x\" * 99999999",
+    "expected": [],
+    "expected_error": "result of repeating string (1 bytes) by 99999999 would exceed 10485760 bytes",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#72"
+  },
+  {
+    "source": "operator_multiply_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "",
+    "expected": [],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [
+      "expression: unsupported value starting with 'fmt'",
+      "expectedError: unsupported value starting with 'fmt'"
+    ],
+    "group": "multiplyOperatorScenarios",
+    "id": "operator_multiply#73"
+  }
+]

@@ -1,0 +1,70 @@
+[
+  {
+    "source": "operator_column_test.go",
+    "description": "Returns column of _value_ node",
+    "document": "a: cat\nb: bob",
+    "document2": "",
+    "expression": ".b | column",
+    "expected": [
+      "D0, P[b], (!!int)::4\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "columnOperatorScenarios",
+    "id": "operator_column#0"
+  },
+  {
+    "source": "operator_column_test.go",
+    "description": "Returns column of _key_ node",
+    "document": "a: cat\nb: bob",
+    "document2": "",
+    "expression": ".b | key | column",
+    "expected": [
+      "D0, P[b], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "columnOperatorScenarios",
+    "id": "operator_column#1"
+  },
+  {
+    "source": "operator_column_test.go",
+    "description": "First column is 1",
+    "document": "a: cat",
+    "document2": "",
+    "expression": ".a | key | column",
+    "expected": [
+      "D0, P[a], (!!int)::1\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "columnOperatorScenarios",
+    "id": "operator_column#2"
+  },
+  {
+    "source": "operator_column_test.go",
+    "description": "No column data is 0",
+    "document": "",
+    "document2": "",
+    "expression": "{\"a\": \"new entry\"} | column",
+    "expected": [
+      "D0, P[], (!!int)::0\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "columnOperatorScenarios",
+    "id": "operator_column#3"
+  }
+]

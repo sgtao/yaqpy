@@ -1,0 +1,231 @@
+[
+  {
+    "source": "operator_map_test.go",
+    "description": "",
+    "document": "[1,2,3]",
+    "document2": "[5,6,7]",
+    "expression": "map(. + 1)",
+    "expected": [
+      "D0, P[], (!!seq)::[2, 3, 4]\n",
+      "D0, P[], (!!seq)::[6, 7, 8]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#0"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "mapping against an empty array should do nothing",
+    "document": "[]",
+    "document2": "[\"cat\"]",
+    "expression": "map(3)",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n",
+      "D0, P[], (!!seq)::[3]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#1"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "mapping against an empty array should do nothing",
+    "document": "[[], [5]]",
+    "document2": "",
+    "expression": ".[] |= map(3)",
+    "expected": [
+      "D0, P[], (!!seq)::[[], [3]]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#2"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "mapping against an empty array should do nothing #2",
+    "document": "[]",
+    "document2": "[5]",
+    "expression": "map(3 + .)",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n",
+      "D0, P[], (!!seq)::[8]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#3"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "mapping against an empty array should do nothing",
+    "document": "[[], [5]]",
+    "document2": "",
+    "expression": ".[] |= map(3 + .)",
+    "expected": [
+      "D0, P[], (!!seq)::[[], [8]]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#4"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "",
+    "document": "",
+    "document2": "",
+    "expression": "[] | map(. + 42)",
+    "expected": [
+      "D0, P[], (!!seq)::[]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#5"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "",
+    "document": "[1,2]",
+    "document2": "",
+    "expression": "map(. + 1)[]",
+    "expected": [
+      "D0, P[0], (!!int)::2\n",
+      "D0, P[1], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#6"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "Map array",
+    "document": "[1,2,3]",
+    "document2": "",
+    "expression": "map(. + 1)",
+    "expected": [
+      "D0, P[], (!!seq)::[2, 3, 4]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#7"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "{b: 12}",
+    "expression": "map_values(3)",
+    "expected": [
+      "D0, P[], (!!map)::{}\n",
+      "D0, P[], (!!map)::{b: 3}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#8"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "{b: 12}",
+    "expression": "map_values(3 + .)",
+    "expected": [
+      "D0, P[], (!!map)::{}\n",
+      "D0, P[], (!!map)::{b: 15}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#9"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "",
+    "document": "{a: 1, b: 2, c: 3}",
+    "document2": "{x: 10, y: 20, z: 30}",
+    "expression": "map_values(. + 1)",
+    "expected": [
+      "D0, P[], (!!map)::{a: 2, b: 3, c: 4}\n",
+      "D0, P[], (!!map)::{x: 11, y: 21, z: 31}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#10"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "map values splat",
+    "document": "{a: 1, b: 2}",
+    "document2": "",
+    "expression": "map_values(. + 1)[]",
+    "expected": [
+      "D0, P[a], (!!int)::2\n",
+      "D0, P[b], (!!int)::3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#11"
+  },
+  {
+    "source": "operator_map_test.go",
+    "description": "Map object values",
+    "document": "{a: 1, b: 2, c: 3}",
+    "document2": "",
+    "expression": "map_values(. + 1)",
+    "expected": [
+      "D0, P[], (!!map)::{a: 2, b: 3, c: 4}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "mapOperatorScenarios",
+    "id": "operator_map#12"
+  }
+]

@@ -1,0 +1,214 @@
+[
+  {
+    "source": "operator_modulo_test.go",
+    "description": "",
+    "document": "[{a: 2.5, b: 2}, {a: 2, b: 0.75}]",
+    "document2": "",
+    "expression": ".[] | .a % .b",
+    "expected": [
+      "D0, P[0 a], (!!float)::0.5\n",
+      "D0, P[1 a], (!!float)::0.5\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#0"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "",
+    "document": "{}",
+    "document2": "",
+    "expression": "(.a / .b) as $x | .",
+    "expected": [
+      "D0, P[], (!!map)::{}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#1"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "Number modulo - int",
+    "document": "{a: 13, b: 2}",
+    "document2": "",
+    "expression": ".a = .a % .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: 1, b: 2}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#2"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "Number modulo - float",
+    "document": "{a: 12, b: 2.5}",
+    "document2": "",
+    "expression": ".a = .a % .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: 2, b: 2.5}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#3"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "Number modulo - int by zero",
+    "document": "{a: 1, b: 0}",
+    "document2": "",
+    "expression": ".a = .a % .b",
+    "expected": [],
+    "expected_error": "cannot modulo by 0",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#4"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "Number modulo - float by zero",
+    "document": "{a: 1.1, b: 0}",
+    "document2": "",
+    "expression": ".a = .a % .b",
+    "expected": [
+      "D0, P[], (!!map)::{a: NaN, b: 0}\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#5"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "Custom types: that are really numbers",
+    "document": "a: !horse 333.975\nb: !goat 299.2",
+    "document2": "",
+    "expression": ".a = .a % .b",
+    "expected": [
+      "D0, P[], (!!map)::a: !horse 34.775000000000034\nb: !goat 299.2\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#6"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "",
+    "document": "a: 2\nb: !goat 2.3",
+    "document2": "",
+    "expression": ".a = .a % .b",
+    "expected": [
+      "D0, P[], (!!map)::a: 2\nb: !goat 2.3\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#7"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "Keep anchors",
+    "document": "a: &horse [1]",
+    "document2": "",
+    "expression": ".a[1] = .a[0] % 2",
+    "expected": [
+      "D0, P[], (!!map)::a: &horse [1, 1]\n"
+    ],
+    "expected_error": "",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#8"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "Modulo int by string",
+    "document": "a: 123\nb: '2'",
+    "document2": "",
+    "expression": ".a % .b",
+    "expected": [],
+    "expected_error": "!!int cannot modulo by !!str",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#9"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "Modulo string by int",
+    "document": "a: 2\nb: '123'",
+    "document2": "",
+    "expression": ".b % .a",
+    "expected": [],
+    "expected_error": "!!str cannot modulo by !!int",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#10"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "Modulo map by int",
+    "document": "a: {\"a\":1}\nb: 2",
+    "document2": "",
+    "expression": ".a % .b",
+    "expected": [],
+    "expected_error": "!!map (a) cannot modulo by !!int (b)",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#11"
+  },
+  {
+    "source": "operator_modulo_test.go",
+    "description": "Modulo array by str",
+    "document": "a: [1,2]\nb: '2'",
+    "document2": "",
+    "expression": ".a % .b",
+    "expected": [],
+    "expected_error": "!!seq (a) cannot modulo by !!str (b)",
+    "skip_doc": true,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "moduloOperatorScenarios",
+    "id": "operator_modulo#12"
+  }
+]

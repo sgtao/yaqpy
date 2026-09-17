@@ -1,0 +1,19 @@
+[
+  {
+    "source": "operator_array_to_map_test.go",
+    "description": "Simple example",
+    "document": "cool: [null, null, hello]",
+    "document2": "",
+    "expression": ".cool |= array_to_map",
+    "expected": [
+      "D0, P[], (!!map)::cool:\n    2: hello\n"
+    ],
+    "expected_error": "",
+    "skip_doc": false,
+    "environment": {},
+    "requires_format": "",
+    "unresolved": [],
+    "group": "arrayToMapScenarios",
+    "id": "operator_array_to_map#0"
+  }
+]
