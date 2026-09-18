@@ -11,7 +11,7 @@
 - **Go 版との互換性**：Go 版のテストシナリオ 1,091 件を抽出して互換テストにしています（下記）
 - **Library + CLI**：`import pyyq` で関数として使う方法と、`pyyq` コマンドの両方に対応
 - **拡張可能な設計**：ヘキサゴナル（Ports & Adapters）。CLI・GUI・API が共通の `YqService` を呼ぶ構造で、GUI（tkinter）と API（WSGI）は Phase 3 で追加予定
-- **対応フォーマット（Phase 1）**：YAML（入出力）、JSON（入出力）、properties（出力）
+- **対応フォーマット**：YAML（入出力）、JSON（入出力）、properties（出力）、TOON（出力。Go 版にはない拡張）
 
 ## 動作環境
 
@@ -84,6 +84,41 @@ yq.evaluate(expr, text)                                             # -> '{"port
 - ライブラリの既定は `SecurityPolicy.strict()`（`env`・`load`・`system` を禁止）。必要なら `Options(security=SecurityPolicy(allow_env=True))` を渡します。CLI は Go 版と同じ既定（env・file を許可、system は禁止）です
 - 設定はすべて呼び出しごとの `Options`（変更不可の dataclass）で渡すため、設定の違う評価を同時に実行できます（グローバル状態なし）
 - `Limits(max_steps=..., timeout_seconds=..., max_depth=..., max_input_bytes=...)` で評価量に上限を掛けられます
+
+## TOON 出力（Go 版にはない拡張）
+
+[TOON（Token-Oriented Object Notation）](https://github.com/toon-format/spec) 仕様 v4.1（2026-07-26 版）に沿ったエンコーダを標準ライブラリだけで実装しています。LLM に渡すデータのトークン数を減らしたいときに使います。
+
+```bash
+# 標準出力を TOON にする
+uv run pyyq -o toon '.' examples/sample.yaml
+
+# ファイルに書く（リダイレクト、または -i で .toon ファイルをその場で書き換え）
+uv run pyyq -o toon '.items' examples/sample.yaml > items.toon
+```
+
+```text
+server:
+  port: 8080
+  hosts[2]: a,b
+  tls:
+    enabled: true
+    cert: /etc/cert.pem
+backup:
+  enabled: true
+  cert: /etc/cert.pem
+  schedule: 0 3 * * *
+items[2]{name,price}:
+  pen,120
+  book,980
+```
+
+- **コメントは失われます**。TOON 仕様はコメント行（`#` で始まる行）の読み飛ばしをデコーダに義務づけ、エンコーダがコメントを出力することを禁じています。YAML → TOON では JSON 出力と同じくコメントは黙って落ちます
+- アンカー／エイリアスは展開してから出力します（JSON と同じ）
+- 数値は仕様の正規形（`1.50` → `1.5`、`0x1F` → `31`、`1e21` → `1e+21`）にします。`.inf` / `.nan` は TOON の数値にできないため文字列として出力します
+- 同じキー集合を持つオブジェクトの配列は表形式（`items[2]{name,price}:`）、同じキー集合を持つオブジェクトのオブジェクトはキー付き表形式（`users[2:]{age,city}:`）になります。後者は `ToonOptions(keyed_tabular=False)` で無効にできます
+- 複数の結果・複数ドキュメントは空行で区切って出力します（TOON には文書区切りがないため）
+- ライブラリでは `Options(output_format="toon", toon=ToonOptions(delimiter="\t", indent=2))` で指定します
 
 ## 実装済みの演算子（Phase 1 ＝ 38 種）
 

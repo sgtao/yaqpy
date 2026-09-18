@@ -107,6 +107,7 @@ def builtin_formats() -> FormatRegistry:
     if _builtin is None:
         from pyyq.formats.json_codec import JsonDecoder, JsonEncoder
         from pyyq.formats.props_codec import PropertiesEncoder
+        from pyyq.formats.toon_codec import ToonEncoder
         from pyyq.formats.yaml.codec import YamlDecoder, YamlEncoder
 
         reg = FormatRegistry()
@@ -127,6 +128,12 @@ def builtin_formats() -> FormatRegistry:
             decoder_factory=None,
             encoder_factory=lambda o, u: PropertiesEncoder(o, unwrap_scalar=u),
             unwrap_scalar_default=True,
+        ))
+        reg.register(FormatSpec(
+            "toon", (), (".toon",),
+            decoder_factory=None,
+            encoder_factory=lambda o, u: ToonEncoder(o, unwrap_scalar=u),
+            unwrap_scalar_default=False,
         ))
         _builtin = reg.freeze()
     return _builtin

@@ -67,6 +67,22 @@ class PropertiesOptions:
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
+class ToonOptions:
+    """TOON (Token-Oriented Object Notation) settings, spec v4.1."""
+
+    delimiter: str = ","          # "," | "	" | "|"
+    indent: int = 2
+    strict: bool = True           # decoder: validate counts, indentation, duplicate keys
+    keyed_tabular: bool = True    # encoder: use `[N:]{fields}:` for uniform object-of-objects
+
+    def __post_init__(self) -> None:
+        if self.delimiter not in (",", "	", "|"):
+            raise ValueError("toon delimiter must be ',', tab or '|'")
+        if self.indent < 1:
+            raise ValueError("toon indent must be at least 1")
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Options:
     input_format: str = "yaml"
     output_format: str | None = None
@@ -78,6 +94,7 @@ class Options:
     yaml: YamlOptions = field(default_factory=YamlOptions)
     json: JsonOptions = field(default_factory=JsonOptions)
     props: PropertiesOptions = field(default_factory=PropertiesOptions)
+    toon: ToonOptions = field(default_factory=ToonOptions)
     security: SecurityPolicy = field(default_factory=SecurityPolicy.strict)
     limits: Limits = field(default_factory=Limits)
 
