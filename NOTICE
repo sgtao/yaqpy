@@ -1,7 +1,7 @@
-pyyq
-====
+yaqpy
+=====
 
-pyyq is an independent, pure-Python re-implementation of the expression
+yaqpy is an independent, pure-Python re-implementation of the expression
 language and core behaviour of yq (https://github.com/mikefarah/yq), a Go
 program by Mike Farah and contributors, released under the MIT License.
 
@@ -13,5 +13,5 @@ License:
     MIT License
     Copyright (c) 2017 Mike Farah
 
-No code from yq is compiled into or linked with pyyq; pyyq has zero runtime
+No code from yq is compiled into or linked with yaqpy; yaqpy has zero runtime
 dependencies beyond the Python 3.13 standard library.

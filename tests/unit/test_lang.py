@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import unittest
 
-from pyyq.core.lang.lex_rules import process_escape_characters
-from pyyq.core.lang.lexer import tokenize
-from pyyq.core.lang.parser import ExpressionCompiler, parse_expression
-from pyyq.core.operators import builtin_registry
-from pyyq.errors import ExpressionSyntaxError
+from yaqpy.core.lang.lex_rules import process_escape_characters
+from yaqpy.core.lang.lexer import tokenize
+from yaqpy.core.lang.parser import ExpressionCompiler, parse_expression
+from yaqpy.core.operators import builtin_registry
+from yaqpy.errors import ExpressionSyntaxError
 
 REG = builtin_registry()
 

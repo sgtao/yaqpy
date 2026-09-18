@@ -1,4 +1,4 @@
-# pyyq
+# yaqpy
 
 `yq`（Go 版 [mikefarah/yq](https://github.com/mikefarah/yq) v4.53.6）の式言語と基本機能を **Python 3.13 の標準ライブラリだけ**で再実装した、YAML/JSON 処理ライブラリ兼 CLI ツールです。
 
@@ -9,20 +9,20 @@
 - **依存ゼロ**：実行時のサードパーティ製ライブラリは 0 個（`dependencies = []`）。テストで機械的に検査しています
 - **YAML 自前実装**：コメント・キー順・アンカー・スカラーの元の書き方（`0x1F`、`1.50`、クォート）を保持するパーサー／エミッタ
 - **Go 版との互換性**：Go 版のテストシナリオ 1,091 件を抽出して互換テストにしています（下記）
-- **Library + CLI**：`import pyyq` で関数として使う方法と、`pyyq` コマンドの両方に対応
+- **Library + CLI**：`import yaqpy` で関数として使う方法と、`yaqpy` コマンドの両方に対応
 - **拡張可能な設計**：ヘキサゴナル（Ports & Adapters）。CLI・GUI・API が共通の `YqService` を呼ぶ構造で、GUI（tkinter）と API（WSGI）は Phase 3 で追加予定
 - **対応フォーマット**：YAML（入出力）、JSON（入出力）、properties（出力）、TOON（入出力。Go 版にはない拡張）
 
 ## 動作環境
 
 - Python 3.13 以上
-- パッケージ管理・実行に [uv](https://docs.astral.sh/uv/) を使用（`uv` がなくても `PYTHONPATH=src python -m pyyq` で動きます）
+- パッケージ管理・実行に [uv](https://docs.astral.sh/uv/) を使用（`uv` がなくても `PYTHONPATH=src python -m yaqpy` で動きます）
 
 ## セットアップ
 
 ```bash
-git clone https://github.com/sgtao/pyyq
-cd pyyq
+git clone https://github.com/sgtao/yaqpy
+cd yaqpy
 uv sync
 ```
 
@@ -30,13 +30,13 @@ uv sync
 
 ```bash
 # 値の取得
-uv run pyyq '.server.port' examples/sample.yaml
+uv run yaqpy '.server.port' examples/sample.yaml
 
 # 値の更新（インプレース書き換え。コメント・キー順はそのまま）
-uv run pyyq -i '.server.port = 9090' examples/sample.yaml
+uv run yaqpy -i '.server.port = 9090' examples/sample.yaml
 
 # フォーマット変換（YAML → TOON。LLM 向けにトークン数を削減する Go 版にはない拡張）
-uv run pyyq --toon '.' examples/sample.yaml
+uv run yaqpy --toon '.' examples/sample.yaml
 ```
 
 詳細、対応演算子の一覧は **[USAGE.ja.md](USAGE.ja.md)** を参照してください。
@@ -67,7 +67,7 @@ uv build
 ## リポジトリ構成
 
 ```text
-src/pyyq/
+src/yaqpy/
 ├── errors.py options.py api.py     … 例外・設定・公開 API
 ├── core/
 │   ├── model/                      … Node（値は文字列＋タグで保持）、タグ解決、Python 変換、日時

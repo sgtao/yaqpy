@@ -5,10 +5,10 @@ from __future__ import annotations
 
 import unittest
 
-import pyyq
-from pyyq import Options, ToonOptions
-from pyyq.core.model import to_python
-from pyyq.formats.toon_codec import (
+import yaqpy
+from yaqpy import Options, ToonOptions
+from yaqpy.core.model import to_python
+from yaqpy.formats.toon_codec import (
     ToonDecoder, ToonError, canonical_number, encode_key, encode_string,
 )
 
@@ -17,7 +17,7 @@ TOON = Options(output_format="toon")
 
 def toon(yaml_text: str, expression: str = ".", **toon_opts: object) -> str:
     options = Options(output_format="toon", toon=ToonOptions(**toon_opts)) if toon_opts else TOON
-    return pyyq.evaluate(expression, yaml_text, options=options)
+    return yaqpy.evaluate(expression, yaml_text, options=options)
 
 
 class ScalarRules(unittest.TestCase):
@@ -130,8 +130,8 @@ class EncoderTests(unittest.TestCase):
 
     def test_unwrap_scalar_flag(self) -> None:
         options = Options(output_format="toon", unwrap_scalar=True)
-        self.assertEqual(pyyq.evaluate(".a", 'a: "123"\n', options=options), "123\n")
-        self.assertEqual(pyyq.evaluate(".a", 'a: "123"\n', options=TOON), '"123"\n')
+        self.assertEqual(yaqpy.evaluate(".a", 'a: "123"\n', options=options), "123\n")
+        self.assertEqual(yaqpy.evaluate(".a", 'a: "123"\n', options=TOON), '"123"\n')
 
     def test_invalid_options(self) -> None:
         with self.assertRaises(ValueError):
@@ -244,26 +244,26 @@ class RoundTripTests(unittest.TestCase):
     ]
 
     def test_yaml_to_toon_to_yaml_keeps_the_data(self) -> None:
-        from pyyq.formats.yaml.codec import YamlDecoder
+        from yaqpy.formats.yaml.codec import YamlDecoder
 
         for text in self.YAML_INPUTS:
             with self.subTest(text=text):
                 before = [to_python(d) for d in YamlDecoder(Options()).decode_documents(text)]
-                toon_text = pyyq.evaluate(".", text, options=TOON)
+                toon_text = yaqpy.evaluate(".", text, options=TOON)
                 after = [to_python(d) for d in ToonDecoder(Options()).decode_documents(toon_text)]
                 # -0.0 and 0x1F are canonicalised on purpose
                 if "f:" in text:
                     before = [{"f": [1.5, 1e21, 1e-7, 100000000000000000000, 0, 31]}]
                 self.assertEqual(after, before)
                 # and back to TOON: the encoder output is stable
-                self.assertEqual(pyyq.evaluate(".", toon_text, options=Options(input_format="toon", output_format="toon")),
+                self.assertEqual(yaqpy.evaluate(".", toon_text, options=Options(input_format="toon", output_format="toon")),
                                  toon_text)
 
     def test_delimiter_round_trip(self) -> None:
         for delimiter in (",", "\t", "|"):
             with self.subTest(delimiter=delimiter):
                 options = Options(output_format="toon", toon=ToonOptions(delimiter=delimiter))
-                toon_text = pyyq.evaluate(".", 'items: [{a: 1, b: "x,y|z"}, {a: 2, b: "q\\tw"}]\n', options=options)
+                toon_text = yaqpy.evaluate(".", 'items: [{a: 1, b: "x,y|z"}, {a: 2, b: "q\\tw"}]\n', options=options)
                 back = [to_python(d) for d in ToonDecoder(Options()).decode_documents(toon_text)]
                 self.assertEqual(back, [{"items": [{"a": 1, "b": "x,y|z"}, {"a": 2, "b": "q\tw"}]}])
 
@@ -303,8 +303,8 @@ class CrossCheckWithPythonToon(unittest.TestCase):
             ["r", "o", "o", "t"],
             "scalar", 42, None,
         ]
-        from pyyq.core.model import from_python
-        from pyyq.formats.toon_codec import ToonEncoder
+        from yaqpy.core.model import from_python
+        from yaqpy.formats.toon_codec import ToonEncoder
 
         for data in cases:
             with self.subTest(data=data):

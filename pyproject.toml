@@ -1,5 +1,5 @@
 [project]
-name = "pyyq"
+name = "yaqpy"
 version = "0.1.0"
 description = "A pure-Python (stdlib only) implementation of the mikefarah/yq expression language"
 readme = "README.md"
@@ -12,7 +12,7 @@ classifiers = [
 ]
 
 [project.scripts]
-pyyq = "pyyq.cli.main:main"
+yaqpy = "yaqpy.cli.main:main"
 
 [dependency-groups]
 dev = [

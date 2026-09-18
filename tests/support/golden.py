@@ -9,14 +9,14 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from pyyq.app.printer import ResultPrinter
-from pyyq.app.service import YqService
-from pyyq.app.ports import InMemoryFileSystem, StaticEnvironment
-from pyyq.core.model.convert import to_python
-from pyyq.core.model.node import Kind, Node
-from pyyq.errors import EvaluationError, ExpressionSyntaxError, YqError
-from pyyq.formats.yaml.codec import YamlDecoder, YamlEncoder
-from pyyq.options import Options, SecurityPolicy, YamlOptions
+from yaqpy.app.printer import ResultPrinter
+from yaqpy.app.service import YqService
+from yaqpy.app.ports import InMemoryFileSystem, StaticEnvironment
+from yaqpy.core.model.convert import to_python
+from yaqpy.core.model.node import Kind, Node
+from yaqpy.errors import EvaluationError, ExpressionSyntaxError, YqError
+from yaqpy.formats.yaml.codec import YamlDecoder, YamlEncoder
+from yaqpy.options import Options, SecurityPolicy, YamlOptions
 
 GOLDEN_DIR = Path(__file__).resolve().parent.parent / "golden" / "operators"
 

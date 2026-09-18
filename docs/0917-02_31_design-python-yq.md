@@ -1,4 +1,4 @@
-# Python 版 yq（仮称 `pyyq`）基本機能 設計書
+# Python 版 yq（`yaqpy`）基本機能 設計書
 
 | 項目 | 内容 |
 |---|---|
@@ -52,7 +52,7 @@
 | # | 論点 | 決定 | 設計への影響 |
 |---|---|---|---|
 | D1 | 依存ライブラリ | **実行時の外部依存ゼロ**（Python 標準ライブラリのみ） | YAML パーサー／エミッタを**自前で作る**。開発用ツールは `dev` グループに分け、任意とする |
-| D2 | YAML の扱い | **自前実装**（コメントを保持できるもの） | `pyyq.formats.yaml` が最大の実装範囲になる（→ [9-3](#9-3-yaml自前実装の詳細)） |
+| D2 | YAML の扱い | **自前実装**（コメントを保持できるもの） | `yaqpy.formats.yaml` が最大の実装範囲になる（→ [9-3](#9-3-yaml自前実装の詳細)） |
 | D3 | Go 版との互換レベル | **意味互換＋コメント保持**（キー順・コメント・アンカー・スカラーの書き方を保つ。インデント・クォートは可能な範囲で合わせる） | バイト単位の一致は目指さない。テストは「完全一致」と「意味一致」の2段で判定する（→ [16](#16-テスト戦略)） |
 | D4 | 機能範囲 | **MVP ＋拡張の枠組み**（MVP 演算子 38 種（→ [8-2](#8-2-mvp-演算子一覧)）と主要形式を先に作り、残りはフェーズ計画に載せる） | 演算子とフォーマットを**登録制（レジストリ）**にし、後から足してもコアを変えない |
 | D5 | Python | **3.13 以上**（`requires-python = ">=3.13"`） | `type` 文、PEP 695 ジェネリクス、`typing.override`、`copy.replace()`、`warnings.deprecated` が使える |
@@ -80,7 +80,7 @@
 ### 1-1. 目的
 
 1. Go 版 yq の**式言語と主要な変換機能**を、Python から `import` するだけで使えるようにする。
-2. 同じ機能を **CLI（`pyyq` コマンド）**として提供し、Go 版の主要なフラグと挙動に合わせる。
+2. 同じ機能を **CLI（`yaqpy` コマンド）**として提供し、Go 版の主要なフラグと挙動に合わせる。
 3. 同じ「アプリケーション層」を使い回して、**GUI（デスクトップ）と API サービス（HTTP）**を後から追加できるようにする。
 4. **外部依存ゼロ**にし、Python 3.13 さえあれば、社内のオフライン環境やサーバーレスでも導入できるようにする。
 
@@ -217,7 +217,7 @@ flowchart TB
 
 | Go 版（yqlib / cmd） | Python 版 | 変えた点と理由 |
 |---|---|---|
-| `CandidateNode` | `pyyq.core.model.Node` | `__slots__` つき通常クラス。Go 版と同じく**値は文字列＋タグで持つ**（元の書き方を失わないため） |
+| `CandidateNode` | `yaqpy.core.model.Node` | `__slots__` つき通常クラス。Go 版と同じく**値は文字列＋タグで持つ**（元の書き方を失わないため） |
 | `Context{MatchingNodes *list.List, Variables, DontAutoCreate}` | `Context`（`nodes: tuple[Node, ...]`、`variables`、`read_only`） | 列は `tuple` で変更不可にし、`child()` で新しく作る |
 | `dataTreeNavigator.GetMatchingNodes` | `Navigator.evaluate(ctx, ast)` | ステップ数と期限の確認を加える（API サービス用） |
 | `operationType{Type, NumArgs, Precedence, Handler}` | `OperatorSpec`（frozen dataclass）＋ `OperatorRegistry` | デコレータで登録する |
@@ -245,7 +245,7 @@ sequenceDiagram
     participant N as Navigator
     participant O as operators
     participant E as YamlEncoder
-    U->>C: pyyq '.a |= . + 1' data.yaml
+    U->>C: yaqpy '.a |= . + 1' data.yaml
     C->>C: resolve_invocation(argv) → EvaluateRequest
     C->>S: evaluate(request, StreamSink(stdout))
     S->>P: compile(".a |= . + 1")（キャッシュあり）
@@ -272,18 +272,18 @@ sequenceDiagram
 
 ### 4-1. リポジトリ構成（uv の src レイアウト）
 
-パッケージ名は **仮称 `pyyq`** とします（PyPI の `yq` は kislyuk/yq が使用中。解説メモ 4-2）。
+パッケージ名は **`yaqpy`** とします（PyPI の `yq` は kislyuk/yq が使用中。解説メモ 4-2）。設計当初の仮称は `pyyq` でしたが、2026-09-19 に `yaqpy` へ変更しました（PyPI では `yaqpy` は未登録であることを確認済み）。
 
 ```text
-pyyq/                                  ← 開発リポジトリのルート（このリポジトリの 3x_ 配下などに作る想定）
+yaqpy/                                  ← 開発リポジトリのルート（このリポジトリの 3x_ 配下などに作る想定）
 ├── pyproject.toml                     … uv 管理。dependencies = []
 ├── uv.lock                            … 開発用ツールのロック（実行時依存はなし）
 ├── .python-version                    … 3.13
 ├── README.md / LICENSE / NOTICE        … MIT。Go 版の設計・テスト資産を参考にした旨を NOTICE に書く
 ├── src/
-│   └── pyyq/
+│   └── yaqpy/
 │       ├── __init__.py                … 公開 API の再エクスポート、__version__
-│       ├── __main__.py                … python -m pyyq → cli.main
+│       ├── __main__.py                … python -m yaqpy → cli.main
 │       ├── py.typed
 │       ├── errors.py                  … 例外の階層
 │       ├── options.py                 … Options, YamlOptions, JsonOptions, …, SecurityPolicy, Limits
@@ -347,7 +347,7 @@ pyyq/                                  ← 開発リポジトリのルート（�
 
 | モジュール | import してよいもの | import してはいけないもの |
 |---|---|---|
-| `core.model` | 標準ライブラリ | 他のすべての `pyyq` モジュール |
+| `core.model` | 標準ライブラリ | 他のすべての `yaqpy` モジュール |
 | `core.lang` | `core.model`、`errors` | `core.engine`、`formats`、`app` |
 | `core.engine` / `core.operators` | `core.model`、`core.lang`、`errors`、`options` | `formats`、`app`、アダプタ（形式変換は `EvalEnv.formats` 経由） |
 | `formats` | `core.model`、`errors`、`options` | `core.engine`、`app` |
@@ -737,8 +737,8 @@ LHS の評価は **自動作成モード**（`read_only=False`）で行い、存
 
 | モード | 処理 | 用途 |
 |---|---|---|
-| `EvalMode.STREAM` | 式を 1 回だけ compile → ファイルごと・ドキュメントごとに評価 → **その都度**出力。入力が 0 件なら null の Node で 1 回評価する | `pyyq eval`（既定） |
-| `EvalMode.ALL` | 全ファイルの全ドキュメントを読み込み、`Context(nodes=全ドキュメント)` で 1 回評価。入力が 0 件なら空スカラー 1 つで評価する | `pyyq eval-all`、ファイル間マージ |
+| `EvalMode.STREAM` | 式を 1 回だけ compile → ファイルごと・ドキュメントごとに評価 → **その都度**出力。入力が 0 件なら null の Node で 1 回評価する | `yaqpy eval`（既定） |
+| `EvalMode.ALL` | 全ファイルの全ドキュメントを読み込み、`Context(nodes=全ドキュメント)` で 1 回評価。入力が 0 件なら空スカラー 1 つで評価する | `yaqpy eval-all`、ファイル間マージ |
 | `null_input=True` | 入力を読まず、null の Node 1 つで評価する | `-n` |
 
 STREAM モードでは **ジェネレータ**でドキュメントを 1 つずつ読むので、大きな複数ドキュメントのファイルでもメモリ使用量を抑えられます。
@@ -1038,7 +1038,7 @@ class Expression:
 **利用例**
 
 ```python
-import pyyq
+import yaqpy
 
 text = """\
 # サーバー設定
@@ -1046,15 +1046,15 @@ server:
   port: 8080   # 開発用
   hosts: [a, b]
 """
-print(pyyq.evaluate(".server.port = 9090", text))
+print(yaqpy.evaluate(".server.port = 9090", text))
 # # サーバー設定
 # server:
 #   port: 9090   # 開発用
 #   hosts: [a, b]
 
-pyyq.query(".server.hosts[]", {"server": {"hosts": ["a", "b"]}})   # -> ["a", "b"]
+yaqpy.query(".server.hosts[]", {"server": {"hosts": ["a", "b"]}})   # -> ["a", "b"]
 
-yq = pyyq.Yq(pyyq.Options(output_format="json", indent=0))
+yq = yaqpy.Yq(yaqpy.Options(output_format="json", indent=0))
 expr = yq.compile(".server")
 yq.evaluate(expr, text)   # -> '{"port":8080,"hosts":["a","b"]}\n'
 ```
@@ -1196,10 +1196,10 @@ class YqService:
 
 | コマンド | 別名 | 内容 |
 |---|---|---|
-| `pyyq eval [expr] [files...]` | `e` | STREAM モード |
-| `pyyq eval-all [expr] [files...]` | `ea` | ALL モード |
-| `pyyq [expr] [files...]` | — | サブコマンドを省略した場合は `eval` とみなす |
-| `pyyq --version` / `-V` | — | バージョン表示 |
+| `yaqpy eval [expr] [files...]` | `e` | STREAM モード |
+| `yaqpy eval-all [expr] [files...]` | `ea` | ALL モード |
+| `yaqpy [expr] [files...]` | — | サブコマンドを省略した場合は `eval` とみなす |
+| `yaqpy --version` / `-V` | — | バージョン表示 |
 
 **既定サブコマンドの補完**（Go 版 `yq.go` と同じ考え方）：argparse はサブコマンドの省略を扱えないので、`main(argv)` の最初で `argv` の先頭（オプションを除いた最初の語）が `{eval, e, eval-all, ea}` のどれでもなければ `"eval"` を挿入します。
 
@@ -1360,7 +1360,7 @@ Go 版 `AGENTS.md` の拡張手順を Python 版に置き換えたものです�
 3. `formats = builtin_formats().copy(); formats.register(spec)`。
 4. `Yq(formats=formats)` または `YqService(..., formats=formats)` に渡す。CLI の `-o` の選択肢にも自動で出る。
 
-> パッケージのエントリーポイント（`importlib.metadata.entry_points(group="pyyq.formats")`）による**自動読み込み**は、意図しないコードが動く危険があるので既定では無効にし、CLI の `--enable-plugins` を指定したときだけ使います（Phase 4）。
+> パッケージのエントリーポイント（`importlib.metadata.entry_points(group="yaqpy.formats")`）による**自動読み込み**は、意図しないコードが動く危険があるので既定では無効にし、CLI の `--enable-plugins` を指定したときだけ使います（Phase 4）。
 
 ---
 
@@ -1391,7 +1391,7 @@ Go 版 `AGENTS.md` の拡張手順を Python 版に置き換えたものです�
 
 ### 14-3. ログ
 
-- `logging.getLogger("pyyq")` の下に `pyyq.lang`、`pyyq.engine`、`pyyq.formats.yaml` などを作ります。ライブラリは `NullHandler` だけを付けます（利用者のログ設定を邪魔しないため）。
+- `logging.getLogger("yaqpy")` の下に `yaqpy.lang`、`yaqpy.engine`、`yaqpy.formats.yaml` などを作ります。ライブラリは `NullHandler` だけを付けます（利用者のログ設定を邪魔しないため）。
 - DEBUG では、トークン列、後置記法、演算子ごとの Context の件数を出します（Go 版 `NodeToString` 相当）。重い文字列処理は `logger.isEnabledFor(logging.DEBUG)` の確認の後で行います。
 
 ---
@@ -1401,7 +1401,7 @@ Go 版 `AGENTS.md` の拡張手順を Python 版に置き換えたものです�
 ### 15-1. 初期構築の手順
 
 ```bash
-uv init --lib --name pyyq --python 3.13 pyyq
+uv init --lib --name yaqpy --python 3.13 yaqpy
 ```
 
 ```bash
@@ -1412,13 +1412,13 @@ uv add --dev ruff mypy
 uv sync
 ```
 
-`uv init --lib` は `src/pyyq/__init__.py`・`py.typed`・`.python-version`（3.13）・`README.md`・`.gitignore` と、`uv_build` をビルドバックエンドにした `pyproject.toml` を生成します（uv 0.11.17 で確認）。**開発ツールは任意**です。`ruff` や `mypy` を入れなくても、テストと実行は標準ライブラリだけで動きます（NFR-01）。
+`uv init --lib` は `src/yaqpy/__init__.py`・`py.typed`・`.python-version`（3.13）・`README.md`・`.gitignore` と、`uv_build` をビルドバックエンドにした `pyproject.toml` を生成します（uv 0.11.17 で確認）。**開発ツールは任意**です。`ruff` や `mypy` を入れなくても、テストと実行は標準ライブラリだけで動きます（NFR-01）。
 
 ### 15-2. `pyproject.toml`（例）
 
 ```toml
 [project]
-name = "pyyq"
+name = "yaqpy"
 version = "0.1.0"
 description = "A pure-Python (stdlib only) implementation of the mikefarah/yq expression language"
 readme = "README.md"
@@ -1431,10 +1431,10 @@ classifiers = [
 ]
 
 [project.scripts]
-pyyq = "pyyq.cli.main:main"
+yaqpy = "yaqpy.cli.main:main"
 
 [project.gui-scripts]                   # Phase 3
-pyyq-gui = "pyyq.gui.app:main"
+yaqpy-gui = "yaqpy.gui.app:main"
 
 [dependency-groups]
 dev = ["ruff", "mypy"]                  # 任意。uv add --dev で追加されたバージョン指定がここに入る
@@ -1452,14 +1452,14 @@ line-length = 100
 
 | 目的 | コマンド |
 |---|---|
-| CLI を動かす | `uv run pyyq '.a.b' examples/sample.yaml` |
-| モジュールとして動かす | `uv run python -m pyyq '.a' file.yaml` |
+| CLI を動かす | `uv run yaqpy '.a.b' examples/sample.yaml` |
+| モジュールとして動かす | `uv run python -m yaqpy '.a' file.yaml` |
 | ユニットテスト | `uv run python -m unittest discover -s tests -t .` |
 | ゴールデンテストだけ | `uv run python -m unittest tests.golden.test_operators` |
 | Lint / 型チェック（任意） | `uv run ruff check src tests` / `uv run mypy src` |
 | ゴールデンの再抽出 | `uv run python tools/extract_go_scenarios.py ../11_ref-mikefarah-yq/pkg/yqlib tests/golden/operators` |
 | 配布物の作成 | `uv build`（`dist/` に sdist と wheel） |
-| API サービス（開発用） | `uv run python -m pyyq.web --port 8000` |
+| API サービス（開発用） | `uv run python -m yaqpy.web --port 8000` |
 
 ### 15-4. Python 3.13 の機能の使い方
 
@@ -1486,7 +1486,7 @@ line-length = 100
 | ユニット | lexer、postfix、parser、Node、tags、各演算子、YAML の各段 | `unittest`、表駆動（`subTest`） | 800+ |
 | ゴールデン（演算子） | Go 版 `*_test.go` の `expressionScenario` | JSON に抽出して比較 | Go 版から抽出した件数 |
 | ラウンドトリップ（YAML） | 読み込み → そのまま出力 → 元と同じか | `tests/golden/yaml_roundtrip/*.yaml`（Go 版 `examples/` を含む） | 100+ |
-| 受け入れ（CLI） | 終了コード・標準出力 | `subprocess.run([sys.executable, "-m", "pyyq", ...])`。Go 版 `acceptance_tests/*.sh` のケースを Python に書き直す | 150+ |
+| 受け入れ（CLI） | 終了コード・標準出力 | `subprocess.run([sys.executable, "-m", "yaqpy", ...])`。Go 版 `acceptance_tests/*.sh` のケースを Python に書き直す | 150+ |
 | アーキテクチャ | 4-2 の依存ルール | `ast` で import を解析 | 1 |
 | 並行性 | 違う `Options` を別スレッドで同時に評価 | `concurrent.futures.ThreadPoolExecutor` | 数件 |
 | 耐性 | alias 爆弾、深いネスト、ステップ数の上限 | `Limits` を小さくして確認 | 数十件 |
@@ -1531,7 +1531,7 @@ Go 版のテストは **「テスト＝仕様＝ドキュメント」** にな�
 
 ### 16-5. 依存ゼロの自動チェック
 
-`tests/unit/test_no_third_party.py` で `src/pyyq` 以下の全 import を `ast` で集め、`sys.stdlib_module_names`（3.10+）と `pyyq` 自身以外が含まれていれば失敗にします。
+`tests/unit/test_no_third_party.py` で `src/yaqpy` 以下の全 import を `ast` で集め、`sys.stdlib_module_names`（3.10+）と `yaqpy` 自身以外が含まれていれば失敗にします。
 
 ---
 
@@ -1565,7 +1565,7 @@ flowchart LR
 | 性能（純 Python） | 中 | 中 | Phase 1 の終わりにベンチマークを作る。Node の `__slots__`、マップのインデックスのキャッシュ、正規表現の事前コンパイル、式のキャッシュ |
 | ルール表の順番による字句解析の取り違え | 中 | 中 | Go 版の順番を守る。`keys`/`key`、`sort_by`/`sort` などの組み合わせをユニットテストで固定する |
 | tkinter が環境にない（Linux の最小構成、Docker） | 小 | 中 | GUI を別コマンドにし、import に失敗したら案内を出す。コアと CLI には影響しない |
-| パッケージ名（`pyyq`）がすでに使われている | 小 | 不明 | 公開の前に PyPI で確認する（→ 18） |
+| パッケージ名（`yaqpy`）がすでに使われている | 小 | 不明 | 公開の前に PyPI で確認する（→ 18） |
 
 ---
 
@@ -1574,7 +1574,7 @@ flowchart LR
 設計を確定させるために、次の点を決めてください。
 
 1. **パッケージ名と公開の予定**
-   仮称 `pyyq` で進めてよいですか？ PyPI に公開する予定はありますか？（公開するなら、名前の空き状況と、Go 版の MIT ライセンス表示の扱いを Phase 0 で確認します）
+   仮称 `yaqpy` で進めてよいですか？ PyPI に公開する予定はありますか？（公開するなら、名前の空き状況と、Go 版の MIT ライセンス表示の扱いを Phase 0 で確認します）
 
 2. **Phase 1 の出口の基準**
    「MVP 演算子のゴールデン合格率 90% 以上（意味一致を含む）」「YAML ラウンドトリップ 95% 以上」という基準でよいですか？ **特に守りたい既存のユースケース**（例：Kubernetes のマニフェストの書き換え、GitHub Actions のワークフローの編集）があれば、そのファイルを受け入れテストに入れて優先度を上げます。
@@ -1619,7 +1619,7 @@ flowchart LR
 | 6 | `-P` の整形式（`...`・`select`・`tag`・`test`・`not`・`style=` を使う） | `pkg/yqlib/lib.go` `PrettyPrintExp` |
 | 7 | テストシナリオの構造体と期待値の文字列形式 | `operators_test.go`（`expressionScenario`、`resultToString`） |
 | 8 | Python 3.13.12 で `copy.replace`、`warnings.deprecated`、`argparse` の `deprecated=`、`sys.stdlib_module_names`、`xml.parsers.expat.XML_PARAM_ENTITY_PARSING_NEVER`、frozen dataclass を既定値に使えること、`json` の `parse_float` で `1.50` が文字列のまま取れることを実行して確認。`cgi` が標準ライブラリにないことも確認 | ローカルの Python 3.13.12 |
-| 9 | `uv init --lib --name pyyq --python 3.13` が生成するファイルと `pyproject.toml` の中身 | uv 0.11.17（作業用の一時フォルダで実行） |
+| 9 | `uv init --lib --name yaqpy --python 3.13` が生成するファイルと `pyproject.toml` の中身 | uv 0.11.17（作業用の一時フォルダで実行） |
 
 ### A-3. 自己レビューで見つけて直した点
 

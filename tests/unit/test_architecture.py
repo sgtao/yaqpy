@@ -7,20 +7,20 @@ import sys
 import unittest
 from pathlib import Path
 
-SRC = Path(__file__).resolve().parents[2] / "src" / "pyyq"
+SRC = Path(__file__).resolve().parents[2] / "src" / "yaqpy"
 
 # module prefix -> prefixes it must not import
 FORBIDDEN: dict[str, tuple[str, ...]] = {
-    "pyyq.core.model": ("pyyq.core.lang", "pyyq.core.engine", "pyyq.core.operators",
-                        "pyyq.formats", "pyyq.app", "pyyq.cli", "pyyq.api"),
-    "pyyq.core.lang": ("pyyq.core.engine", "pyyq.core.operators", "pyyq.formats", "pyyq.app",
-                       "pyyq.cli", "pyyq.api"),
-    "pyyq.core.engine": ("pyyq.formats", "pyyq.app", "pyyq.cli", "pyyq.api"),
-    "pyyq.core.operators": ("pyyq.formats", "pyyq.app", "pyyq.cli", "pyyq.api"),
-    "pyyq.formats": ("pyyq.core.engine", "pyyq.app", "pyyq.cli", "pyyq.api"),
-    "pyyq.app": ("pyyq.cli", "pyyq.gui", "pyyq.web", "pyyq.api"),
-    "pyyq.api": ("pyyq.cli", "pyyq.gui", "pyyq.web"),
-    "pyyq.cli": ("pyyq.gui", "pyyq.web"),
+    "yaqpy.core.model": ("yaqpy.core.lang", "yaqpy.core.engine", "yaqpy.core.operators",
+                        "yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.api"),
+    "yaqpy.core.lang": ("yaqpy.core.engine", "yaqpy.core.operators", "yaqpy.formats", "yaqpy.app",
+                       "yaqpy.cli", "yaqpy.api"),
+    "yaqpy.core.engine": ("yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.api"),
+    "yaqpy.core.operators": ("yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.api"),
+    "yaqpy.formats": ("yaqpy.core.engine", "yaqpy.app", "yaqpy.cli", "yaqpy.api"),
+    "yaqpy.app": ("yaqpy.cli", "yaqpy.gui", "yaqpy.web", "yaqpy.api"),
+    "yaqpy.api": ("yaqpy.cli", "yaqpy.gui", "yaqpy.web"),
+    "yaqpy.cli": ("yaqpy.gui", "yaqpy.web"),
 }
 
 
@@ -64,7 +64,7 @@ class ArchitectureTests(unittest.TestCase):
             for imported in imports_of(path):
                 top = imported.split(".")[0]
                 with self.subTest(file=path.name, imported=imported):
-                    self.assertTrue(top == "pyyq" or top in stdlib,
+                    self.assertTrue(top == "yaqpy" or top in stdlib,
                                     f"{path.name} imports non-stdlib module {imported}")
 
     def test_no_removed_modules(self) -> None:

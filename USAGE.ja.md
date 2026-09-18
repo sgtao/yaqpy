@@ -1,5 +1,5 @@
 ###### [toREADME](./README.md)
-# pyyq 使い方ガイド
+# yaqpy 使い方ガイド
 
 ---
 [toTop](#totoppage)
@@ -9,30 +9,30 @@
 
 ```bash
 # 値の取得
-uv run pyyq '.server.port' examples/sample.yaml
+uv run yaqpy '.server.port' examples/sample.yaml
 
 # 値の更新（コメント・キー順はそのまま）
-uv run pyyq '.server.port = 9090' examples/sample.yaml
+uv run yaqpy '.server.port = 9090' examples/sample.yaml
 
 # インプレース書き換え（一時ファイル → os.replace で原子的に置換）
-uv run pyyq -i '.server.port = 9090' examples/sample.yaml
+uv run yaqpy -i '.server.port = 9090' examples/sample.yaml
 
 # フォーマット変換（YAML → JSON、1 行）
-uv run pyyq -o json -I 0 '.server' examples/sample.yaml
+uv run yaqpy -o json -I 0 '.server' examples/sample.yaml
 
 # 入力なしで文書を作る
-uv run pyyq -n '.a.b = "hello"'
+uv run yaqpy -n '.a.b = "hello"'
 
 # 複数ファイルのマージ（eval-all）
-uv run pyyq ea 'select(fi == 0) * select(fi == 1)' base.yaml override.yaml
+uv run yaqpy ea 'select(fi == 0) * select(fi == 1)' base.yaml override.yaml
 
 # 整形（-P）、ドキュメント区切りなし（-N）、結果がなければ終了コード 1（-e）
-uv run pyyq -P -N -e '.items[] | select(.price > 500) | .name' examples/sample.yaml
+uv run yaqpy -P -N -e '.items[] | select(.price > 500) | .name' examples/sample.yaml
 ```
 
 ### 主なフラグ
 
-Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops` など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。pyyq 独自のフラグは `--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}` です。
+Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops` など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。yaqpy 独自のフラグは `--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}` です。
 
 ---
 [toTop](#totoppage)
@@ -42,23 +42,23 @@ Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`�
 
 ```bash
 # .toon ファイルは拡張子で自動判定（出力も既定は TOON）
-uv run pyyq '.items[0].name' data.toon
-uv run pyyq -o yaml '.' data.toon          # TOON → YAML
-uv run pyyq -p toon -o json '.' < data.toon   # 標準入力は -p で形式を指定
+uv run yaqpy '.items[0].name' data.toon
+uv run yaqpy -o yaml '.' data.toon          # TOON → YAML
+uv run yaqpy -p toon -o json '.' < data.toon   # 標準入力は -p で形式を指定
 ```
 
 ```bash
 # 標準出力を TOON にする
-uv run pyyq -o toon '.' examples/sample.yaml
+uv run yaqpy -o toon '.' examples/sample.yaml
 
 # --toon は -o toon の短縮形
-uv run pyyq --toon '.items' examples/sample.yaml
+uv run yaqpy --toon '.items' examples/sample.yaml
 
 # ファイルに書く（リダイレクト、または -i で .toon ファイルをその場で書き換え）
-uv run pyyq --toon '.items' examples/sample.yaml > items.toon
+uv run yaqpy --toon '.items' examples/sample.yaml > items.toon
 
 # 区切り文字をタブ／パイプにする（既定はカンマ）。字下げ幅は -I
-uv run pyyq --toon --toon-delimiter tab '.items' examples/sample.yaml
+uv run yaqpy --toon --toon-delimiter tab '.items' examples/sample.yaml
 ```
 
 ```text
@@ -90,7 +90,7 @@ items[2]{name,price}:
 ## ライブラリとしての使い方
 
 ```python
-import pyyq
+import yaqpy
 
 text = """\
 # サーバー設定
@@ -99,16 +99,16 @@ server:
   hosts: [a, b]
 """
 
-print(pyyq.evaluate(".server.port = 9090", text))
+print(yaqpy.evaluate(".server.port = 9090", text))
 # # サーバー設定
 # server:
 #   port: 9090 # 開発用
 #   hosts: [a, b]
 
-pyyq.query(".server.hosts[]", {"server": {"hosts": ["a", "b"]}})   # -> ['a', 'b']
-pyyq.update(".b = .a + 1", {"a": 1})                                # -> {'a': 1, 'b': 2}
+yaqpy.query(".server.hosts[]", {"server": {"hosts": ["a", "b"]}})   # -> ['a', 'b']
+yaqpy.update(".b = .a + 1", {"a": 1})                                # -> {'a': 1, 'b': 2}
 
-yq = pyyq.Yq(pyyq.Options(output_format="json", indent=0))
+yq = yaqpy.Yq(yaqpy.Options(output_format="json", indent=0))
 expr = yq.compile(".server")                                        # 事前コンパイル（キャッシュ・スレッド安全）
 yq.evaluate(expr, text)                                             # -> '{"port":8080,"hosts":["a","b"]}\n'
 ```

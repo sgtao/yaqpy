@@ -6,11 +6,11 @@ import io
 import unittest
 from pathlib import Path
 
-from pyyq.core.model import Kind, Style, to_python
-from pyyq.errors import YamlSyntaxError
-from pyyq.formats.yaml.codec import YamlDecoder, YamlEncoder, preprocess_leading_content
-from pyyq.formats.yaml.parser import parse_documents
-from pyyq.options import Options, YamlOptions
+from yaqpy.core.model import Kind, Style, to_python
+from yaqpy.errors import YamlSyntaxError
+from yaqpy.formats.yaml.codec import YamlDecoder, YamlEncoder, preprocess_leading_content
+from yaqpy.formats.yaml.parser import parse_documents
+from yaqpy.options import Options, YamlOptions
 
 TEST_SETS = Path(__file__).resolve().parents[3] / "23_testSets"
 

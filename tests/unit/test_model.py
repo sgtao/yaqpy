@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import unittest
 
-from pyyq.core.model import Kind, Node, Style, from_python, to_python
-from pyyq.core.model import tags
-from pyyq.core.model.datetime_util import format_datetime, parse_datetime, parse_go_duration
+from yaqpy.core.model import Kind, Node, Style, from_python, to_python
+from yaqpy.core.model import tags
+from yaqpy.core.model.datetime_util import format_datetime, parse_datetime, parse_go_duration
 
 
 class TagTests(unittest.TestCase):

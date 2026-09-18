@@ -5,29 +5,29 @@ from __future__ import annotations
 import concurrent.futures
 import unittest
 
-import pyyq
-from pyyq import Limits, Options, SecurityPolicy, Yq
-from pyyq.app.dto import EvalMode, EvaluateRequest, InputSource
-from pyyq.app.ports import InMemoryFileSystem, StaticEnvironment
-from pyyq.app.printer import InPlaceSink, MemorySink
-from pyyq.app.service import YqService
-from pyyq.errors import EvaluationLimitError, ExpressionSyntaxError, FormatError, SecurityError
+import yaqpy
+from yaqpy import Limits, Options, SecurityPolicy, Yq
+from yaqpy.app.dto import EvalMode, EvaluateRequest, InputSource
+from yaqpy.app.ports import InMemoryFileSystem, StaticEnvironment
+from yaqpy.app.printer import InPlaceSink, MemorySink
+from yaqpy.app.service import YqService
+from yaqpy.errors import EvaluationLimitError, ExpressionSyntaxError, FormatError, SecurityError
 
 SAMPLE = "# サーバー設定\nserver:\n  port: 8080   # 開発用\n  hosts: [a, b]\n"
 
 
 class FunctionApiTests(unittest.TestCase):
     def test_evaluate_preserves_comments(self) -> None:
-        out = pyyq.evaluate(".server.port = 9090", SAMPLE)
+        out = yaqpy.evaluate(".server.port = 9090", SAMPLE)
         self.assertEqual(out, "# サーバー設定\nserver:\n  port: 9090 # 開発用\n  hosts: [a, b]\n")
 
     def test_evaluate_scalar_unwrapped(self) -> None:
-        self.assertEqual(pyyq.evaluate(".server.port", SAMPLE), "8080\n")
+        self.assertEqual(yaqpy.evaluate(".server.port", SAMPLE), "8080\n")
 
     def test_query_and_update(self) -> None:
-        self.assertEqual(pyyq.query(".server.hosts[]", {"server": {"hosts": ["a", "b"]}}), ["a", "b"])
+        self.assertEqual(yaqpy.query(".server.hosts[]", {"server": {"hosts": ["a", "b"]}}), ["a", "b"])
         data = {"a": 1}
-        self.assertEqual(pyyq.update(".b = .a + 1", data), {"a": 1, "b": 2})
+        self.assertEqual(yaqpy.update(".b = .a + 1", data), {"a": 1, "b": 2})
         self.assertEqual(data, {"a": 1}, "input must not be mutated")
 
     def test_json_output(self) -> None:
@@ -36,23 +36,23 @@ class FunctionApiTests(unittest.TestCase):
         self.assertEqual(yq.evaluate(expr, SAMPLE), '{"port":8080,"hosts":["a","b"]}\n')
 
     def test_evaluate_all(self) -> None:
-        out = pyyq.evaluate_all("select(fi == 0) * select(fi == 1)", ["a: 1\n", "b: 2\n"])
+        out = yaqpy.evaluate_all("select(fi == 0) * select(fi == 1)", ["a: 1\n", "b: 2\n"])
         self.assertEqual(out, "a: 1\nb: 2\n")
 
     def test_null_input(self) -> None:
-        self.assertEqual(pyyq.evaluate(".a.b = 1"), "a:\n  b: 1\n")
+        self.assertEqual(yaqpy.evaluate(".a.b = 1"), "a:\n  b: 1\n")
 
     def test_syntax_error(self) -> None:
         with self.assertRaises(ExpressionSyntaxError):
-            pyyq.compile(".a |")
+            yaqpy.compile(".a |")
 
     def test_format_error(self) -> None:
         with self.assertRaises(FormatError):
-            pyyq.evaluate(".", "a: [1\n")
+            yaqpy.evaluate(".", "a: [1\n")
 
     def test_env_denied_by_default(self) -> None:
         with self.assertRaises(SecurityError):
-            pyyq.evaluate('env(HOME)')
+            yaqpy.evaluate('env(HOME)')
 
     def test_env_allowed(self) -> None:
         yq = Yq(Options(security=SecurityPolicy(allow_env=True)), environ={"NAME": "x"})
@@ -61,13 +61,13 @@ class FunctionApiTests(unittest.TestCase):
     def test_step_limit(self) -> None:
         options = Options(limits=Limits(max_steps=5))
         with self.assertRaises(EvaluationLimitError):
-            pyyq.evaluate("[.[] | . + 1]", "[1, 2, 3, 4, 5]\n", options=options)
+            yaqpy.evaluate("[.[] | . + 1]", "[1, 2, 3, 4, 5]\n", options=options)
 
     def test_load_and_dump(self) -> None:
-        docs = pyyq.load("a: 1\n---\nb: 2\n")
+        docs = yaqpy.load("a: 1\n---\nb: 2\n")
         self.assertEqual(len(docs), 2)
-        self.assertEqual(pyyq.dump(docs), "a: 1\n---\nb: 2\n")
-        self.assertEqual(pyyq.dump(docs, format="json", options=Options(indent=0)),
+        self.assertEqual(yaqpy.dump(docs), "a: 1\n---\nb: 2\n")
+        self.assertEqual(yaqpy.dump(docs, format="json", options=Options(indent=0)),
                          '{"a":1}\n{"b":2}\n')
 
 

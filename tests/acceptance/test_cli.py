@@ -1,6 +1,6 @@
 """CLI acceptance tests, ported from yq's ``acceptance_tests/*.sh`` (phase 1 subset).
 
-Each test runs ``python -m pyyq`` in a subprocess so exit codes, stdin handling
+Each test runs ``python -m yaqpy`` in a subprocess so exit codes, stdin handling
 and file writes are exercised for real.
 """
 
@@ -19,7 +19,7 @@ ENV = dict(os.environ, PYTHONPATH=str(ROOT / "src"), PYTHONIOENCODING="utf-8", P
 
 def yq(*args: str, stdin: str | None = None, cwd: str | None = None) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
-        [sys.executable, "-m", "pyyq", *args], input=stdin, capture_output=True, text=True,
+        [sys.executable, "-m", "yaqpy", *args], input=stdin, capture_output=True, text=True,
         encoding="utf-8", env=ENV, cwd=cwd, timeout=120,
     )
 
@@ -300,7 +300,7 @@ class BadArgsTests(CliTestCase):
 class SecurityTests(CliTestCase):
     def test_env_allowed_by_default_in_cli(self) -> None:
         env = dict(ENV, MYVAR="hello")
-        r = subprocess.run([sys.executable, "-m", "pyyq", "-n", "strenv(MYVAR)"], capture_output=True,
+        r = subprocess.run([sys.executable, "-m", "yaqpy", "-n", "strenv(MYVAR)"], capture_output=True,
                            text=True, encoding="utf-8", env=env, timeout=120)
         self.assertEqual(r.stdout, "hello\n")
 
