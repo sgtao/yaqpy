@@ -196,10 +196,44 @@ class ToonOutputTests(CliTestCase):
 
     def test_in_place_writes_toon_file(self) -> None:
         path = self.write("data.toon", "placeholder: 1\n")
-        # the .toon extension is not an input format yet, so read explicitly as yaml
-        r = yq("-i", "-p", "yaml", "--toon", ".a = 2", path)
+        r = yq("-i", ".a = 2", path)
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertEqual(Path(path).read_text(encoding="utf-8"), "placeholder: 1\na: 2\n")
+
+
+class ToonInputTests(CliTestCase):
+    TOON = "a: 1\nitems[2]{n,v}:\n  x,1\n  y,2\n"
+
+    def test_extension_is_auto_detected(self) -> None:
+        path = self.write("data.toon", self.TOON)
+        # input and output default to the file's format
+        self.assertEqual(yq(".", path).stdout, self.TOON)
+        self.assertEqual(yq(".items[1].n", path).stdout, "y\n")
+        self.assertEqual(yq("-o", "yaml", ".", path).stdout, "a: 1\nitems:\n  - n: x\n    v: 1\n  - n: y\n    v: 2\n")
+        self.assertEqual(yq("-o=j", "-I=0", ".items[0]", path).stdout, '{"n":"x","v":1}\n')
+
+    def test_input_format_flag_with_stdin(self) -> None:
+        self.assertEqual(yq("-p", "toon", "-o", "yaml", ".items[0].v", stdin=self.TOON).stdout, "1\n")
+        # like Go, an explicit -p without -o falls back to yaml output
+        self.assertEqual(yq("-p", "toon", ".a", stdin=self.TOON).stdout, "1\n")
+        self.assertEqual(yq("-p", "toon", ".", stdin=self.TOON).stdout,
+                         "a: 1\nitems:\n  - n: x\n    v: 1\n  - n: y\n    v: 2\n")
+
+    def test_comments_in_toon_input_are_ignored(self) -> None:
+        self.assertEqual(yq("-p", "toon", "-o", "json", "-I", "0", ".",
+                            stdin="# comment\na: 1\n  # another\nb[1]: x\n").stdout,
+                         '{"a":1,"b":["x"]}\n')
+
+    def test_toon_syntax_error(self) -> None:
+        r = yq("-p", "toon", ".", stdin="a: 1\nb[3]: x\n")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("line 2", r.stderr)
+
+    def test_eval_all_merges_toon_files(self) -> None:
+        a = self.write("a.toon", "x: 1\n")
+        b = self.write("b.toon", "y[2]: 1,2\n")
+        r = yq("ea", "-o", "yaml", "select(fi == 0) * select(fi == 1)", a, b)
+        self.assertEqual(r.stdout, "x: 1\ny:\n  - 1\n  - 2\n")
 
     def test_comments_are_dropped_silently(self) -> None:
         r = yq("--toon", ".", stdin="# head\na: 1 # line\n")
