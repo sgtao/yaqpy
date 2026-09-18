@@ -98,6 +98,10 @@ def build_parser() -> _Parser:
                    help="separator to use between keys and values")
     g.add_argument("--properties-array-brackets", action="store_true",
                    help="use [x] in array paths (e.g. for SpringBoot)")
+    g.add_argument("--toon", action="store_true",
+                   help="print to stdout in TOON (Token-Oriented Object Notation); same as -o toon")
+    g.add_argument("--toon-delimiter", choices=["comma", "tab", "pipe"], default="comma",
+                   help="delimiter for TOON arrays and table rows (default: comma)")
     i = parser.add_argument_group("input")
     i.add_argument("-i", "--inplace", action="store_true",
                    help="update the file in place of first file given.")

@@ -53,7 +53,7 @@ uv run pyyq ea 'select(fi == 0) * select(fi == 1)' base.yaml override.yaml
 uv run pyyq -P -N -e '.items[] | select(.price > 500) | .name' examples/sample.yaml
 ```
 
-主なフラグは Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops` など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。
+主なフラグは Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops` など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。pyyq 独自のフラグは `--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}` です。
 
 ### ライブラリとして
 
@@ -93,8 +93,14 @@ yq.evaluate(expr, text)                                             # -> '{"port
 # 標準出力を TOON にする
 uv run pyyq -o toon '.' examples/sample.yaml
 
+# --toon は -o toon の短縮形
+uv run pyyq --toon '.items' examples/sample.yaml
+
 # ファイルに書く（リダイレクト、または -i で .toon ファイルをその場で書き換え）
-uv run pyyq -o toon '.items' examples/sample.yaml > items.toon
+uv run pyyq --toon '.items' examples/sample.yaml > items.toon
+
+# 区切り文字をタブ／パイプにする（既定はカンマ）。字下げ幅は -I
+uv run pyyq --toon --toon-delimiter tab '.items' examples/sample.yaml
 ```
 
 ```text

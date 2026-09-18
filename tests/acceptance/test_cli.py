@@ -161,6 +161,51 @@ class OutputFormatTests(CliTestCase):
         self.assertIn("unknown format", r.stderr)
 
 
+class ToonOutputTests(CliTestCase):
+    SAMPLE = "a: 1 # comment\nitems:\n  - n: x\n    v: 1\n  - n: y\n    v: 2\n"
+    EXPECTED = "a: 1\nitems[2]{n,v}:\n  x,1\n  y,2\n"
+
+    def test_output_format_toon(self) -> None:
+        self.assertEqual(yq("-o", "toon", ".", stdin=self.SAMPLE).stdout, self.EXPECTED)
+        self.assertEqual(yq("-o=toon", ".items[0].n", stdin=self.SAMPLE).stdout, "x\n")
+
+    def test_toon_flag_is_shorthand(self) -> None:
+        r = yq("--toon", ".", stdin=self.SAMPLE)
+        self.assertEqual((r.returncode, r.stdout), (0, self.EXPECTED))
+        # order does not matter and it composes with the eval subcommand
+        self.assertEqual(yq("e", ".", "--toon", stdin=self.SAMPLE).stdout, self.EXPECTED)
+
+    def test_toon_flag_conflicts_with_other_output_format(self) -> None:
+        r = yq("--toon", "-o", "json", ".", stdin=self.SAMPLE)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("--toon cannot be combined", r.stderr)
+        # the same format twice is fine
+        self.assertEqual(yq("--toon", "-o", "toon", ".", stdin=self.SAMPLE).returncode, 0)
+
+    def test_toon_delimiter(self) -> None:
+        self.assertEqual(yq("--toon", "--toon-delimiter", "tab", ".items", stdin=self.SAMPLE).stdout,
+                         "[2\t]{n\tv}:\n  x\t1\n  y\t2\n")
+        self.assertEqual(yq("--toon", "--toon-delimiter", "pipe", ".items", stdin=self.SAMPLE).stdout,
+                         "[2|]{n|v}:\n  x|1\n  y|2\n")
+        r = yq("--toon", "--toon-delimiter", "semicolon", ".", stdin=self.SAMPLE)
+        self.assertEqual(r.returncode, 1)
+
+    def test_toon_indent(self) -> None:
+        self.assertEqual(yq("--toon", "-I", "4", ".", stdin="a:\n  b:\n    - {x: 1}\n").stdout,
+                         "a:\n    b[1]{x}:\n        1\n")
+
+    def test_in_place_writes_toon_file(self) -> None:
+        path = self.write("data.toon", "placeholder: 1\n")
+        # the .toon extension is not an input format yet, so read explicitly as yaml
+        r = yq("-i", "-p", "yaml", "--toon", ".a = 2", path)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(Path(path).read_text(encoding="utf-8"), "placeholder: 1\na: 2\n")
+
+    def test_comments_are_dropped_silently(self) -> None:
+        r = yq("--toon", ".", stdin="# head\na: 1 # line\n")
+        self.assertEqual((r.stdout, r.stderr), ("a: 1\n", ""))
+
+
 class PrettyPrintTests(CliTestCase):
     def test_pretty_print_unquotes_and_expands(self) -> None:
         # "y" stays quoted because YAML 1.1 readers would treat it as a boolean (Go does the same)

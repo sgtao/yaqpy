@@ -8,7 +8,9 @@ from dataclasses import dataclass
 
 from pyyq.app.dto import EvalMode, EvaluateRequest, InputSource
 from pyyq.formats.registry import FormatRegistry, builtin_formats
-from pyyq.options import Limits, Options, PropertiesOptions, SecurityPolicy, YamlOptions
+from pyyq.options import Limits, Options, PropertiesOptions, SecurityPolicy, ToonOptions, YamlOptions
+
+_TOON_DELIMITERS = {"comma": ",", "tab": "\t", "pipe": "|"}
 
 
 class InvocationError(Exception):
@@ -74,6 +76,12 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
     input_filename = files[0] if files else ""
     input_format = ns.input_format
     output_format = ns.output_format
+    if ns.toon:
+        # --toon is shorthand for -o toon; an explicit different -o is a contradiction
+        if not _is_auto(output_format) and not formats.get(output_format).matches("toon"):
+            raise InvocationError("--toon cannot be combined with -o/--output-format "
+                                  f"'{output_format}'")
+        output_format = "toon"
     if _is_auto(input_format):
         input_format = formats.from_filename(input_filename).name
         if _is_auto(output_format):
@@ -115,6 +123,10 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         props=PropertiesOptions(
             key_value_separator=ns.properties_separator,
             use_array_brackets=ns.properties_array_brackets,
+        ),
+        toon=ToonOptions(
+            delimiter=_TOON_DELIMITERS[ns.toon_delimiter],
+            indent=ns.indent if ns.indent >= 1 else 2,
         ),
         security=security,
         limits=Limits(),
