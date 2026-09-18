@@ -2,8 +2,6 @@
 
 `yq`（Go 版 [mikefarah/yq](https://github.com/mikefarah/yq) v4.53.6）の式言語と基本機能を **Python 3.13 の標準ライブラリだけ**で再実装した、YAML/JSON 処理ライブラリ兼 CLI ツールです。
 
-設計書：[docs/0917-02_31_design-python-yq.md](docs/0917-02_31_design-python-yq.md)（Phase 0 ＋ Phase 1 ＝ MVP を実装済み）
-
 ## 概要
 
 - **依存ゼロ**：実行時のサードパーティ製ライブラリは 0 個（`dependencies = []`）。テストで機械的に検査しています
