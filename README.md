@@ -8,7 +8,7 @@
 - **YAML 自前実装**：コメント・キー順・アンカー・スカラーの元の書き方（`0x1F`、`1.50`、クォート）を保持するパーサー／エミッタ
 - **Go 版との互換性**：Go 版のテストシナリオ 1,091 件を抽出して互換テストにしています（下記）
 - **Library + CLI**：`import yaqpy` で関数として使う方法と、`yaqpy` コマンドの両方に対応
-- **拡張可能な設計**：ヘキサゴナル（Ports & Adapters）。CLI・GUI・API が共通の `YqService` を呼ぶ構造で、GUI（tkinter）と API（WSGI）は Phase 3 で追加予定
+- **拡張可能な設計**：ヘキサゴナル（Ports & Adapters）。CLI・GUI・API が共通の `YqService` を呼ぶ構造で、GUI（Flet。任意依存）は実装済み、API（WSGI）は追加予定
 - **対応フォーマット**：YAML（入出力）、JSON（入出力）、properties（出力）、TOON（入出力。Go 版にはない拡張）
 
 ## 動作環境
@@ -39,13 +39,31 @@ uv run yaqpy --toon '.' examples/sample.yaml
 
 詳細、対応演算子の一覧は **[USAGE.ja.md](USAGE.ja.md)** を参照してください。
 
+## GUI（デスクトップアプリ）
+
+```bash
+uv sync --extra gui       # GUI を使うときだけ flet が入ります
+uv run yaqpy-gui          # 専用コマンド
+uv run yaqpy --gui        # CLI のフラグでも起動できます
+```
+
+- ファイルを開く（または貼り付け）と、左に**原文そのまま**、右に**変換結果**が出ます。ファイルのドラッグ＆ドロップには v1 では対応していません
+- プロパティのプルダウンから選ぶか、式を直接書いて絞り込めます
+- 結果は**別名で保存**できます（開いたファイルは、確認なしには上書きしません）
+- 既定は安全側：`env` / `load` 演算子は不許可、タイムアウト 10 秒。設定画面で変えられます
+- 初回の起動だけ、Flet のデスクトップクライアントの準備（一度きり）が入ります
+
+> **依存ゼロについて**：`yaqpy` 本体（ライブラリと CLI）の実行時依存は 0 個のままです。
+> `flet` は `[gui]` extra に切り出してあり、テストでも「gui 以外は標準ライブラリのみ」を機械的に検査しています。
+> `yaqpy --gui` は flet が無い環境では導入方法を案内して終了するだけで、通常の CLI には影響しません。
+
 ## 開発・テスト
 
 ```bash
-# ユニットテスト（65 件）
+# ユニットテスト（213 件。GUI の Presenter などを含む。実際にウィンドウは開きません）
 uv run python -m unittest discover -s tests/unit -t .
 
-# CLI 受け入れテスト（34 件。Go 版 acceptance_tests/*.sh から移植）
+# CLI 受け入れテスト（49 件。Go 版 acceptance_tests/*.sh から移植＋`--gui` の入口）
 uv run python -m unittest tests.acceptance.test_cli
 
 # Go 版シナリオのゴールデンテスト（1,091 件）
@@ -76,7 +94,8 @@ src/yaqpy/
 │   ├── yaml/                       … 自前 YAML（parser / emitter / codec）
 │   ├── json_codec.py props_codec.py toon_codec.py registry.py
 ├── app/                            … YqService、DTO、ポート（FileSystem/Environment）、printer
-└── cli/                            … argparse、引数解釈（純粋関数）、main
+├── cli/                            … argparse、引数解釈（純粋関数）、main
+└── gui/                            … Flet の GUI（任意依存。presenter は Flet 非依存）
 tests/
 ├── unit/  acceptance/  golden/     … unittest（標準ライブラリのみ）
 └── support/golden.py               … Go 版 resultToString と同じ形式で比較するハーネス
