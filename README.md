@@ -37,9 +37,11 @@ uv run yaqpy -i '.server.port = 9090' examples/sample.yaml
 uv run yaqpy --toon '.' examples/sample.yaml
 ```
 
-詳細、対応演算子の一覧は **[USAGE.ja.md](USAGE.ja.md)** を参照してください。
+詳細、対応演算子の一覧は **[USAGE.ja.md](USAGE.ja.md)**、GUI の使い方は **[USAGE-GUI.ja.md](USAGE-GUI.ja.md)** を参照してください。
 
 ## GUI（デスクトップアプリ）
+
+YAML / JSON を開いて、必要な部分の取り出し・変換・保存が画面でできます。
 
 ```bash
 uv sync --extra gui       # GUI を使うときだけ flet が入ります
@@ -47,11 +49,7 @@ uv run yaqpy-gui          # 専用コマンド
 uv run yaqpy --gui        # CLI のフラグでも起動できます
 ```
 
-- ファイルを開く（または貼り付け）と、左に**原文そのまま**、右に**変換結果**が出ます。ファイルのドラッグ＆ドロップには v1 では対応していません
-- プロパティのプルダウンから選ぶか、式を直接書いて絞り込めます
-- 結果は**別名で保存**できます（開いたファイルは、確認なしには上書きしません）
-- 既定は安全側：`env` / `load` 演算子は不許可、タイムアウト 10 秒。設定画面で変えられます
-- 初回の起動だけ、Flet のデスクトップクライアントの準備（一度きり）が入ります
+**使い方（式の書き方を含む）は [USAGE-GUI.ja.md](USAGE-GUI.ja.md) を参照してください。**
 
 > **依存ゼロについて**：`yaqpy` 本体（ライブラリと CLI）の実行時依存は 0 個のままです。
 > `flet` は `[gui]` extra に切り出してあり、テストでも「gui 以外は標準ライブラリのみ」を機械的に検査しています。
