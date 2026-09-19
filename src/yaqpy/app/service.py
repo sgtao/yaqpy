@@ -63,7 +63,15 @@ class YqService:
 
     # ------------------------------------------------------------------ evaluate
 
-    def make_env(self, options: Options) -> EvalEnv:
+    def new_budget(self, options: Options) -> StepBudget:
+        """Create a budget the caller can keep a reference to.
+
+        The GUI needs this so that it can call ``budget.cancel()`` while an
+        evaluation is running on a worker thread.
+        """
+        return StepBudget(options.limits.max_steps, options.limits.timeout_seconds)
+
+    def make_env(self, options: Options, budget: StepBudget | None = None) -> EvalEnv:
         environ = self.env.environ() if options.security.allow_env else {}
         snippet_decoder = YamlDecoder(options)
         return EvalEnv(
@@ -71,7 +79,7 @@ class YqService:
             security=options.security,
             environ=environ,
             limits=options.limits,
-            budget=StepBudget(options.limits.max_steps, options.limits.timeout_seconds),
+            budget=budget if budget is not None else self.new_budget(options),
             options=options,
             formats=self.formats,
             yaml_snippet_decoder=snippet_decoder.decode_snippet,
@@ -108,7 +116,8 @@ class YqService:
         except OSError as e:
             raise FormatError(f"open {source.name}: {e.strerror or e}", filename=source.name) from None
 
-    def evaluate(self, request: EvaluateRequest, sink: Any) -> EvaluateResult:
+    def evaluate(self, request: EvaluateRequest, sink: Any, *,
+                 budget: StepBudget | None = None) -> EvaluateResult:
         started = time.monotonic()
         options = request.options
         expression_text = process_expression(request.expression, options.pretty_print)
@@ -119,7 +128,7 @@ class YqService:
         printer = ResultPrinter(encoder, sink, nul_separated=options.nul_separated_output,
                                 max_depth=options.limits.max_depth,
                                 fix_merge=options.yaml.fix_merge_anchor_to_spec)
-        env = self.make_env(options)
+        env = self.make_env(options, budget)
         nav = Navigator(env)
         document_count = 0
         try:
