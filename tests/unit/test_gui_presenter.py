@@ -227,6 +227,21 @@ class CandidateTests(unittest.IsolatedAsyncioTestCase):
         vm = await p.build_candidates()
         self.assertEqual([c.expression for c in vm.candidates], [".a"])
 
+    async def test_candidates_come_back_after_fixing_the_input_format(self) -> None:
+        """拡張子と中身が食い違って読めなかった文書を、入力形式の指定で救えること。"""
+        fs = InMemoryFileSystem({"/w/data.json": "a: 1\n"})      # 中身は YAML
+        p = MainPresenter(service=YqService(fs, StaticEnvironment()), fs=fs, state=GuiState(),
+                          size_of=lambda path: 5)
+        await p.open_path("/w/data.json")
+        vm = await p.run()                                        # auto → json として読んで失敗
+        self.assertFalse(vm.ok)
+        self.assertTrue((await p.build_candidates()).is_empty)
+
+        p.state.query.input_format = "yaml"
+        self.assertTrue((await p.run()).ok)
+        after = await p.build_candidates()
+        self.assertEqual([c.expression for c in after.candidates], [".a"])
+
     async def test_a_document_without_properties_explains_itself(self) -> None:
         p = make_presenter()
         p.open_text("just a string\n", name="scalar.yaml")
