@@ -9,15 +9,18 @@ Flet 1.0 の実測（``docs/flet-1.0-api-notes.md``）に従う点：
 
 from __future__ import annotations
 
+import asyncio
+
 import flet as ft
 
 from yaqpy.gui import texts
 from yaqpy.gui._di import input_format_choices, output_format_choices
 from yaqpy.gui.errors_ja import caret_line
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
-from yaqpy.gui.presenter import MainPresenter, RunViewModel
+from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
 from yaqpy.gui.state import GuiState
 
+VALIDATE_DEBOUNCE_SECONDS = 0.3
 MONO = ft.TextStyle(font_family="Consolas", size=12)
 # props は出力専用（デコーダが無い）なので、開くダイアログには出さない。
 OPEN_EXTENSIONS = ["yaml", "yml", "json", "toon"]
@@ -35,6 +38,7 @@ class MainPage:
         self._state = state
         self._picker = picker
         self._rerun_requested = False
+        self._validate_token = 0
 
         # --- ファイルバー ---
         self._file_label = ft.Text(texts.MSG_NO_DOCUMENT, size=12, selectable=True)
@@ -219,19 +223,30 @@ class MainPage:
         self._page.run_task(self._run)
 
     def _on_expression_change(self, e: ft.Event[ft.TextField]) -> None:
-        """入力中は検証だけ（再実行はしない）。G2 で 300 ms のデバウンスを入れる。"""
-        expression = e.control.value or ""
-        self._state.query.expression = expression
-        result = self._p.validate(expression)
+        """入力中は検証だけ（再実行はしない）。最後の打鍵から 300 ms 後に 1 回だけ走る。"""
+        self._state.query.expression = e.control.value or ""
+        self._validate_token += 1
+        token = self._validate_token
+
+        async def later() -> None:
+            await asyncio.sleep(VALIDATE_DEBOUNCE_SECONDS)
+            if token != self._validate_token:
+                return                       # もっと新しい入力が来たので捨てる
+            self._apply_validation(self._p.validate(self._state.query.expression))
+            self._page.update()
+
+        self._page.run_task(later)
+
+    def _apply_validation(self, result: ValidationViewModel) -> None:
         if result.valid:
             self._expr_field.error = None
             self._expr_error.visible = False
-        else:
-            # メッセージは入力欄の赤枠に出るので、下段には「式＋下線」だけを出す（二重表示を避ける）。
-            self._expr_field.error = result.message
-            caret = caret_line(result.position)
-            self._expr_error.value = f"{expression}\n{caret}" if caret else ""
-            self._expr_error.visible = bool(caret)
+            return
+        # メッセージは入力欄の赤枠に出るので、下段には「式＋下線」だけを出す（二重表示を避ける）。
+        self._expr_field.error = result.message
+        caret = caret_line(result.position)
+        self._expr_error.value = f"{self._state.query.expression}\n{caret}" if caret else ""
+        self._expr_error.visible = bool(caret)
 
     # ------------------------------------------------------------------ プロパティ候補（G2）
 
@@ -282,6 +297,8 @@ class MainPage:
         self._page.run_task(self._run)
 
     async def _on_run(self, e: ft.Event) -> None:
+        self._validate_token += 1            # 走りかけのデバウンスを無効化
+        self._apply_validation(self._p.validate(self._state.query.expression))
         await self._run()
 
     def _on_cancel(self, e: ft.Event[ft.Button]) -> None:
