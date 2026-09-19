@@ -67,5 +67,16 @@ class TruncateTests(unittest.TestCase):
         self.assertEqual(truncate_for_display(text, 0), (text, 0))
 
 
+class DiTests(unittest.TestCase):
+    def test_format_choices(self) -> None:
+        from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
+
+        self.assertIn("yaml", input_format_choices())
+        self.assertNotIn("props", input_format_choices())   # props は入力に使えない
+        self.assertIn("props", output_format_choices())
+        self.assertEqual(extension_for("json"), "json")
+        self.assertEqual(extension_for("props"), "properties")
+
+
 if __name__ == "__main__":
     unittest.main()
