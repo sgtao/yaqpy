@@ -22,7 +22,9 @@ from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
 from yaqpy.gui.state import GuiState
 
 VALIDATE_DEBOUNCE_SECONDS = 0.3
-PANE_HEADER_HEIGHT = 44          # 右見出しの保存ボタンに高さを合わせ、左右の枠の上端を揃える
+PASTE_DEBOUNCE_SECONDS = 0.3
+PASTE_MIN_LINES = 10             # 未読込のあいだの貼り付け欄の高さ
+PANE_HEADER_HEIGHT = 44         # 右見出しの保存ボタンに高さを合わせ、左右の枠の上端を揃える
 MONO = ft.TextStyle(font_family="Consolas", size=12)
 # props は出力専用（デコーダが無い）なので、開くダイアログには出さない。
 OPEN_EXTENSIONS = ["yaml", "yml", "json", "toon"]
@@ -99,8 +101,22 @@ class MainPage:
         self._progress = ft.ProgressBar(visible=False)
 
         # --- 2 ペイン ---
-        self._original = ft.TextField(multiline=True, read_only=True, expand=True,
-                                      text_style=MONO, border=ft.OutlineInputBorder())
+        # 未読込のあいだは貼り付け欄として編集可にする（ドロップが使えない環境の保険）
+        self._original = ft.TextField(multiline=True, expand=True, text_style=MONO,
+                                      border=ft.OutlineInputBorder())
+        # G0 の判定は「v1 はドロップ見送り」。領域は作らず、代わりにクリックで開ける案内を出す。
+        self._drop_hint = ft.Container(
+            content=ft.Column([
+                ft.Icon(icon=ft.Icons.UPLOAD_FILE, size=40, color=ft.Colors.ON_SURFACE_VARIANT),
+                ft.Text(texts.MSG_NO_DOCUMENT, size=13),
+                ft.Text(texts.MSG_DROP_UNSUPPORTED, size=11, color=ft.Colors.ON_SURFACE_VARIANT),
+                ft.Button(content=texts.BTN_OPEN, icon=ft.Icons.FOLDER_OPEN,
+                          on_click=self._on_open),
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8),
+            alignment=ft.Alignment.CENTER, padding=16, on_click=self._on_open,
+        )
+        self._paste_token = 0
+        self._show_unloaded()
         self._converted = ft.TextField(multiline=True, read_only=True, expand=True,
                                        text_style=MONO, border=ft.OutlineInputBorder())
         self._truncated_note = ft.Text("", size=11, color=ft.Colors.ON_SURFACE_VARIANT,
@@ -146,7 +162,8 @@ class MainPage:
             ft.Column([ft.Row([ft.Text(texts.LBL_ORIGINAL, size=12, weight=ft.FontWeight.W_600)],
                               height=PANE_HEADER_HEIGHT,
                               vertical_alignment=ft.CrossAxisAlignment.CENTER),
-                       ft.Column([self._original], scroll=ft.ScrollMode.AUTO, expand=True)],
+                       ft.Column([self._drop_hint, self._original],
+                                 scroll=ft.ScrollMode.AUTO, expand=True)],
                       expand=True, spacing=4),
             ft.Column([ft.Row([ft.Text(texts.LBL_CONVERTED, size=12, weight=ft.FontWeight.W_600),
                                ft.Container(expand=True),
@@ -182,20 +199,74 @@ class MainPage:
         if not vm.ok:
             self._show_error(vm.error.message, vm.error.hint)
             return
+        self._show_loaded()
         self._original.value = vm.original_text
         self._file_label.value = f"{vm.name}  ({vm.byte_size:,} B)"
         self._file_label.tooltip = vm.path or ""
+        self._after_open()
+        await self._after_load()
+
+    def _after_open(self) -> None:
+        """文書を開いた直後の共通処理（ダイアログ経由でも貼り付けでも同じ）。"""
         self._expr_field.value = self._state.query.expression
         self._expr_field.error = None
         self._close_button.disabled = False
         self._run_button.disabled = False
         self._expr_error.visible = False
+
+    async def _after_load(self) -> None:
         await self._run()
         await self._reload_candidates()
 
+    # ------------------------------------------------------------------ 貼り付け（G3）
+
+    def _show_unloaded(self) -> None:
+        """未読込：案内を出し、左ペインを貼り付け欄にする。"""
+        self._drop_hint.visible = True
+        self._original.read_only = False
+        self._original.min_lines = PASTE_MIN_LINES
+        self._original.hint_text = texts.MSG_PASTE_HERE
+        self._original.on_change = self._on_paste
+        self._original.value = ""
+
+    def _show_loaded(self) -> None:
+        """読込済み：案内を消し、左ペインを読み取り専用の原文表示にする。"""
+        self._drop_hint.visible = False
+        self._original.read_only = True
+        self._original.min_lines = None
+        self._original.hint_text = None
+        self._original.on_change = None
+
+    def _on_paste(self, e: ft.Event[ft.TextField]) -> None:
+        """入力が 300 ms 止まったら、欄の中身を 1 つの文書として取り込む。
+
+        貼り付けは一瞬で終わるが、手で打っている途中で確定すると欄が固まってしまうため。
+        """
+        self._paste_token += 1
+        token = self._paste_token
+
+        async def later() -> None:
+            await asyncio.sleep(PASTE_DEBOUNCE_SECONDS)
+            if token == self._paste_token:
+                await self._open_pasted()
+
+        self._page.run_task(later)
+
+    async def _open_pasted(self) -> None:
+        text = self._original.value or ""
+        if not text.strip() or self._state.document.is_loaded:
+            return
+        self._p.open_text(text)
+        self._show_loaded()
+        self._file_label.value = texts.MSG_PASTED
+        self._file_label.tooltip = ""
+        self._after_open()
+        await self._after_load()
+        self._page.update()
+
     def _on_close(self, e: ft.Event[ft.Button]) -> None:
         self._p.close_document()
-        self._original.value = ""
+        self._show_unloaded()
         self._converted.value = ""
         self._file_label.value = texts.MSG_NO_DOCUMENT
         self._file_label.tooltip = ""
