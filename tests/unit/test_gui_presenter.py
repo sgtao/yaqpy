@@ -256,6 +256,13 @@ class CandidateTests(unittest.IsolatedAsyncioTestCase):
         p.apply_candidate(".items[]")
         self.assertEqual(p.apply_candidate(".name", append=True), ".items[] | .name")
 
+    async def test_append_does_not_duplicate_the_selected_candidate(self) -> None:
+        p = await self._ready()
+        p.apply_candidate(".items[]")                 # 選ぶと式欄が置き換わる
+        self.assertEqual(p.apply_candidate(".items[]", append=True), ".items[]")
+        p.apply_candidate(".items[] | .name")
+        self.assertEqual(p.apply_candidate(".name", append=True), ".items[] | .name")
+
     async def test_append_on_the_identity_expression_replaces(self) -> None:
         p = await self._ready()                     # 開いた直後の式は "."
         self.assertEqual(p.apply_candidate(".server", append=True), ".server")

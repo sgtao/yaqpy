@@ -198,9 +198,15 @@ class MainPresenter:
         return items[:limit]
 
     def apply_candidate(self, expression: str, *, append: bool = False) -> str:
-        """候補を式欄へ反映する。append=True ならパイプで連結する。"""
+        """候補を式欄へ反映する。append=True ならパイプで連結する。
+
+        すでに式がその候補そのもの、またはその候補で終わっているときは連結しない
+        （候補を選ぶと式欄が置き換わるため、直後の「追加」で ``A | A`` になるのを防ぐ）。
+        """
         current = self.state.query.expression.strip()
         if append and current and current != ".":
+            if current == expression or current.endswith(f"| {expression}"):
+                return current
             merged = f"{current} | {expression}"
         else:
             merged = expression

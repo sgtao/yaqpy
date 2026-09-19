@@ -14,6 +14,7 @@ import flet as ft
 from yaqpy.gui import texts
 from yaqpy.gui._di import input_format_choices, output_format_choices
 from yaqpy.gui.errors_ja import caret_line
+from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
 from yaqpy.gui.presenter import MainPresenter, RunViewModel
 from yaqpy.gui.state import GuiState
 
@@ -56,8 +57,27 @@ class MainPage:
         self._pretty_switch = ft.Switch(label=texts.LBL_PRETTY, value=state.query.pretty_print,
                                         on_change=self._on_pretty)
 
+        # --- プロパティ行（G2）---
+        # 絞り込みは Flet 組み込みの enable_filter に任せる（G0 の実測）。
+        # on_text_change で options を差し替えると、キーボードフォーカスが外れて 2 文字目以降が
+        # 打てなくなるため、options は候補の全件を一度だけ入れて触らない。
+        self._property_dd = ft.Dropdown(
+            label=texts.LBL_PROPERTY,
+            editable=True,
+            enable_filter=True,
+            expand=True,
+            options=[],
+            on_select=self._on_property_select,
+            disabled=True,
+        )
+        self._add_button = ft.Button(content=texts.BTN_ADD_TO_EXPR, icon=ft.Icons.ADD,
+                                     on_click=self._on_add_to_expression, disabled=True)
+        self._candidate_note = ft.Text("", size=11, color=ft.Colors.ON_SURFACE_VARIANT,
+                                       visible=False)
+        self._selected_candidate = ""
+
         # --- 式バー ---
-        self._expr_field = ft.TextField(label=texts.LBL_EXPRESSION, value=state.query.expression,
+        self._expr_field =ft.TextField(label=texts.LBL_EXPRESSION, value=state.query.expression,
                                         hint_text=texts.PH_EXPRESSION, expand=True,
                                         text_style=MONO,
                                         on_change=self._on_expression_change,
@@ -101,7 +121,9 @@ class MainPage:
         format_bar = ft.Row([self._input_dd, self._output_dd, self._indent_field,
                              self._pretty_switch], spacing=12)
 
-        expr_bar = ft.Column([
+        filter_bar = ft.Column([
+            ft.Row([self._property_dd, self._add_button], spacing=8),
+            self._candidate_note,
             ft.Row([self._expr_field, self._run_button, self._cancel_button], spacing=8),
             self._expr_error,
         ], spacing=2)
@@ -121,7 +143,7 @@ class MainPage:
         status_bar = ft.Row([self._status_icon, self._status_text,
                              ft.Container(expand=True), self._format_text], spacing=8)
 
-        return ft.Column([file_bar, ft.Divider(height=1), format_bar, expr_bar,
+        return ft.Column([file_bar, ft.Divider(height=1), format_bar, filter_bar,
                           self._progress, panes, ft.Divider(height=1), status_bar],
                          expand=True, spacing=8)
 
@@ -151,6 +173,7 @@ class MainPage:
         self._run_button.disabled = False
         self._expr_error.visible = False
         await self._run()
+        await self._reload_candidates()
 
     def _on_close(self, e: ft.Event[ft.Button]) -> None:
         self._p.close_document()
@@ -164,6 +187,12 @@ class MainPage:
         self._close_button.disabled = True
         self._run_button.disabled = True
         self._truncated_note.visible = False
+        self._property_dd.options = []
+        self._property_dd.value = None
+        self._property_dd.disabled = True
+        self._add_button.disabled = True
+        self._candidate_note.visible = False
+        self._selected_candidate = ""
         self._status_icon.icon = ft.Icons.INFO_OUTLINE
         self._status_icon.color = None
         self._status_text.value = ""
@@ -171,7 +200,8 @@ class MainPage:
 
     def _on_input_format(self, e: ft.Event[ft.Dropdown]) -> None:
         self._state.query.input_format = e.control.value or "auto"
-        self._page.run_task(self._run)
+        # 入力形式を直すと、壊れていた文書が読めるようになることがある。候補も作り直す。
+        self._page.run_task(self._run_and_reload_candidates)
 
     def _on_output_format(self, e: ft.Event[ft.Dropdown]) -> None:
         self._state.query.output_format = e.control.value or "auto"
@@ -202,6 +232,54 @@ class MainPage:
             caret = caret_line(result.position)
             self._expr_error.value = f"{expression}\n{caret}" if caret else ""
             self._expr_error.visible = bool(caret)
+
+    # ------------------------------------------------------------------ プロパティ候補（G2）
+
+    async def _run_and_reload_candidates(self) -> None:
+        await self._run()
+        await self._reload_candidates()
+        self._page.update()
+
+    async def _reload_candidates(self) -> None:
+        vm = await self._p.build_candidates()
+        self._set_candidates(self._p.filter_candidates(limit=DEFAULT_MAX_ITEMS))
+        self._property_dd.value = None
+        self._selected_candidate = ""
+        self._property_dd.disabled = vm.is_empty
+        self._add_button.disabled = vm.is_empty
+        if vm.note:
+            self._candidate_note.value = vm.note
+            self._candidate_note.visible = True
+        elif vm.truncated:
+            self._candidate_note.value = texts.MSG_TOO_MANY_CANDIDATES
+            self._candidate_note.visible = True
+        else:
+            self._candidate_note.visible = False
+
+    def _set_candidates(self, candidates: list[PathCandidate]) -> None:
+        self._property_dd.options = [
+            ft.DropdownOption(key=c.expression, text=c.label) for c in candidates
+        ]
+
+    def _on_property_select(self, e: ft.Event[ft.Dropdown]) -> None:
+        """一覧から選んだとき。式欄を置き換えてすぐ実行する（式欄が唯一の真実）。"""
+        expression = e.control.value or ""
+        if not expression:
+            return
+        self._selected_candidate = expression
+        self._expr_field.value = self._p.apply_candidate(expression)
+        self._expr_field.error = None
+        self._expr_error.visible = False
+        self._page.run_task(self._run)
+
+    def _on_add_to_expression(self, e: ft.Event[ft.Button]) -> None:
+        expression = self._selected_candidate or (self._property_dd.value or "")
+        if not expression:
+            return
+        self._expr_field.value = self._p.apply_candidate(expression, append=True)
+        self._expr_field.error = None
+        self._expr_error.visible = False
+        self._page.run_task(self._run)
 
     async def _on_run(self, e: ft.Event) -> None:
         await self._run()
