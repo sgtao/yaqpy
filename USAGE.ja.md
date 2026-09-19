@@ -1,6 +1,8 @@
 ###### [toREADME](./README.md)
 # yaqpy 使い方ガイド
 
+> 例は、リポジトリを clone した状態（`uv run yaqpy ... examples/sample.yaml`）で書いています。`pip install yaqpy` でインストールした場合は、`uv run yaqpy` を `yaqpy` に読み替え、`examples/sample.yaml` は手元の YAML ファイルに置き換えてください。
+
 ---
 [toTop](#toreadme)
 ## CLI での使い方
@@ -10,6 +12,9 @@
 ```bash
 # 値の取得
 uv run yaqpy '.server.port' examples/sample.yaml
+
+# 標準入力から読む
+cat examples/sample.yaml | uv run yaqpy '.server.hosts[]'
 
 # 値の更新（コメント・キー順はそのまま）
 uv run yaqpy '.server.port = 9090' examples/sample.yaml
@@ -33,6 +38,9 @@ uv run yaqpy -P -N -e '.items[] | select(.price > 500) | .name' examples/sample.
 ### 主なフラグ
 
 Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops` など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。yaqpy 独自のフラグは `--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}` です。
+
+- 出力形式は `-o`（`yaml` / `json` / `props` / `toon`）で指定します。**`-p`（入力形式）だけを指定した場合、出力は Go 版との互換のため YAML のまま**です（警告が出ます）
+- 入力形式は、ファイルの拡張子（`.yaml` `.yml` `.json` `.toon`）から自動判定します。拡張子が不明なとき、および標準入力は YAML として扱います
 
 ---
 [toTop](#toreadme)
@@ -129,7 +137,27 @@ yq.evaluate(expr, text)                                             # -> '{"port
 
 `.`、`.a` / `."a b"` / `.a?` / `.a*`、`.[0]` / `.[]` / `.[1:3]`、`..` / `...`、`|`、`,`、`select`、`=` / `|=`、`+=` / `-=` / `*=`、`+`、`-`、`*`（`*+ *? *d *n *c` を含むディープマージ）、`/`、`%`、`//`、`==` / `!=`、`<` `<=` `>` `>=`、`and` / `or` / `not`、リテラル、`[ ]`、`{ }`、`length`、`keys`、`key`、`has`、`del`、`to_entries` / `from_entries` / `with_entries`、`map` / `map_values`、`sort_by` / `sort`、`path`、`as $x` / `$x`、`env` / `strenv`、`tag`、`style`、`line_comment` / `head_comment` / `foot_comment` / `comments`、`test`、`document_index` / `di`、`file_index` / `fi` / `filename`、`parent`、`explode`、`anchor` / `alias`、`min` / `max`、`any` / `all`、`set_path` / `del_paths`、`kind`、`line` / `column`、日時の加減算と比較（RFC3339）
 
-未実装（Phase 2 以降）の演算子は式の解析時に `unknown operator` として報告されます。文字列補間 `\(exp)` も Phase 2 です。
+未実装（Phase 2 以降）の演算子も、式の構文としては解釈されます（`validate` や `compile` は成功します）が、**実行すると `Error: unknown operator ...` で終了します**。文字列補間 `\(exp)` も Phase 2 です。未実装の一覧は次節を参照してください。
+
+---
+[toTop](#toreadme)
+## Go 版 yq との違い
+
+yaqpy は Go 版 yq（v4.53.6）の**独立した再実装**です。
+
+| 分類 | 内容 |
+|---|---|
+| 追加した機能 | TOON 形式の入出力、Python ライブラリ API、デスクトップ GUI |
+| **未実装の演算子** | `join` `split` `sub` `match` `capture` `trim` `upcase` `downcase` `to_string` `to_number` `unique` `unique_by` `group_by` `reverse` `shuffle` `sort_keys` `flatten` `first` `pick` `omit` `with` `reduce` `pivot` `contains` `filter` `eval` `error` `envsubst` `encode` / `decode`（`@base64` など）`load` `load_str` `split_doc` `system` と、日時の `now` `tz` `from_unix` `to_unix` `format_datetime` `with_dtf`。式としては解釈されますが、実行すると `Error: unknown operator ...` で終了します |
+| 未対応のフォーマット | CSV / TSV / XML / TOML など、Go 版にあるその他の形式。properties は入力不可 |
+| 未対応のオプション | `-s`（`--split-exp`）、`-f`（`--front-matter`）、`-C`（色付き出力）。文字列補間 `\(...)` |
+| その他 | 日時は RFC3339 形式のみ。Python 3.13 以上が必要 |
+
+**互換性テスト**：Go 版のテストシナリオ 1,091 件を互換テストにしています。実装済みの機能に当たる 841 件のうち 837 件が一致します（残り 4 件は既知の差異）。
+
+**安全側の既定**：ライブラリとして使うときは、ファイル読み込み（`load` など）・環境変数（`env` / `strenv`）・外部コマンド（`system`）の各演算子が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込みが有効です（外部コマンドは無効）。
+
+> 現状、`env` / `strenv` だけが「許可されていなければ拒否」の検査を実装しています。`load` `load_str` `system` は演算子自体が未実装です。
 
 ---
 [toTop](#toreadme)

@@ -1,102 +1,87 @@
 # yaqpy
 
-`yq`（Go 版 [mikefarah/yq](https://github.com/mikefarah/yq) v4.53.6）の式言語と基本機能を **Python 3.13 の標準ライブラリだけ**で再実装した、YAML/JSON 処理ライブラリ兼 CLI ツールです。
+YAML / JSON をコマンドや Python から、**式で取り出し・更新・変換**するための軽量ツールです。
+- 人気の CLI ツール [mikefarah/yq](https://github.com/mikefarah/yq)（Go 版 v4.53.6）の式言語を模倣
+- **Python の標準ライブラリだけ**で再実装してます
+
+```console
+$ yaqpy '.server.port' config.yaml
+8080
+$ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順はそのまま
+```
 
 ## 概要
 
-- **依存ゼロ**：実行時のサードパーティ製ライブラリは 0 個（`dependencies = []`）。テストで機械的に検査しています
-- **YAML 自前実装**：コメント・キー順・アンカー・スカラーの元の書き方（`0x1F`、`1.50`、クォート）を保持するパーサー／エミッタ
-- **Go 版との互換性**：Go 版のテストシナリオ 1,091 件を抽出して互換テストにしています（下記）
-- **Library + CLI**：`import yaqpy` で関数として使う方法と、`yaqpy` コマンドの両方に対応
-- **拡張可能な設計**：ヘキサゴナル（Ports & Adapters）。CLI・GUI・API が共通の `YqService` を呼ぶ構造で、GUI（Flet。任意依存）は実装済み、API（WSGI）は追加予定
-- **対応フォーマット**：YAML（入出力）、JSON（入出力）、properties（出力）、TOON（入出力。Go 版にはない拡張）
+- **書式を壊さない**：コメント、キーの並び順、アンカー（`&` / `*`）、数値やクォートの元の書き方（`0x1F`、`1.50`、`'yes'`）を保持したまま更新できます
+- **依存ライブラリなし**：実行に必要なのは Python 3.13 以上だけです（GUI を使うときだけ任意で Flet を追加）
+- **3 通りの使い方**：コマンド（`yaqpy`）／ Python ライブラリ（`import yaqpy`）／ デスクトップ GUI（`yaqpy-gui`）
+- **対応フォーマット**：
 
-## 動作環境
+  | 形式 | 入力 | 出力 |
+  |---|:-:|:-:|
+  | YAML | ○ | ○ |
+  | JSON | ○ | ○ |
+  | TOON（LLM に渡すためトークン数を減らす形式。Go 版にない拡張） | ○ | ○ |
+  | properties | — | ○ |
 
-- Python 3.13 以上
-- パッケージ管理・実行に [uv](https://docs.astral.sh/uv/) を使用（`uv` がなくても `PYTHONPATH=src python -m yaqpy` で動きます）
+- **Go 版 yq との互換性**：Go 版のテストシナリオ 1,091 件を互換テストにしています（実装済みの機能に当たる 841 件のうち 837 件が一致）。**未実装の演算子・形式があります**（`join` `split` `unique` `pick` など）。実行すると `Error: unknown operator ...` で終了します。一覧は [Go 版 yq との違い](USAGE.ja.md#go-版-yq-との違い) を参照してください
+- **安全側の既定**：ライブラリとして使うときは、ファイル読み込み・環境変数・外部コマンドの演算子が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込みが有効です（外部コマンドは無効）
 
-## セットアップ
+## インストール
 
-```bash
-git clone https://github.com/sgtao/yaqpy
-cd yaqpy
-uv sync
-```
-
-## 使い方
+Python 3.13 以上が必要です。
 
 ```bash
-# 値の取得
-uv run yaqpy '.server.port' examples/sample.yaml
-
-# 値の更新（インプレース書き換え。コメント・キー順はそのまま）
-uv run yaqpy -i '.server.port = 9090' examples/sample.yaml
-
-# フォーマット変換（YAML → TOON。LLM 向けにトークン数を削減する Go 版にはない拡張）
-uv run yaqpy --toon '.' examples/sample.yaml
+pip install yaqpy               # または: uv tool install yaqpy
+pip install "yaqpy[gui]"        # GUI も使う場合（Flet が追加されます）
 ```
 
-詳細、対応演算子の一覧は **[USAGE.ja.md](USAGE.ja.md)**、GUI の使い方は **[USAGE-GUI.ja.md](USAGE-GUI.ja.md)** を参照してください。
+## クイックスタート
 
-## GUI（デスクトップアプリ）
+次の `config.yaml` を例にします。
 
-YAML / JSON を開いて、必要な部分の取り出し・変換・保存が画面でできます。
+```yaml
+# server settings
+server:
+  port: 8080 # dev
+  hosts: [a, b]
+items:
+  - {name: pen, price: 120}
+  - {name: book, price: 980}
+```
+
+**コマンド**
 
 ```bash
-uv sync --extra gui       # GUI を使うときだけ flet が入ります
-uv run yaqpy-gui          # 専用コマンド
-uv run yaqpy --gui        # CLI のフラグでも起動できます
+yaqpy '.server.port' config.yaml                              # 取得 → 8080
+yaqpy '.items[] | select(.price > 500) | .name' config.yaml   # 絞り込み → book
+yaqpy -i '.server.port = 9090' config.yaml                    # 更新（コメント・並び順はそのまま）
+yaqpy -o json '.server' config.yaml                           # 形式変換（yaml / json / props / toon）
 ```
 
-**使い方（式の書き方を含む）は [USAGE-GUI.ja.md](USAGE-GUI.ja.md) を参照してください。**
+**Python ライブラリ**
 
-## 開発・テスト
+```python
+import yaqpy
+
+yaqpy.evaluate(".server.port", "server:\n  port: 8080\n")        # '8080\n'
+yaqpy.query(".items[] | select(.price > 500)", {"items": [{"price": 1}, {"price": 900}]})   # [{'price': 900}]
+yaqpy.update(".server.port = 9090", {"server": {"port": 8080}})  # {'server': {'port': 9090}}
+```
+
+**GUI**
 
 ```bash
-# ユニットテスト（213 件。GUI の Presenter などを含む。実際にウィンドウは開きません）
-uv run python -m unittest discover -s tests/unit -t .
-
-# CLI 受け入れテスト（49 件。Go 版 acceptance_tests/*.sh から移植＋`--gui` の入口）
-uv run python -m unittest tests.acceptance.test_cli
-
-# Go 版シナリオのゴールデンテスト（1,091 件）
-uv run python -m unittest tests.golden.test_operators
-uv run python tools/golden_report.py            # 合格率の一覧。--fails で不一致の詳細
-
-# 依存ゼロ・レイヤ間の import 方向の検査
-uv run python -m unittest tests.unit.test_architecture
-
-# ゴールデンデータの再抽出（Go 版ソースが隣にある場合）
-uv run python tools/extract_go_scenarios.py ../11_ref-mikefarah-yq/pkg/yqlib tests/golden/operators
-
-# 配布物
-uv build
+yaqpy-gui                # または: yaqpy --gui
 ```
 
-## リポジトリ構成
+## ドキュメント
 
-```text
-src/yaqpy/
-├── errors.py options.py api.py     … 例外・設定・公開 API
-├── core/
-│   ├── model/                      … Node（値は文字列＋タグで保持）、タグ解決、Python 変換、日時
-│   ├── lang/                       … 字句解析（Go 版と同じルール表）→ 操車場法 → AST
-│   ├── engine/                     … Context / Navigator / ステップ上限
-│   └── operators/                  … 演算子（@operator で登録）
-├── formats/
-│   ├── yaml/                       … 自前 YAML（parser / emitter / codec）
-│   ├── json_codec.py props_codec.py toon_codec.py registry.py
-├── app/                            … YqService、DTO、ポート（FileSystem/Environment）、printer
-├── cli/                            … argparse、引数解釈（純粋関数）、main
-└── gui/                            … Flet の GUI（任意依存。presenter は Flet 非依存）
-tests/
-├── unit/  acceptance/  golden/     … unittest（標準ライブラリのみ）
-└── support/golden.py               … Go 版 resultToString と同じ形式で比較するハーネス
-tools/
-├── extract_go_scenarios.py         … Go テストからシナリオを JSON 抽出
-└── golden_report.py                … 合格率レポート
-```
+| 内容 | ファイル |
+|---|---|
+| コマンド・TOON・ライブラリの使い方、対応演算子、Go 版 yq との違い | [USAGE.ja.md](USAGE.ja.md) |
+| GUI の使い方（画面の見方、式の書き方、保存・設定・エラー） | [USAGE-GUI.ja.md](USAGE-GUI.ja.md) |
+| 開発者向け（セットアップ、設計、テスト、リポジトリ構成） | [DEVELOPMENT.md](DEVELOPMENT.md) |
 
 ## License
 
