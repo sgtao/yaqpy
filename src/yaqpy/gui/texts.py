@@ -27,6 +27,8 @@ MSG_NO_DOCUMENT = "ファイルを開くか、テキストを貼り付けてく�
 MSG_RUNNING = "実行中…"
 MSG_TRUNCATED = "（以下 {n} 行を表示していません。保存すれば全量が得られます）"
 MSG_SAVED = "保存しました: {path}"
+MSG_NO_CANDIDATES = "この文書からはプロパティ候補を作れませんでした"
+MSG_TOO_MANY_CANDIDATES = "候補が多いため、絞り込んでください"
 
 # エラー
 ERR_BUSY = "実行中です。終わるまでお待ちください"

@@ -14,6 +14,7 @@ from yaqpy.app.service import YqService
 from yaqpy.core.engine.limits import StepBudget
 from yaqpy.gui import intake, texts
 from yaqpy.gui.errors_ja import ErrorViewModel, to_view_model
+from yaqpy.gui.paths import DEFAULT_MAX_DEPTH, DEFAULT_MAX_ITEMS, PathCandidate, collect_paths
 from yaqpy.gui.state import DocumentState, GuiState, build_options, truncate_for_display
 
 
@@ -53,6 +54,17 @@ class RunViewModel:
         return self.error is None
 
 
+@dataclass(frozen=True, slots=True)
+class CandidatesViewModel:
+    candidates: tuple[PathCandidate, ...] = ()
+    truncated: bool = False          # 上限に達して打ち切った
+    note: str = ""                   # 候補を作れなかった理由（画面に出す）
+
+    @property
+    def is_empty(self) -> bool:
+        return not self.candidates
+
+
 class MainPresenter:
     """View（Flet）から呼ばれる唯一の窓口。"""
 
@@ -64,6 +76,7 @@ class MainPresenter:
         self._size_of = size_of or os.path.getsize
         self._budget: StepBudget | None = None
         self._last_run: RunViewModel | None = None
+        self._candidates: list[PathCandidate] = []
 
     # ------------------------------------------------------------------ 開く
 
@@ -92,12 +105,14 @@ class MainPresenter:
         self.state.document = DocumentState()
         self.state.query.expression = "."
         self._last_run = None
+        self._candidates = []
 
     def _accept(self, item: intake.IntakeItem) -> OpenViewModel:
         self.state.document = DocumentState(path=item.path, name=item.name,
                                             original_text=item.text, byte_size=item.byte_size)
         self.state.query.expression = "."          # 新しい文書は恒等式から始める
         self._last_run = None
+        self._candidates = []
         return OpenViewModel(name=item.name, path=item.path, original_text=item.text,
                              byte_size=item.byte_size)
 
@@ -150,6 +165,55 @@ class MainPresenter:
     def last_run(self) -> RunViewModel | None:
         """最後に成功した実行結果（保存で使う。G3）。"""
         return self._last_run
+
+    # ------------------------------------------------------------------ 候補（G2）
+
+    async def build_candidates(self) -> CandidatesViewModel:
+        """いま開いている文書からパス候補を作る。open → run の後に 1 回だけ呼ぶ。
+
+        入力形式は直前の実行結果（EvaluateResult.input_format）から採る。
+        こうすると拡張子からの判定ロジックを GUI 側に複製しなくて済む。
+        """
+        self._candidates = []
+        run = self._last_run
+        if run is None or not self.state.document.is_loaded:
+            return CandidatesViewModel(note=texts.MSG_NO_CANDIDATES)
+        try:
+            found = await asyncio.to_thread(self._collect_sync, run.input_format,
+                                            self.state.document.original_text)
+        except Exception:                        # noqa: BLE001 - 候補が無くても本体は使える
+            return CandidatesViewModel(note=texts.MSG_NO_CANDIDATES)
+        self._candidates = found
+        if not found:
+            return CandidatesViewModel(note=texts.MSG_NO_CANDIDATES)
+        return CandidatesViewModel(candidates=tuple(found),
+                                   truncated=len(found) >= DEFAULT_MAX_ITEMS)
+
+    def filter_candidates(self, query: str = "", *, limit: int = 200) -> list[PathCandidate]:
+        """絞り込みボックスの文字で候補を部分一致フィルタする（大文字小文字は無視）。"""
+        text = query.strip().lower()
+        items = self._candidates
+        if text:
+            items = [c for c in items if text in c.expression.lower()]
+        return items[:limit]
+
+    def apply_candidate(self, expression: str, *, append: bool = False) -> str:
+        """候補を式欄へ反映する。append=True ならパイプで連結する。"""
+        current = self.state.query.expression.strip()
+        if append and current and current != ".":
+            merged = f"{current} | {expression}"
+        else:
+            merged = expression
+        self.state.query.expression = merged
+        return merged
+
+    def _collect_sync(self, input_format: str, text: str) -> list[PathCandidate]:
+        """別スレッドで動く。デコードだけして評価器は通さない。"""
+        options = build_options(self.state)
+        decoder = self._service.formats.decoder_for(input_format, options)
+        documents = list(decoder.decode_documents(text))
+        return collect_paths(documents, max_depth=DEFAULT_MAX_DEPTH,
+                             max_items=DEFAULT_MAX_ITEMS)
 
     # ------------------------------------------------------------------ 内部
 

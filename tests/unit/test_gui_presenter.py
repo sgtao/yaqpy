@@ -197,6 +197,90 @@ class TruncationTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(vm.truncated_lines, 47)
 
 
+class CandidateTests(unittest.IsolatedAsyncioTestCase):
+    async def _ready(self) -> MainPresenter:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        await p.run()
+        return p
+
+    async def test_candidates_are_built_after_a_run(self) -> None:
+        p = await self._ready()
+        vm = await p.build_candidates()
+        expressions = [c.expression for c in vm.candidates]
+        self.assertIn(".server.port", expressions)
+        self.assertIn(".items[].name", expressions)
+        self.assertFalse(vm.truncated)
+
+    async def test_candidates_need_a_successful_run(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/broken.yaml")
+        await p.run()                                # 失敗する
+        vm = await p.build_candidates()
+        self.assertTrue(vm.is_empty)
+        self.assertTrue(vm.note)
+
+    async def test_candidates_follow_the_detected_format(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/data.json")
+        await p.run()
+        vm = await p.build_candidates()
+        self.assertEqual([c.expression for c in vm.candidates], [".a"])
+
+    async def test_a_document_without_properties_explains_itself(self) -> None:
+        p = make_presenter()
+        p.open_text("just a string\n", name="scalar.yaml")
+        await p.run()
+        vm = await p.build_candidates()
+        self.assertTrue(vm.is_empty)
+        self.assertTrue(vm.note)
+
+    async def test_filter_is_case_insensitive(self) -> None:
+        p = await self._ready()
+        await p.build_candidates()
+        self.assertEqual([c.expression for c in p.filter_candidates("PORT")], [".server.port"])
+        self.assertTrue(p.filter_candidates(""))     # 空なら全件
+
+    async def test_filter_limit(self) -> None:
+        p = await self._ready()
+        await p.build_candidates()
+        self.assertEqual(len(p.filter_candidates("", limit=2)), 2)
+
+    async def test_apply_replaces_the_expression(self) -> None:
+        p = await self._ready()
+        self.assertEqual(p.apply_candidate(".server.port"), ".server.port")
+        self.assertEqual(p.state.query.expression, ".server.port")
+
+    async def test_apply_append_joins_with_a_pipe(self) -> None:
+        p = await self._ready()
+        p.apply_candidate(".items[]")
+        self.assertEqual(p.apply_candidate(".name", append=True), ".items[] | .name")
+
+    async def test_append_on_the_identity_expression_replaces(self) -> None:
+        p = await self._ready()                     # 開いた直後の式は "."
+        self.assertEqual(p.apply_candidate(".server", append=True), ".server")
+
+    async def test_applied_candidate_runs(self) -> None:
+        p = await self._ready()
+        await p.build_candidates()
+        p.apply_candidate(".items[] | select(.price > 500)")
+        vm = await p.run()
+        self.assertTrue(vm.ok, msg=str(vm.error))
+        self.assertIn("book", vm.full_text)
+
+    async def test_candidates_are_cleared_when_the_document_closes(self) -> None:
+        p = await self._ready()
+        await p.build_candidates()
+        p.close_document()
+        self.assertEqual(p.filter_candidates(), [])
+
+    async def test_candidates_are_cleared_when_another_document_opens(self) -> None:
+        p = await self._ready()
+        await p.build_candidates()
+        await p.open_path("/w/data.json")
+        self.assertEqual(p.filter_candidates(), [])
+
+
 class ValidateTests(unittest.TestCase):
     def test_empty_expression_is_valid(self) -> None:
         self.assertTrue(make_presenter().validate("").valid)
