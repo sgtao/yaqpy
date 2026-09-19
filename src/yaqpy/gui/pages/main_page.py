@@ -399,6 +399,10 @@ class MainPage:
 
     def _on_cancel(self, e: ft.Event[ft.Button]) -> None:
         self._p.cancel()
+        # 巨大ファイルのデコード・エンコード中は、その処理が終わるまで止まらない（リスク R4）。
+        # 押したことが伝わるよう、状態バーで受け付けたことを示す。
+        self._cancel_button.disabled = True
+        self._status_text.value = texts.MSG_CANCELLING
 
     # ------------------------------------------------------------------ 保存（G3）
 
