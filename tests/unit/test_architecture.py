@@ -12,15 +12,29 @@ SRC = Path(__file__).resolve().parents[2] / "src" / "yaqpy"
 # module prefix -> prefixes it must not import
 FORBIDDEN: dict[str, tuple[str, ...]] = {
     "yaqpy.core.model": ("yaqpy.core.lang", "yaqpy.core.engine", "yaqpy.core.operators",
-                        "yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.api"),
+                        "yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
     "yaqpy.core.lang": ("yaqpy.core.engine", "yaqpy.core.operators", "yaqpy.formats", "yaqpy.app",
-                       "yaqpy.cli", "yaqpy.api"),
-    "yaqpy.core.engine": ("yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.api"),
-    "yaqpy.core.operators": ("yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.api"),
-    "yaqpy.formats": ("yaqpy.core.engine", "yaqpy.app", "yaqpy.cli", "yaqpy.api"),
+                       "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
+    "yaqpy.core.engine": ("yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
+    "yaqpy.core.operators": ("yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
+    "yaqpy.formats": ("yaqpy.core.engine", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
     "yaqpy.app": ("yaqpy.cli", "yaqpy.gui", "yaqpy.web", "yaqpy.api"),
     "yaqpy.api": ("yaqpy.cli", "yaqpy.gui", "yaqpy.web"),
     "yaqpy.cli": ("yaqpy.gui", "yaqpy.web"),
+}
+
+GUI_PREFIX = "yaqpy.gui"
+# gui が使ってよい外部パッケージ（G0 でドロップ拡張は見送りになったが、将来の再検討に備えて残す）
+GUI_ALLOWED_THIRD_PARTY = {"flet", "flet_dropzone"}
+# View から切り離してテストするため、flet を import してはいけないモジュール
+GUI_FLET_FREE_MODULES = {
+    "yaqpy.gui.presenter",
+    "yaqpy.gui.state",
+    "yaqpy.gui.paths",
+    "yaqpy.gui.intake",
+    "yaqpy.gui.errors_ja",
+    "yaqpy.gui.texts",
+    "yaqpy.gui._di",
 }
 
 
@@ -59,13 +73,41 @@ class ArchitectureTests(unittest.TestCase):
                                              f"{module} must not import {imported}")
 
     def test_only_standard_library(self) -> None:
+        """gui/ 以外は実行時依存ゼロ（README の約束）。"""
         stdlib = set(sys.stdlib_module_names)
         for path in self.files:
+            if module_name(path).startswith(GUI_PREFIX):
+                continue                      # gui は flet を使ってよい（下の 2 つで別途検査）
             for imported in imports_of(path):
                 top = imported.split(".")[0]
                 with self.subTest(file=path.name, imported=imported):
                     self.assertTrue(top == "yaqpy" or top in stdlib,
                                     f"{path.name} imports non-stdlib module {imported}")
+
+    def test_gui_third_party_whitelist(self) -> None:
+        """gui/ が使ってよい外部パッケージは flet 系だけ。"""
+        stdlib = set(sys.stdlib_module_names)
+        for path in self.files:
+            module = module_name(path)
+            if not module.startswith(GUI_PREFIX):
+                continue
+            for imported in imports_of(path):
+                top = imported.split(".")[0]
+                with self.subTest(module=module, imported=imported):
+                    self.assertTrue(
+                        top == "yaqpy" or top in stdlib or top in GUI_ALLOWED_THIRD_PARTY,
+                        f"{module} imports unexpected third-party module {imported}")
+
+    def test_gui_logic_stays_flet_free(self) -> None:
+        """Presenter 層は flet 抜きで単体テストできること（設計書 G-NFR-05）。"""
+        for path in self.files:
+            module = module_name(path)
+            if module not in GUI_FLET_FREE_MODULES:
+                continue
+            for imported in imports_of(path):
+                with self.subTest(module=module, imported=imported):
+                    self.assertNotEqual(imported.split(".")[0], "flet",
+                                        f"{module} must not import flet")
 
     def test_no_removed_modules(self) -> None:
         removed = {"cgi", "cgitb", "pipes", "imp", "distutils", "asynchat", "asyncore", "smtpd"}
