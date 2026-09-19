@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import argparse
 import logging
 import os
 import sys
@@ -37,6 +38,21 @@ def _configure_streams() -> TextIO:
     return sys.stdout
 
 
+def _launch_gui(ns: argparse.Namespace, err: TextIO) -> int:
+    """``yaqpy --gui``: hand over to the desktop GUI.
+
+    The import is deliberately lazy (inside this function): the CLI must keep working
+    when the optional ``gui`` extra (flet) is not installed. ``yaqpy.gui.app`` itself
+    does not import flet at module level, so this import is always safe.
+    """
+    if ns.args or ns.expression or ns.from_file:
+        err.write("Error: --gui cannot be combined with an expression or files\n")
+        return EXIT_ERROR
+    from yaqpy.gui import app as gui_app
+
+    return gui_app.main_entry(stderr=err)
+
+
 def main(argv: list[str] | None = None, *, stdout: TextIO | None = None,
          stderr: TextIO | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
@@ -52,6 +68,8 @@ def main(argv: list[str] | None = None, *, stdout: TextIO | None = None,
 
         out.write(f"yaqpy (https://github.com/mikefarah/yq/ compatible) version v{__version__}\n")
         return EXIT_OK
+    if ns.gui:
+        return _launch_gui(ns, err)
     logging.basicConfig(level=logging.DEBUG if ns.verbose else logging.WARNING,
                         format="%(levelname)s %(name)s: %(message)s", stream=err)
     fs = LocalFileSystem()

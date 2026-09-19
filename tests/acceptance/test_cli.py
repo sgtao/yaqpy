@@ -297,6 +297,26 @@ class BadArgsTests(CliTestCase):
         self.assertIn("version", r.stdout)
 
 
+class GuiFlagTests(CliTestCase):
+    """`--gui` の入口だけを検査する（GUI 本体は起動しない: 起動前に必ず失敗する引数のみ使う）。"""
+
+    def test_gui_flag_is_listed_in_help(self) -> None:
+        r = yq("--help")
+        self.assertEqual(r.returncode, 0)
+        self.assertIn("--gui", r.stdout)
+
+    def test_gui_flag_rejects_an_expression(self) -> None:
+        r = yq("--gui", ".a")
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("cannot be combined", r.stderr)
+
+    def test_gui_flag_rejects_a_file(self) -> None:
+        path = self.write("a.yaml", "a: 1\n")
+        r = yq("--gui", path)
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("cannot be combined", r.stderr)
+
+
 class SecurityTests(CliTestCase):
     def test_env_allowed_by_default_in_cli(self) -> None:
         env = dict(ENV, MYVAR="hello")

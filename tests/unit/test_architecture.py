@@ -38,6 +38,11 @@ GUI_FLET_FREE_MODULES = {
 }
 
 
+# 例外：`yaqpy --gui` のためだけに、cli/main.py は gui を（関数の中で遅延して）import してよい。
+# 「遅延している」ことは test_cli_reaches_gui_only_lazily が別途検査する。
+ALLOWED_EXCEPTIONS: set[tuple[str, str]] = {("yaqpy.cli.main", "yaqpy.gui")}
+
+
 def module_name(path: Path) -> str:
     rel = path.relative_to(SRC.parent).with_suffix("")
     parts = list(rel.parts)
@@ -68,6 +73,8 @@ class ArchitectureTests(unittest.TestCase):
                     continue
                 for imported in imports_of(path):
                     for bad in forbidden:
+                        if (module, bad) in ALLOWED_EXCEPTIONS:
+                            continue
                         with self.subTest(module=module, imported=imported):
                             self.assertFalse(imported == bad or imported.startswith(bad + "."),
                                              f"{module} must not import {imported}")
@@ -108,6 +115,21 @@ class ArchitectureTests(unittest.TestCase):
                 with self.subTest(module=module, imported=imported):
                     self.assertNotEqual(imported.split(".")[0], "flet",
                                         f"{module} must not import flet")
+
+    def test_cli_reaches_gui_only_lazily(self) -> None:
+        """cli/main.py の gui import は関数の中だけ。モジュール先頭にあると、
+        flet 未導入の環境や CLI 単体の起動が gui の import 副作用に巻き込まれる。"""
+        tree = ast.parse((SRC / "cli" / "main.py").read_text(encoding="utf-8"))
+        for node in tree.body:                      # 先頭（トップレベル）の文だけを見る
+            names: list[str] = []
+            if isinstance(node, ast.Import):
+                names = [alias.name for alias in node.names]
+            elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
+                names = [node.module]
+            for name in names:
+                with self.subTest(imported=name):
+                    self.assertFalse(name == "yaqpy.gui" or name.startswith("yaqpy.gui."),
+                                     "cli/main.py must import yaqpy.gui lazily (inside a function)")
 
     def test_no_removed_modules(self) -> None:
         removed = {"cgi", "cgitb", "pipes", "imp", "distutils", "asynchat", "asyncore", "smtpd"}

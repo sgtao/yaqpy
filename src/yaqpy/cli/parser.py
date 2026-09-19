@@ -129,6 +129,8 @@ def build_parser() -> _Parser:
                    help="set exit status if there are no matches or null or false is returned")
     m.add_argument("-v", "--verbose", action="store_true", help="verbose mode")
     m.add_argument("-V", "--version", action="store_true", help="Print version information and quit")
+    m.add_argument("--gui", action="store_true",
+                   help="Launch the desktop GUI (needs: pip install 'yaqpy[gui]')")
     return parser
 
 
