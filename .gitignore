@@ -10,6 +10,3 @@ dist/
 .coverage
 htmlcov/
 tests/acceptance/tmp/
-
-# PoC（Phase G0 限り。G1 開始時に削除する）
-_poc/

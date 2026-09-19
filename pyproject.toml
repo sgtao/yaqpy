@@ -13,6 +13,7 @@ classifiers = [
 
 [project.scripts]
 yaqpy = "yaqpy.cli.main:main"
+yaqpy-gui = "yaqpy.gui.app:main_entry"
 
 [project.optional-dependencies]
 gui = [
