@@ -57,6 +57,7 @@
 | g. 6-4：保存（`save_file` を呼ぶ記述） | `save_file` は**パスを返すだけ**でファイルを作らない。書き込み（`atomic_write`）は呼び出し側が行う。設計書の書き方（`atomic_write` を呼ぶ）と矛盾はないが、手順として明記が要る | G3-T2 |
 | h. 4-1：`gui = ["flet>=1.0,<2"]` | `flet` 単体には**デスクトップクライアントが含まれない**。`ft.run` 初回に `flet-desktop` を自動で導入し、クライアント本体を `~/.flet/client/` へ展開する（「Preparing Flet v1.0.0 for the first use」と表示。**初回にネットワークが要るかどうかは未検証**）。再現性のため extra を **`flet[desktop]>=1.0,<2`** にするかは G1-T1 で判断（→ 6 章） | G1-T1 |
 | i. （G2 で確認）フェーズプラン G2-T3：「`editable=True` の Dropdown で、`on_text_change` から `options` を差し替えて絞り込む」 | **`enable_filter=True` を採用**（代替案の別 `TextField` は不要）。`options` は候補の全件を一度だけ入れて触らない。実機で `port` と打つと全打鍵が入り、`.server.port  = 8080` だけに絞られた。候補の選択は `on_select` で、`e.control.value` には表示文字列ではなく **`DropdownOption.key`**（式）が入る。`key` と `text` を別にしても動く。絞り込みが `key` と `text` のどちらに効くかは未確認（`port` は両方に含まれる） | G2-T3 |
+| j. （G3 で確認）フェーズプラン G3-T6：「`page.on_close` で走っている評価をキャンセルする」 | **`page.on_close` は窓を閉じた直後には発火しない**（セッションが期限切れになったときの通知）。窓の終了は **`page.window.on_event` の `WindowEventType.CLOSE`**（`prevent_close=True` のとき）で受ける。さらに、**Windows の Flet 1.0.0 では、`FilePicker` でファイルを選んだあとに窓を閉じると、窓は消えるのに `flet.exe` と Python が終了せず残る**（`FilePicker` だけの最小アプリでも再現。選ばずにキャンセルした場合・貼り付けのみ・何も操作しない場合は 1 秒で終了）。`window.destroy()` だけでは直らず、`os._exit` だけでは `flet.exe` が孤児で残る。**CLOSE イベントで `taskkill /F /T /PID <自分>` して子のクライアントごと落とす**と、1 秒以内に両方終了した | G3-T6 |
 | 差分なし | `ft.Button(content=…)`、`page.services` への `FilePicker`、`await pick_files()`・`save_file()`、`page.show_dialog` / `pop_dialog`、`page.on_resize`、`Tab.label`、`ft.Icons.*`、`ft.Clipboard`、`ft.TextField(read_only, multiline, text_style)`、`ft.SharedPreferences` | — |
 
 ## 3. MISSING だった API
@@ -115,6 +116,8 @@
 - 実行中に**窓をドラッグ・リサイズして固まらないか**の人手による目視（窓キャプチャの応答のみ確認）
 - macOS / Linux での挙動（Windows のみで実施）
 - ウィンドウを閉じたときの `page.on_close` の発火と `to_thread` の残留（設計書 R9）
+- **macOS / Linux で、`FilePicker` のあとに窓を閉じたときの終了**（上の j は Windows のみで確認。現状 Windows 以外は `page.on_close` のみで、CLOSE イベントでの終了処理は入れていない）
+- `ft.Switch` に `focus()` が無い、`ft.ButtonStyle` が色を受け取れない（G3 で確認。代替は実装済み）
 - `ft.run` 初回の導入（`flet-desktop` の pip 導入とクライアントの展開）に**ネットワークが要るか・所要時間**、**オフライン環境での失敗の仕方**
 - `flet build` による独自クライアントで `flet-dropzone` が動くか
 - `yaqpy[gui]` の extra を **`flet[desktop]>=1.0,<2` にするか**の判断（`flet` 単体だと初回実行時に自動導入されるが、クリーン環境・オフライン環境での再現性が下がる。G1-T1 で決める）
