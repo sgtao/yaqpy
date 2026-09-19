@@ -39,6 +39,8 @@ class EvaluateResult:
     document_count: int
     warnings: tuple[str, ...]
     elapsed_seconds: float
+    input_format: str = ""      # actually used (after "auto" was resolved)
+    output_format: str = ""     # actually used
 
 
 @dataclass(frozen=True, slots=True)

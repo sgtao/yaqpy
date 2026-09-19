@@ -152,6 +152,8 @@ class YqService:
             document_count=document_count,
             warnings=(),
             elapsed_seconds=time.monotonic() - started,
+            input_format=input_format,
+            output_format=output_format,
         )
 
     def _root_context(self, nodes: Sequence[Node]) -> Context:
