@@ -10,6 +10,7 @@ Flet 1.0 の実測（``docs/flet-1.0-api-notes.md``）に従う点：
 from __future__ import annotations
 
 import asyncio
+from collections.abc import Callable
 
 import flet as ft
 
@@ -33,7 +34,9 @@ def _options(names: list[str]) -> list[ft.DropdownOption]:
 
 class MainPage:
     def __init__(self, *, page: ft.Page, presenter: MainPresenter, state: GuiState,
-                 picker: ft.FilePicker) -> None:
+                 picker: ft.FilePicker,
+                 on_open_settings: Callable[[str], None] | None = None) -> None:
+        self._on_open_settings = on_open_settings
         self._page = page
         self._p = presenter
         self._state = state
@@ -375,6 +378,11 @@ class MainPage:
         self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_COPIED)))
 
     # ------------------------------------------------------------------ 実行
+
+    async def rerun(self) -> None:
+        """設定が変わったときに外から呼ばれる。"""
+        if self._state.document.is_loaded:
+            await self._run()
 
     async def _run(self) -> None:
         """実行する。実行中に再要求が来たら、いまの実行が終わってからもう 1 回だけ実行する。

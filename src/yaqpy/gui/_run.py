@@ -7,6 +7,7 @@ import flet as ft
 from yaqpy.gui import texts
 from yaqpy.gui._di import make_presenter
 from yaqpy.gui.pages.main_page import MainPage
+from yaqpy.gui.pages.settings_page import SettingsPage
 from yaqpy.gui.state import GuiState
 
 
@@ -24,8 +25,41 @@ def _main(page: ft.Page) -> None:
     picker = ft.FilePicker()
     page.services.append(picker)           # Flet 1.0: overlay ではなく services
 
-    main_page = MainPage(page=page, presenter=presenter, state=state, picker=picker)
-    page.add(main_page.control)
+    content = ft.Container(expand=True)
+    nav_labels = [texts.NAV_MAIN, texts.NAV_SETTINGS]
+    # ft.ButtonStyle は Flet 1.0 で色を受け取れないので、押しているページは文字の色と太さで示す
+    nav_texts = [ft.Text(label) for label in nav_labels]
+
+    def show(index: int) -> None:
+        content.content = pages[index].control
+        for i, label in enumerate(nav_texts):
+            active = i == index
+            label.color = ft.Colors.PRIMARY if active else ft.Colors.ON_SURFACE_VARIANT
+            label.weight = ft.FontWeight.BOLD if active else ft.FontWeight.NORMAL
+
+    def go_to_settings(capability: str = "") -> None:
+        show(1)
+        if capability:
+            settings_page.focus_capability(capability)
+        page.update()
+
+    main_page = MainPage(page=page, presenter=presenter, state=state, picker=picker,
+                         on_open_settings=go_to_settings)
+    settings_page = SettingsPage(page=page, state=state,
+                                 on_changed=lambda: page.run_task(main_page.rerun))
+    pages = [main_page, settings_page]
+
+    nav_bar = ft.Container(
+        content=ft.Row([
+            ft.TextButton(content=nav_texts[0], on_click=lambda e: show(0)),
+            ft.TextButton(content=nav_texts[1], on_click=lambda e: show(1)),
+        ], alignment=ft.MainAxisAlignment.START),
+        bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
+        padding=ft.Padding.symmetric(horizontal=8, vertical=4),
+    )
+
+    show(0)
+    page.add(content, nav_bar)
 
 
 def run_app() -> None:
