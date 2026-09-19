@@ -14,6 +14,11 @@ classifiers = [
 [project.scripts]
 yaqpy = "yaqpy.cli.main:main"
 
+[project.optional-dependencies]
+gui = [
+    "flet>=1.0,<2",
+]
+
 [dependency-groups]
 dev = [
     "python-toon>=0.1.3",
