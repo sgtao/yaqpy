@@ -1,0 +1,19 @@
+<!-- yaqpy-logo.svg -->
+<svg id="goat-svg" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full h-full">
+  <path d="M100 54 C138 54 162 95 162 112 C162 135 140 152 100 152 C60 152 38 135 38 112 C38 95 62 54 100 54 Z" fill="white" stroke="#d97706" stroke-width="7"></path>
+  <path d="M58 80 C32 82 23 104 28 118 C36 132 45 120 52 88" stroke="#d97706" stroke-width="7" stroke-linecap="round" fill="white"></path>
+  <path d="M142 80 C168 82 177 104 172 118 C164 132 155 120 148 88" stroke="#d97706" stroke-width="7" stroke-linecap="round" fill="white"></path>
+  <path d="M56 83 L48 93" stroke="#d97706" stroke-width="4" stroke-linecap="round"></path>
+  <path d="M144 83 L152 93" stroke="#d97706" stroke-width="4" stroke-linecap="round"></path>
+  <path d="M62 64 Q55 52 48 42 Q52 30 63 37 Q76 47 80 56 Z" fill="#fef3c7" stroke="#d97706" stroke-width="7"></path>
+  <path d="M56 50 L62 53" stroke="#d97706" stroke-width="3" stroke-linecap="round"></path>
+  <path d="M138 64 Q145 52 152 42 Q148 30 137 37 Q124 47 120 56 Z" fill="#fef3c7" stroke="#d97706" stroke-width="7"></path>
+  <path d="M144 50 L138 53" stroke="#d97706" stroke-width="3" stroke-linecap="round"></path>
+  <circle cx="63" cy="117" r="12" fill="#fed7aa" opacity="0.8"></circle>
+  <circle cx="137" cy="117" r="12" fill="#fed7aa" opacity="0.8"></circle>
+  <circle cx="78" cy="103" r="6" fill="#d97706"></circle>
+  <circle cx="122" cy="103" r="6" fill="#d97706"></circle>
+  <ellipse cx="100" cy="109" rx="5.5" ry="4.5" fill="#d97706"></ellipse>
+  <path d="M90 118 Q95 125 100 118 Q105 125 110 118" stroke="#d97706" stroke-width="6" stroke-linecap="round" fill="none"></path>
+  <path d="M86.05 140.1 L92.25 161.8 L100 146.3 L107.75 161.8 L113.95 140.1" stroke="#d97706" stroke-width="5.4" stroke-linecap="round" stroke-linejoin="round" fill="white"></path>
+</svg>
