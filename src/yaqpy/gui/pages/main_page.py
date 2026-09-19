@@ -130,6 +130,10 @@ class MainPage:
         self._status_icon = ft.Icon(icon=ft.Icons.INFO_OUTLINE, size=16)
         self._status_text = ft.Text("", size=12, selectable=True)
         self._format_text = ft.Text("", size=12, color=ft.Colors.ON_SURFACE_VARIANT)
+        self._pending_capability = ""
+        self._settings_link = ft.TextButton(content=texts.BTN_OPEN_SETTINGS,
+                                            icon=ft.Icons.SETTINGS, visible=False,
+                                            on_click=self._on_open_settings_click)
 
         self._root = self._build()
 
@@ -175,7 +179,7 @@ class MainPage:
                       expand=True, spacing=4),
         ], expand=True, spacing=12, vertical_alignment=ft.CrossAxisAlignment.STRETCH)
 
-        status_bar = ft.Row([self._status_icon, self._status_text,
+        status_bar = ft.Row([self._status_icon, self._status_text, self._settings_link,
                              ft.Container(expand=True), self._format_text], spacing=8)
 
         return ft.Column([file_bar, ft.Divider(height=1), format_bar, filter_bar,
@@ -288,6 +292,11 @@ class MainPage:
         self._status_icon.color = None
         self._status_text.value = ""
         self._format_text.value = ""
+        self._settings_link.visible = False
+
+    def _on_open_settings_click(self, e: ft.Event[ft.TextButton]) -> None:
+        if self._on_open_settings is not None:
+            self._on_open_settings(self._pending_capability)
 
     def _on_input_format(self, e: ft.Event[ft.Dropdown]) -> None:
         self._state.query.input_format = e.control.value or "auto"
@@ -497,7 +506,13 @@ class MainPage:
             self._save_button.disabled = True
             self._copy_button.disabled = True
             self._show_error(vm.error.message, vm.error.hint)
+            # 許可されていない演算子のときだけ、該当する設定への導線を出す
+            self._settings_link.visible = (vm.error.is_security
+                                           and self._on_open_settings is not None)
+            if self._settings_link.visible:
+                self._pending_capability = vm.error.capability
             return
+        self._settings_link.visible = False
         self._converted.value = vm.display_text
         self._save_button.disabled = False
         self._copy_button.disabled = False
