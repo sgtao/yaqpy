@@ -2,7 +2,7 @@
 # yaqpy 使い方ガイド
 
 ---
-[toTop](#totoppage)
+[toTop](#toreadme)
 ## CLI での使い方
 
 ### 基本操作
@@ -35,7 +35,7 @@ uv run yaqpy -P -N -e '.items[] | select(.price > 500) | .name' examples/sample.
 Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops` など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。yaqpy 独自のフラグは `--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}` です。
 
 ---
-[toTop](#totoppage)
+[toTop](#toreadme)
 ## TOON 入出力（Go 版にはない拡張）
 
 [TOON（Token-Oriented Object Notation）](https://github.com/toon-format/spec) 仕様 v4.1（2026-07-26 版）に沿ったエンコーダとデコーダを標準ライブラリだけで実装しています。LLM に渡すデータのトークン数を減らしたいときに使います。
@@ -86,13 +86,13 @@ items[2]{name,price}:
 - ライブラリでは `Options(output_format="toon", toon=ToonOptions(delimiter="\t", indent=2))` で指定します
 
 ---
-[toTop](#totoppage)
+[toTop](#toreadme)
 ## GUI の使い方
 
 デスクトップアプリです（`uv sync --extra gui` のあと `uv run yaqpy-gui` または `uv run yaqpy --gui`）。画面の見方、式の書き方（初心者向け）、保存・設定・エラーの読み方は **[USAGE-GUI.ja.md](USAGE-GUI.ja.md)** にまとめています。
 
 ---
-[toTop](#totoppage)
+[toTop](#toreadme)
 ## ライブラリとしての使い方
 
 ```python
@@ -124,7 +124,7 @@ yq.evaluate(expr, text)                                             # -> '{"port
 - `Limits(max_steps=..., timeout_seconds=..., max_depth=..., max_input_bytes=...)` で評価量に上限を掛けられます
 
 ---
-[toTop](#totoppage)
+[toTop](#toreadme)
 ## 実装済みの演算子（Phase 1 ＝ 38 種）
 
 `.`、`.a` / `."a b"` / `.a?` / `.a*`、`.[0]` / `.[]` / `.[1:3]`、`..` / `...`、`|`、`,`、`select`、`=` / `|=`、`+=` / `-=` / `*=`、`+`、`-`、`*`（`*+ *? *d *n *c` を含むディープマージ）、`/`、`%`、`//`、`==` / `!=`、`<` `<=` `>` `>=`、`and` / `or` / `not`、リテラル、`[ ]`、`{ }`、`length`、`keys`、`key`、`has`、`del`、`to_entries` / `from_entries` / `with_entries`、`map` / `map_values`、`sort_by` / `sort`、`path`、`as $x` / `$x`、`env` / `strenv`、`tag`、`style`、`line_comment` / `head_comment` / `foot_comment` / `comments`、`test`、`document_index` / `di`、`file_index` / `fi` / `filename`、`parent`、`explode`、`anchor` / `alias`、`min` / `max`、`any` / `all`、`set_path` / `del_paths`、`kind`、`line` / `column`、日時の加減算と比較（RFC3339）
@@ -132,4 +132,4 @@ yq.evaluate(expr, text)                                             # -> '{"port
 未実装（Phase 2 以降）の演算子は式の解析時に `unknown operator` として報告されます。文字列補間 `\(exp)` も Phase 2 です。
 
 ---
-[toTop](#totoppage)
+[toTop](#toreadme)
