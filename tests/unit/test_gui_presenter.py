@@ -303,6 +303,103 @@ class CandidateTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(p.filter_candidates(), [])
 
 
+class SaveTests(unittest.IsolatedAsyncioTestCase):
+    async def _ready(self) -> MainPresenter:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        p.state.query.expression = ".server.port"
+        await p.run()
+        return p
+
+    async def test_saves_the_result(self) -> None:
+        p = await self._ready()
+        vm = await p.save("/w/out.yaml")
+        self.assertTrue(vm.ok, msg=str(vm.error))
+        self.assertEqual(p._fs.written["/w/out.yaml"], "8080\n")
+        self.assertEqual(vm.byte_size, len(b"8080\n"))
+
+    async def test_saves_the_full_text_not_the_display_text(self) -> None:
+        """リスク R8：表示を丸めても保存内容は全量であること。"""
+        p = make_presenter()
+        p.state.settings.max_display_lines = 3
+        p.open_text("\n".join(f"- item{i}" for i in range(50)) + "\n", name="many.yaml")
+        run = await p.run()
+        self.assertEqual(run.display_text.count("\n"), 3)
+        await p.save("/w/all.yaml")
+        self.assertEqual(p._fs.written["/w/all.yaml"], run.full_text)
+        self.assertEqual(p._fs.written["/w/all.yaml"].count("\n"), 50)
+
+    async def test_refuses_to_overwrite_the_source_without_confirmation(self) -> None:
+        p = await self._ready()
+        vm = await p.save("/w/sample.yaml")
+        self.assertFalse(vm.ok)
+        self.assertTrue(vm.needs_overwrite_confirmation)
+        self.assertNotIn("/w/sample.yaml", p._fs.written)     # 書いていない
+
+    async def test_overwrites_the_source_only_when_confirmed(self) -> None:
+        p = await self._ready()
+        vm = await p.save("/w/sample.yaml", confirmed=True)
+        self.assertTrue(vm.ok)
+        self.assertEqual(p._fs.written["/w/sample.yaml"], "8080\n")
+
+    async def test_runs_again_when_there_is_no_fresh_result(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")        # run() していない
+        vm = await p.save("/w/out.yaml")
+        self.assertTrue(vm.ok, msg=str(vm.error))
+        self.assertIn("# サーバー設定", p._fs.written["/w/out.yaml"])
+
+    async def test_a_failed_run_leaves_nothing_stale_to_save(self) -> None:
+        """不変条件 S2：画面に結果が無いのに、古い結果が保存されてはならない。"""
+        p = await self._ready()                     # .server.port → 8080 の結果がある
+        p.state.query.expression = ".server.("
+        self.assertFalse((await p.run()).ok)
+        self.assertIsNone(p.last_run)
+        vm = await p.save("/w/out.yaml")
+        self.assertFalse(vm.ok)
+        self.assertEqual(vm.error.code, "expression_syntax")
+        self.assertNotIn("/w/out.yaml", p._fs.written)
+
+    async def test_save_failure_is_reported(self) -> None:
+        p = await self._ready()
+
+        def broken(path: str, text: str) -> None:
+            raise PermissionError(13, "Permission denied")
+
+        p._fs.atomic_write = broken             # type: ignore[method-assign]
+        vm = await p.save("/w/out.yaml")
+        self.assertFalse(vm.ok)
+        self.assertEqual(vm.error.code, "io")
+
+    async def test_save_without_a_document(self) -> None:
+        p = make_presenter()
+        vm = await p.save("/w/out.yaml")
+        self.assertFalse(vm.ok)
+        self.assertEqual(vm.error.code, "no_document")
+
+
+class DefaultSaveNameTests(unittest.IsolatedAsyncioTestCase):
+    async def test_follows_the_output_format(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        p.state.query.output_format = "json"
+        await p.run()
+        self.assertEqual(p.default_save_name(), "sample.json")
+
+    async def test_properties_extension(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        p.state.query.output_format = "props"
+        await p.run()
+        self.assertEqual(p.default_save_name(), "sample.properties")
+
+    async def test_pasted_text_gets_a_generic_name(self) -> None:
+        p = make_presenter()
+        p.open_text("a: 1\n")
+        await p.run()
+        self.assertEqual(p.default_save_name(), "output.yaml")
+
+
 class ValidateTests(unittest.TestCase):
     def test_empty_expression_is_valid(self) -> None:
         self.assertTrue(make_presenter().validate("").valid)

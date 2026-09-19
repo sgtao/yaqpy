@@ -27,7 +27,15 @@ MSG_NO_DOCUMENT = "ファイルを開くか、テキストを貼り付けてく�
 MSG_RUNNING = "実行中…"
 MSG_TRUNCATED = "（以下 {n} 行を表示していません。保存すれば全量が得られます）"
 MSG_SAVED = "保存しました: {path}"
-MSG_NO_CANDIDATES = "この文書からはプロパティ候補を作れませんでした"
+DLG_OVERWRITE_TITLE = "元のファイルを上書きしますか？"
+DLG_OVERWRITE_BODY = (
+    "保存先が、いま開いているファイルと同じです。\n"
+    "上書きすると元の内容は戻せません。\n\n{path}"
+)
+DLG_OVERWRITE_OK = "上書きする"
+DLG_OVERWRITE_CANCEL = "やめる"
+MSG_COPIED = "変換結果をクリップボードにコピーしました"
+MSG_NO_CANDIDATES ="この文書からはプロパティ候補を作れませんでした"
 MSG_TOO_MANY_CANDIDATES = "候補が多いため、絞り込んでください"
 
 # エラー

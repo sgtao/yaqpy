@@ -65,6 +65,18 @@ class CandidatesViewModel:
         return not self.candidates
 
 
+@dataclass(frozen=True, slots=True)
+class SaveViewModel:
+    path: str = ""
+    byte_size: int = 0
+    needs_overwrite_confirmation: bool = False   # 元ファイルと同じパスを指された
+    error: ErrorViewModel | None = None
+
+    @property
+    def ok(self) -> bool:
+        return self.error is None and not self.needs_overwrite_confirmation
+
+
 class MainPresenter:
     """View（Flet）から呼ばれる唯一の窓口。"""
 
@@ -135,6 +147,9 @@ class MainPresenter:
         if not self.state.document.is_loaded:
             return RunViewModel(error=ErrorViewModel("no_document", texts.ERR_NO_DOCUMENT))
 
+        # 失敗した実行のあとに、古い成功結果が「保存できる結果」として残らないようにする
+        # （表示と保存がずれない：不変条件 S2）。成功したときだけ、下で入れ直す。
+        self._last_run = None
         validation = self.validate(self.state.query.expression)
         if not validation.valid:
             return RunViewModel(error=ErrorViewModel("expression_syntax", validation.message,
@@ -212,6 +227,47 @@ class MainPresenter:
             merged = expression
         self.state.query.expression = merged
         return merged
+
+    # ------------------------------------------------------------------ 保存（G3）
+
+    def default_save_name(self) -> str:
+        """保存ダイアログの初期ファイル名。拡張子は FormatSpec から採る。"""
+        run = self._last_run
+        format_name = (run.output_format if run else "") or self.state.query.output_format
+        if format_name in ("", "auto"):
+            format_name = "yaml"
+        spec = self._service.formats.get(format_name)
+        extension = spec.extensions[0] if spec.extensions else f".{spec.name}"
+        name = self.state.document.name
+        stem = os.path.splitext(name)[0] if name else ""
+        return f"{stem or 'output'}{extension}"
+
+    async def save(self, path: str, *, confirmed: bool = False) -> SaveViewModel:
+        """変換結果の**全量**を別名保存する。"""
+        run = self._last_run
+        if run is None:                       # 表示が古い／まだ実行していない
+            run = await self.run()
+            if not run.ok:
+                return SaveViewModel(path=path, error=run.error)
+        if not confirmed and self._is_source_path(path):
+            return SaveViewModel(path=path, needs_overwrite_confirmation=True)
+        text = run.full_text                  # ← display_text を使わないこと（S1）
+        try:
+            await asyncio.to_thread(self._fs.atomic_write, path, text)
+        except Exception as e:                # noqa: BLE001 - 画面を落とさない
+            return SaveViewModel(path=path, error=to_view_model(e))
+        return SaveViewModel(path=path, byte_size=len(text.encode("utf-8")))
+
+    def _is_source_path(self, path: str) -> bool:
+        """保存先が、いま開いているファイルと同じか（大文字小文字・相対表記を吸収する）。"""
+        source = self.state.document.path
+        if not source:
+            return False
+        try:
+            return (os.path.normcase(os.path.realpath(source))
+                    == os.path.normcase(os.path.realpath(path)))
+        except OSError:
+            return source == path
 
     def _collect_sync(self, input_format: str, text: str) -> list[PathCandidate]:
         """別スレッドで動く。デコードだけして評価器は通さない。"""
