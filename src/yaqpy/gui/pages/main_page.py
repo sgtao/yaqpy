@@ -14,13 +14,14 @@ import asyncio
 import flet as ft
 
 from yaqpy.gui import texts
-from yaqpy.gui._di import input_format_choices, output_format_choices
+from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
 from yaqpy.gui.errors_ja import caret_line
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
 from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
 from yaqpy.gui.state import GuiState
 
 VALIDATE_DEBOUNCE_SECONDS = 0.3
+PANE_HEADER_HEIGHT = 44          # 右見出しの保存ボタンに高さを合わせ、左右の枠の上端を揃える
 MONO = ft.TextStyle(font_family="Consolas", size=12)
 # props は出力専用（デコーダが無い）なので、開くダイアログには出さない。
 OPEN_EXTENSIONS = ["yaml", "yml", "json", "toon"]
@@ -101,6 +102,10 @@ class MainPage:
                                        text_style=MONO, border=ft.OutlineInputBorder())
         self._truncated_note = ft.Text("", size=11, color=ft.Colors.ON_SURFACE_VARIANT,
                                        visible=False)
+        self._save_button = ft.Button(content=texts.BTN_SAVE, icon=ft.Icons.SAVE,
+                                      on_click=self._on_save, disabled=True)
+        self._copy_button = ft.IconButton(icon=ft.Icons.CONTENT_COPY, tooltip=texts.BTN_COPY,
+                                          on_click=self._on_copy, disabled=True)
 
         # --- 状態バー ---
         self._status_icon = ft.Icon(icon=ft.Icons.INFO_OUTLINE, size=16)
@@ -135,10 +140,16 @@ class MainPage:
         # 複数行 TextField は内容の高さになるので、スクロールする Column で包む。
         # こうすると窓の高さを使い切り、長い文書は枠の中でスクロールする。
         panes = ft.Row([
-            ft.Column([ft.Text(texts.LBL_ORIGINAL, size=12, weight=ft.FontWeight.W_600),
+            ft.Column([ft.Row([ft.Text(texts.LBL_ORIGINAL, size=12, weight=ft.FontWeight.W_600)],
+                              height=PANE_HEADER_HEIGHT,
+                              vertical_alignment=ft.CrossAxisAlignment.CENTER),
                        ft.Column([self._original], scroll=ft.ScrollMode.AUTO, expand=True)],
                       expand=True, spacing=4),
-            ft.Column([ft.Text(texts.LBL_CONVERTED, size=12, weight=ft.FontWeight.W_600),
+            ft.Column([ft.Row([ft.Text(texts.LBL_CONVERTED, size=12, weight=ft.FontWeight.W_600),
+                               ft.Container(expand=True),
+                               self._copy_button, self._save_button],
+                              height=PANE_HEADER_HEIGHT,
+                              vertical_alignment=ft.CrossAxisAlignment.CENTER),
                        ft.Column([self._converted, self._truncated_note],
                                  scroll=ft.ScrollMode.AUTO, expand=True)],
                       expand=True, spacing=4),
@@ -191,6 +202,8 @@ class MainPage:
         self._close_button.disabled = True
         self._run_button.disabled = True
         self._truncated_note.visible = False
+        self._save_button.disabled = True
+        self._copy_button.disabled = True
         self._property_dd.options = []
         self._property_dd.value = None
         self._property_dd.disabled = True
@@ -304,6 +317,63 @@ class MainPage:
     def _on_cancel(self, e: ft.Event[ft.Button]) -> None:
         self._p.cancel()
 
+    # ------------------------------------------------------------------ 保存（G3）
+
+    async def _on_save(self, e: ft.Event[ft.Button]) -> None:
+        format_name = self._state.query.output_format
+        if format_name in ("", "auto"):
+            run = self._p.last_run
+            format_name = run.output_format if run else "yaml"
+        # save_file はパスを返すだけでファイルは作らない（G0 の実測）。書き込みは Presenter 側。
+        path = await self._picker.save_file(
+            dialog_title=texts.BTN_SAVE,
+            file_name=self._p.default_save_name(),
+            allowed_extensions=[extension_for(format_name)],
+        )
+        if path:
+            await self._save_to(path, confirmed=False)
+        self._page.update()
+
+    async def _save_to(self, path: str, *, confirmed: bool) -> None:
+        vm = await self._p.save(path, confirmed=confirmed)
+        if vm.needs_overwrite_confirmation:
+            self._ask_overwrite(path)
+            return
+        if not vm.ok:
+            self._show_error(vm.error.message, vm.error.hint)
+            return
+        self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_SAVED.format(path=vm.path))))
+
+    def _ask_overwrite(self, path: str) -> None:
+        """元ファイルと同じパスを指されたときだけ出す。既定は「やめる」。"""
+
+        def close(_: ft.Event) -> None:
+            self._page.pop_dialog()
+
+        async def proceed(_: ft.Event) -> None:
+            self._page.pop_dialog()
+            await self._save_to(path, confirmed=True)
+            self._page.update()
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text(texts.DLG_OVERWRITE_TITLE),
+            content=ft.Text(texts.DLG_OVERWRITE_BODY.format(path=path), selectable=True),
+            actions=[
+                ft.TextButton(content=texts.DLG_OVERWRITE_CANCEL, on_click=close, autofocus=True),
+                ft.TextButton(content=texts.DLG_OVERWRITE_OK, on_click=proceed),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        self._page.show_dialog(dialog)
+
+    async def _on_copy(self, e: ft.Event[ft.IconButton]) -> None:
+        run = self._p.last_run
+        if run is None:
+            return
+        await ft.Clipboard().set(run.full_text)      # 表示用ではなく全量をコピーする
+        self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_COPIED)))
+
     # ------------------------------------------------------------------ 実行
 
     async def _run(self) -> None:
@@ -332,6 +402,9 @@ class MainPage:
         self._run_button.disabled = running
         self._cancel_button.disabled = not running
         if running:
+            # 実行中は前回の結果を保存・コピーさせない（画面と保存内容をずらさない）
+            self._save_button.disabled = True
+            self._copy_button.disabled = True
             self._status_icon.icon = ft.Icons.HOURGLASS_TOP
             self._status_icon.color = None
             self._status_text.value = texts.MSG_RUNNING
@@ -342,9 +415,13 @@ class MainPage:
             self._converted.value = ""
             self._truncated_note.visible = False
             self._format_text.value = ""
+            self._save_button.disabled = True
+            self._copy_button.disabled = True
             self._show_error(vm.error.message, vm.error.hint)
             return
         self._converted.value = vm.display_text
+        self._save_button.disabled = False
+        self._copy_button.disabled = False
         self._truncated_note.visible = vm.truncated_lines > 0
         self._truncated_note.value = texts.MSG_TRUNCATED.format(n=f"{vm.truncated_lines:,}")
         # ドロップダウンは「auto」のまま。判定結果は右下に出す。
