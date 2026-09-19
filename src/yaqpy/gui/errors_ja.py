@@ -54,7 +54,8 @@ def to_view_model(exc: BaseException) -> ErrorViewModel:
                               hint=texts.HINT_INPUT_FORMAT)
 
     if isinstance(exc, UnknownFormatError):
-        return ErrorViewModel("unknown_format", exc.message, hint=texts.HINT_INPUT_FORMAT)
+        return ErrorViewModel("unknown_format", f"この形式は扱えません：{exc.message}",
+                              hint=texts.HINT_INPUT_FORMAT)
 
     if isinstance(exc, SecurityError):
         name = _CAPABILITY_JA.get(exc.capability, exc.capability or "この機能")

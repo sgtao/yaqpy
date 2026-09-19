@@ -144,7 +144,7 @@ class CancelTests(unittest.IsolatedAsyncioTestCase):
         await p.open_path("/w/sample.yaml")
         original = p._service.new_budget
 
-        def pre_cancelled(options):          # noqa: ANN001, ANN202
+        def pre_cancelled(options):
             budget = original(options)
             budget.cancel()
             return budget
@@ -156,6 +156,33 @@ class CancelTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_cancel_without_a_running_job_is_harmless(self) -> None:
         make_presenter().cancel()
+
+    async def test_cancel_interrupts_a_running_evaluation(self) -> None:
+        """実行中の評価を別タスクから止められる（G-NFR-02）。
+
+        3 重の直積は数十秒かかる重さなので、0.2 秒後の中止は必ず「走行中」に届く。
+        効かなかった場合は 10 秒のタイムアウトで limit が変わり、下の検査で落ちる。
+        """
+        import asyncio
+
+        fs = InMemoryFileSystem({"/w/big.yaml": "".join(f"- id: {i}\n" for i in range(400))})
+        p = MainPresenter(service=YqService(fs, StaticEnvironment()), fs=fs, state=GuiState(),
+                          size_of=lambda path: 1)
+        p.state.settings.timeout_seconds = 10.0
+        await p.open_path("/w/big.yaml")
+        p.state.query.expression = "[.[] as $a | .[] as $b | .[] as $c | $a.id] | length"
+
+        async def canceller() -> None:
+            await asyncio.sleep(0.2)
+            self.assertTrue(p.state.running)
+            p.cancel()
+
+        task = asyncio.create_task(canceller())
+        vm = await p.run()
+        await task
+        self.assertFalse(vm.ok)
+        self.assertEqual(vm.error.limit, "cancelled")
+        self.assertFalse(p.state.running)
 
 
 class TruncationTests(unittest.IsolatedAsyncioTestCase):
