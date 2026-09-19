@@ -2,6 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
+import os
+import subprocess
+import sys
+
 import flet as ft
 
 from yaqpy.gui import texts
@@ -9,6 +14,23 @@ from yaqpy.gui._di import make_presenter
 from yaqpy.gui.pages.main_page import MainPage
 from yaqpy.gui.pages.settings_page import SettingsPage
 from yaqpy.gui.state import GuiState
+
+# 窓を閉じてから、クライアントの後始末を待つ時間（秒）
+CLOSE_GRACE_SECONDS = 0.3
+
+
+def _terminate_process_tree() -> None:
+    """自分自身と子プロセス（Flet のクライアント）をまとめて終了させる。
+
+    Flet 1.0.0 の Windows 版では、ファイルダイアログでファイルを選んだあとに窓を閉じても、
+    ``flet.exe`` と Python が終了せずに残る（最小の Flet アプリでも再現する）。
+    そのため窓の CLOSE イベントで自分から終了させる。``/T`` で子のクライアントも道連れにする。
+    """
+    subprocess.Popen(
+        ["taskkill", "/F", "/T", "/PID", str(os.getpid())],
+        creationflags=getattr(subprocess, "CREATE_NO_WINDOW", 0),
+    )
+    os._exit(0)                               # taskkill が間に合わなかったときの保険
 
 
 def _main(page: ft.Page) -> None:
@@ -57,6 +79,25 @@ def _main(page: ft.Page) -> None:
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
         padding=ft.Padding.symmetric(horizontal=8, vertical=4),
     )
+
+    async def on_window_event(e: ft.WindowEvent) -> None:
+        if e.type != ft.WindowEventType.CLOSE:
+            return
+        presenter.cancel()                    # 走っている評価を協調的に止める（リスク R9）
+        await page.window.destroy()
+        await asyncio.sleep(CLOSE_GRACE_SECONDS)
+        _terminate_process_tree()
+
+    if sys.platform == "win32":
+        # 窓を閉じたときに自分で終了させる（理由は _terminate_process_tree）。
+        page.window.prevent_close = True
+        page.window.on_event = on_window_event
+
+    def on_close(e: ft.Event) -> None:
+        presenter.cancel()                    # セッションが破棄されるときの保険（Windows 以外はこちら）
+
+    page.on_close = on_close
+    page.theme_mode = ft.ThemeMode.DARK if state.settings.dark_theme else ft.ThemeMode.LIGHT
 
     show(0)
     page.add(content, nav_bar)
