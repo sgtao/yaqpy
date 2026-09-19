@@ -129,5 +129,47 @@ class ConcurrencyTests(unittest.TestCase):
             self.assertEqual(j, f'{{"a":{i}}}\n')
 
 
+class ServiceBudgetTests(unittest.TestCase):
+    """改修 B / C: 外から渡した StepBudget と、解決済み形式の報告。"""
+
+    def _service(self) -> YqService:
+        return YqService(InMemoryFileSystem(), StaticEnvironment())
+
+    def _request(self, text: str = "a: 1\n", name: str = "<text>") -> EvaluateRequest:
+        return EvaluateRequest(
+            expression=".",
+            inputs=(InputSource(name, text),),
+            options=Options(input_format="auto", output_format="auto"),
+            input_format="auto",
+            output_format="auto",
+        )
+
+    def test_external_budget_can_cancel(self) -> None:
+        service = self._service()
+        options = Options()
+        budget = service.new_budget(options)
+        budget.cancel()                      # 走り出す前に中止しておく（決定的に再現できる）
+        with self.assertRaises(EvaluationLimitError) as ctx:
+            service.evaluate(self._request(), MemorySink(), budget=budget)
+        self.assertEqual(ctx.exception.limit, "cancelled")
+
+    def test_budget_is_optional(self) -> None:
+        service = self._service()
+        result = service.evaluate(self._request(), MemorySink())
+        self.assertEqual(result.output, "a: 1\n")
+
+    def test_result_reports_resolved_formats(self) -> None:
+        service = self._service()
+        result = service.evaluate(self._request(name="config.json", text='{"a":1}'),
+                                  MemorySink())
+        self.assertEqual(result.input_format, "json")
+        self.assertEqual(result.output_format, "json")
+
+    def test_auto_falls_back_to_yaml_for_unknown_extension(self) -> None:
+        service = self._service()
+        result = service.evaluate(self._request(name="config.conf"), MemorySink())
+        self.assertEqual(result.input_format, "yaml")
+
+
 if __name__ == "__main__":
     unittest.main()
