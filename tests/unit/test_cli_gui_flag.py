@@ -55,7 +55,7 @@ class DelegationTests(unittest.TestCase):
         with mock.patch("yaqpy.gui.app.flet_available", return_value=False):
             code, out, err = run("--gui")
         self.assertEqual(code, 1)
-        self.assertIn('pip install "yaqpy[gui]"', err)
+        self.assertIn('pip install "flet>=1.0,<2"', err)
         self.assertIn("uv sync --extra gui", err)
         self.assertEqual(out, "")
 

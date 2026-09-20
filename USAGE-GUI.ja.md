@@ -29,6 +29,18 @@ YAML / JSON のファイルを開いて、**必要な部分だけを取り出し
 [toTop](#toreadme)
 ## 1. 起動する
 
+**GitHub のリリースから入れた場合**（詳しくは [README のインストール](README.md#インストール)）。`0.1.0` は入れた版の番号に読み替えます。
+
+```bash
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.1.0/yaqpy-0.1.0-py3-none-any.whl"
+yaqpy-gui                 # 専用コマンドで起動
+yaqpy --gui               # こちらでも同じ画面が開きます
+```
+
+すでに GUI なしで入れている場合は、部品（flet）だけを足すこともできます：`pip install "flet>=1.0,<2"`。
+
+**リポジトリを clone した場合**
+
 ```bash
 uv sync --extra gui       # GUI を使うときだけ、部品（flet）が入ります
 uv run yaqpy-gui          # 専用コマンドで起動

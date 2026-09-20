@@ -75,6 +75,8 @@ HINT_REPORT = "再現手順を添えて不具合として報告してくださ�
 
 INSTALL_HINT = (
     "GUI を使うには flet が必要です。次のどちらかで導入してください:\n"
-    '  pip install "yaqpy[gui]"\n'
-    "  uv sync --extra gui\n"
+    '  pip install "flet>=1.0,<2"     （インストール済みの yaqpy に追加）\n'
+    "  uv sync --extra gui            （リポジトリを clone した開発環境）\n"
+    "GitHub のリリースから GUI つきで入れ直す方法は、README のインストールの節を参照してください:\n"
+    "  https://github.com/sgtao/yaqpy#インストール\n"
 )

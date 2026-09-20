@@ -1,4 +1,4 @@
-"""Desktop GUI (Flet). Optional: install with ``pip install "yaqpy[gui]"``."""
+"""Desktop GUI (Flet). Optional: needs the ``gui`` extra (the ``flet`` package)."""
 
 from __future__ import annotations
 

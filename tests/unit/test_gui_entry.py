@@ -15,8 +15,9 @@ class EntryGuardTests(unittest.TestCase):
         with mock.patch.object(app, "flet_available", return_value=False):
             code = app.main_entry(stderr=err)
         self.assertEqual(code, 1)
-        self.assertIn("yaqpy[gui]", err.getvalue())
+        self.assertIn('pip install "flet>=1.0,<2"', err.getvalue())
         self.assertIn("uv sync --extra gui", err.getvalue())
+        self.assertIn("https://github.com/sgtao/yaqpy", err.getvalue())   # リリースからの導入案内
 
     def test_app_module_imports_without_flet(self) -> None:
         """app.py が import 時点で flet を要求しないこと。"""
