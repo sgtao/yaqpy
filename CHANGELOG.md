@@ -1,9 +1,6 @@
 ###### [toREADME](./README.md)
 # 変更履歴（CHANGELOG）
 
-yaqpy の主な変更を、**使う人に見える変化**を中心に版ごとにまとめます。
-書式は [Keep a Changelog](https://keepachangelog.com/ja/1.1.0/) を参考にしています。
-
 ---
 [toTop](#toreadme)
 ## [0.1.0] - 2026-09-20
