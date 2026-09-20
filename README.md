@@ -99,6 +99,7 @@ yaqpy-gui                # または: yaqpy --gui
 | コマンド・TOON・ライブラリの使い方、対応演算子、Go 版 yq との違い | [USAGE.ja.md](USAGE.ja.md) |
 | GUI の使い方（画面の見方、式の書き方、保存・設定・エラー） | [USAGE-GUI.ja.md](USAGE-GUI.ja.md) |
 | 開発者向け（セットアップ、設計、テスト、リポジトリ構成） | [DEVELOPMENT.md](DEVELOPMENT.md) |
+| 版ごとの変更（できること、既知の制限） | [CHANGELOG.md](CHANGELOG.md) |
 
 ## License
 
