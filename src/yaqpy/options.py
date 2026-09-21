@@ -120,6 +120,19 @@ class TomlOptions:
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
+class SchemaOptions:
+    """Settings of the ``schema`` operator (a yaqpy extension)."""
+
+    strict: bool = False        # additionalProperties: false on every object
+    enum_max: int = 0           # > 0: strings with at most this many distinct values become an enum
+    per_doc: bool = False       # one schema per input node instead of one for all of them
+
+    def __post_init__(self) -> None:
+        if self.enum_max < 0:
+            raise ValueError("enum_max must not be negative")
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Options:
     input_format: str = "yaml"
     output_format: str | None = None
@@ -135,6 +148,7 @@ class Options:
     xml: XmlOptions = field(default_factory=XmlOptions)
     csv: CsvOptions = field(default_factory=CsvOptions)
     toml: TomlOptions = field(default_factory=TomlOptions)
+    schema: SchemaOptions = field(default_factory=SchemaOptions)
     security: SecurityPolicy = field(default_factory=SecurityPolicy.strict)
     limits: Limits = field(default_factory=Limits)
 
