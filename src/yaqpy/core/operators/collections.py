@@ -317,12 +317,19 @@ def map_values_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context
 
 # ----------------------------------------------------------------------------- sort
 
-def _both_datetimes(lhs: Node, rhs: Node, layout: str) -> tuple[datetime, datetime] | None:
-    """The two parsed times when both nodes are timestamps in ``layout``, else None."""
+@functools.lru_cache(maxsize=8192)
+def _parsed_or_none(layout: str, text: str) -> datetime | None:
     try:
-        return parse_datetime(layout, lhs.value), parse_datetime(layout, rhs.value)
+        return parse_datetime(layout, text)
     except ValueError:
         return None
+
+
+def _both_datetimes(lhs: Node, rhs: Node, layout: str) -> tuple[datetime, datetime] | None:
+    """The two parsed times when both nodes are timestamps in ``layout``, else None.
+    (A sort compares each value many times, so the parsed times are cached.)"""
+    first, second = _parsed_or_none(layout, lhs.value), _parsed_or_none(layout, rhs.value)
+    return None if first is None or second is None else (first, second)
 
 
 def _compare_nodes(lhs: Node, rhs: Node, layout: str = RFC3339) -> int:

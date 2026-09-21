@@ -177,8 +177,10 @@ def _untagged(node: Node) -> Node:
     return node
 
 
-def _padded(column: list[Node], length: int) -> list[Node]:
-    return column + [Node.null(value="") for _ in range(length - len(column))]
+def _pad(column: list[Node], length: int) -> list[Node]:
+    """Grow ``column`` with nulls up to ``length`` (in place)."""
+    column.extend(Node.null(value="") for _ in range(length - len(column)))
+    return column
 
 
 def _pivot_sequences(seq: Node) -> Node:
@@ -188,14 +190,12 @@ def _pivot_sequences(seq: Node) -> Node:
     columns: dict[int, list[Node]] = {}
     for i, row in enumerate(seq.content):
         for j, cell in enumerate(row.content):
-            column = _padded(columns.get(j, []), i)
-            column.append(cell)
-            columns[j] = column
+            _pad(columns.setdefault(j, []), i).append(cell)
     result = _untagged(Node.sequence())
     for j in range(len(columns)):
-        pivoted = _untagged(Node.sequence())
-        pivoted.add_children(_padded(columns[j], size))
-        result.add_child(pivoted)
+        # add the (empty) column first, then its cells: each cell is copied only once
+        pivoted = result.add_child(_untagged(Node.sequence()))
+        pivoted.add_children(_pad(columns[j], size))
     return result
 
 
@@ -207,13 +207,10 @@ def _pivot_maps(seq: Node) -> Node:
     columns: dict[str, list[Node]] = {}
     for i, row in enumerate(seq.content):
         for key, value in row.map_items():
-            column = _padded(columns.get(key.value, []), i)
-            column.append(value)
-            columns[key.value] = column
+            _pad(columns.setdefault(key.value, []), i).append(value)
     for name, column in columns.items():
-        pivoted = _untagged(Node.sequence())
-        pivoted.add_children(_padded(column, size))
-        result.add_key_value(Node.string(name), pivoted)
+        _, pivoted = result.add_key_value(Node.string(name), _untagged(Node.sequence()))
+        pivoted.add_children(_pad(column, size))
     return result
 
 
