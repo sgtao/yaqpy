@@ -293,10 +293,12 @@ class YamlEmitter:
                 return _double_quote(value)
             return self._block_scalar(value, col, literal=True)
         explicit_tag = bool(style & Style.TAGGED) or (tag != "" and not tag.startswith("!!"))
+        if tag == "!!str" and not explicit_tag and resolve_plain(value) != "!!str":
+            return _double_quote(value)         # would be read back as another type: go-yaml forces "..."
         if self._plain_ok(value, tag, in_flow, explicit_tag):
             return value
         if _single_quote_ok(value) and not _PRINTABLE_RE.search(value):
-            return _double_quote(value) if '"' not in value and "\\" not in value else _single_quote(value)
+            return _single_quote(value)         # plain is not possible: go-yaml falls back to '...'
         return _double_quote(value)
 
     @staticmethod
@@ -359,7 +361,9 @@ def _ensure_hash(text: str) -> str:
 
 
 def _single_quote_ok(value: str) -> bool:
-    return not _PRINTABLE_RE.search(value) and "\n" not in value
+    # go-yaml treats tab and carriage return as special characters: only "..." can carry them
+    return not _PRINTABLE_RE.search(value) and "\n" not in value and "\t" not in value \
+        and "\r" not in value
 
 
 def _single_quote(value: str) -> str:
