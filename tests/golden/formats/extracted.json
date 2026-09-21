@@ -1,0 +1,22 @@
+{
+  "total": 154,
+  "unresolved": 0,
+  "files": {
+    "csv": {
+      "count": 18,
+      "unresolved": 0
+    },
+    "properties": {
+      "count": 22,
+      "unresolved": 0
+    },
+    "toml": {
+      "count": 62,
+      "unresolved": 0
+    },
+    "xml": {
+      "count": 52,
+      "unresolved": 0
+    }
+  }
+}
