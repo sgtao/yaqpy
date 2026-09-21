@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import time
-from collections.abc import Iterator, Sequence
+from collections.abc import Callable, Iterator, Sequence
+from datetime import datetime
 from typing import Any
 
 from yaqpy.app.dto import (
@@ -11,7 +12,7 @@ from yaqpy.app.dto import (
 )
 from yaqpy.app.ports import EnvironmentPort, FileSystemPort
 from yaqpy.app.printer import InPlaceSink, ResultPrinter
-from yaqpy.core.engine import Context, EvalEnv, Navigator, StepBudget
+from yaqpy.core.engine import Context, EvalEnv, Navigator, StepBudget, system_clock
 from yaqpy.core.lang.ast import ExprNode
 from yaqpy.core.lang.parser import Expression, ExpressionCompiler
 from yaqpy.core.model.node import Node
@@ -39,11 +40,13 @@ def process_expression(expression: str, pretty_print: bool) -> str:
 class YqService:
     def __init__(self, fs: FileSystemPort, env: EnvironmentPort, *,
                  operators: OperatorRegistry | None = None,
-                 formats: FormatRegistry | None = None) -> None:
+                 formats: FormatRegistry | None = None,
+                 clock: Callable[[], datetime] | None = None) -> None:
         self.fs = fs
         self.env = env
         self.operators = operators or builtin_registry()
         self.formats = formats or builtin_formats()
+        self.clock = clock or system_clock
         self._compiler = ExpressionCompiler(self.operators.get)
 
     # ------------------------------------------------------------------ compile
@@ -83,6 +86,7 @@ class YqService:
             options=options,
             formats=self.formats,
             yaml_snippet_decoder=snippet_decoder.decode_snippet,
+            clock=self.clock,
         )
 
     def _resolve_formats(self, request: EvaluateRequest) -> tuple[str, str, bool]:

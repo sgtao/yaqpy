@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from yaqpy.core.engine.limits import StepBudget
@@ -59,6 +60,11 @@ class Context:
         return all(n.evaluate_together for n in self.nodes)
 
 
+def system_clock() -> datetime:
+    """The current time in the local zone (Go's ``time.Now``)."""
+    return datetime.now().astimezone()
+
+
 @dataclass(frozen=True, slots=True)
 class EvalEnv:
     """Everything one evaluation needs from the outside world."""
@@ -72,3 +78,4 @@ class EvalEnv:
     options: Options = field(default_factory=Options)
     formats: Any = None                 # FormatRegistry (injected by app layer)
     yaml_snippet_decoder: Callable[[str], Node] | None = None
+    clock: Callable[[], datetime] = system_clock       # ``now`` and ``shuffle`` read this
