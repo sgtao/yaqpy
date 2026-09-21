@@ -37,7 +37,7 @@
 - `FormatRegistry.guess_from_filename(name)` を追加（拡張子から形式を求め、なければ `None`。`from_filename` はこれを使い、なければ YAML）
 - `EvalEnv` などの既存の型は変えていません。`FileSystemPort` も変えていません
 - **同梱データ**：`yaqpy/recipes/builtin/`（`*.yaqpy` `*.recipe.yaml` `*.schema.json`）は wheel に含まれます
-- 単体テスト 749 → **916**、CLI 受け入れテスト 63 → **73**（stdout/stderr の分離、パイプでの連鎖、`--apply` が入力に触れないこと、SKILL.md を置いて例を実行することを含む）
+- 単体テスト 749 → **919**、CLI 受け入れテスト 63 → **73**（stdout/stderr の分離、パイプでの連鎖、`--apply` が入力に触れないこと、SKILL.md を置いて例を実行することを含む）
 
 ### 修正
 

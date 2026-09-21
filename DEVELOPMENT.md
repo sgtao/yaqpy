@@ -27,7 +27,7 @@ uv run yaqpy '.server.port' examples/sample.yaml
 ## テスト
 
 ```bash
-# ユニットテスト（916 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・GUI の Presenter など。実際にウィンドウは開きません）
+# ユニットテスト（919 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・GUI の Presenter など。実際にウィンドウは開きません）
 uv run python -m unittest discover -s tests/unit -t .
 
 # CLI 受け入れテスト（73 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明（実プロセスでの stdout/stderr の分離など））
