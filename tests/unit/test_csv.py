@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import csv
 import io
 import json
+import random
 import unittest
 from typing import Any
 
@@ -205,6 +207,57 @@ class WriteTests(unittest.TestCase):
     def test_round_trip(self) -> None:
         text = 'name,note\nAnn,"a, b"\nBob,"say ""hi"""\nCy,"two\nlines"\nDee,\n'
         options = Options(input_format="csv", output_format="csv")
+        self.assertEqual(yaqpy.evaluate(".", text, options=options), text)
+
+
+class AgreesWithCsvModuleTests(unittest.TestCase):
+    """Random tables, written by one side and read by the other (Python's csv module vs ours)."""
+
+    ALPHABET = ["a", "b", "x y", " lead", "trail ", ",", ";", '"', "'", "\n", "\t", "日本", "é", "1", ""]
+
+    def tables(self, seed: int, count: int, columns: tuple[int, int] = (2, 5)) -> list[list[list[str]]]:
+        rng = random.Random(seed)
+        out = []
+        for _ in range(count):
+            width = rng.randint(*columns)
+            rows = [["".join(rng.choice(self.ALPHABET) for _ in range(rng.randint(0, 4)))
+                     for _ in range(width)] for _ in range(rng.randint(1, 6))]
+            out.append(rows)
+        return out
+
+    def test_our_reader_reads_what_the_csv_module_writes(self) -> None:
+        for separator in (",", ";", "\t", "|"):
+            for table in self.tables(7, 150):
+                with self.subTest(separator=separator, table=table):
+                    buffer = io.StringIO(newline="")
+                    csv.writer(buffer, delimiter=separator, lineterminator="\n").writerows(table)
+                    got = [fields for _, fields in read_records(buffer.getvalue(), separator)]
+                    self.assertEqual(got, table)
+
+    def test_the_csv_module_reads_what_our_writer_writes(self) -> None:
+        for separator in (",", "\t"):
+            for table in self.tables(11, 150):
+                with self.subTest(separator=separator, table=table):
+                    text = "".join(format_row(row, separator) for row in table)
+                    got = list(csv.reader(io.StringIO(text, newline=""), delimiter=separator,
+                                          strict=True))
+                    self.assertEqual(got, table)
+
+    def test_the_two_writers_agree_apart_from_leading_spaces(self) -> None:
+        # Go quotes a field that starts with a space; Python does not. Everything else is the same.
+        for table in self.tables(13, 100):
+            with self.subTest(table=table):
+                buffer = io.StringIO(newline="")
+                csv.writer(buffer, lineterminator="\n").writerows(table)
+                ours = "".join(format_row(row, ",") for row in table)
+                if not any(cell[:1].isspace() for row in table for cell in row):
+                    self.assertEqual(ours, buffer.getvalue())
+
+    def test_whole_documents_round_trip_through_the_yaml_view(self) -> None:
+        # CSV -> maps -> CSV keeps every cell that is text and does not look like a YAML value
+        table = [["name", "note"], ["Ann", 'say "hi", ok'], ["Bob", "two\nlines"], ["Cy", ""]]
+        text = "".join(format_row(row, ",") for row in table)
+        options = Options(input_format="csv", output_format="csv", csv=CsvOptions(auto_parse=False))
         self.assertEqual(yaqpy.evaluate(".", text, options=options), text)
 
 
