@@ -1,0 +1,247 @@
+name: openai-to-anthropic
+version: 1
+title: OpenAI Chat Completions request -> Anthropic Messages request
+description: |
+  Converts the body of an OpenAI Chat Completions request into the body of an Anthropic Messages
+  request. Text messages, max tokens, temperature, top_p, stop, stream, user, function tools and
+  tool_choice are converted; everything else is reported as dropped.
+input: {format: json, api: openai-chat-completions}
+output: {format: json, api: anthropic-messages}
+target_schema: anthropic-messages-request.schema.json
+carries:
+  - .messages
+  - .max_tokens
+  - .max_completion_tokens
+  - .temperature
+  - .top_p
+  - .stop
+  - .stream
+  - .user
+  - .tools
+  - .tool_choice
+  - .parallel_tool_calls
+drops:
+  - {path: .model, reason: "model names do not carry over between vendors; name the model where you send the request"}
+  - {path: .n, reason: "the Messages API has no such option"}
+  - {path: .seed, reason: "the Messages API has no such option"}
+  - {path: .frequency_penalty, reason: "the Messages API has no such option"}
+  - {path: .presence_penalty, reason: "the Messages API has no such option"}
+  - {path: .response_format, reason: "not converted"}
+  - {path: ".tools[].function.strict", reason: "not converted"}
+  - {path: ".messages[].tool_calls", reason: "tool calls in the history are not converted (text messages only)"}
+  - {path: ".messages[role=tool]", reason: "tool results are not converted (text messages only)"}
+  - {path: ".messages[role=function]", reason: "tool results are not converted (text messages only)"}
+  - {path: ".messages[].content[type!=text]", reason: "only text parts are converted; images, audio and files are dropped"}
+  - {path: ".messages[].name", reason: "the target has no participant names"}
+  - {path: ".messages[].refusal", reason: "the target has no counterpart"}
+  - {path: ".tools[type!=function]", reason: "only function tools are converted"}
+adds:
+  - {path: .max_tokens, unless: [.max_tokens, .max_completion_tokens], reason: "the Messages API requires max_tokens; 4096 is the recipe's default, not a value from the input"}
+notes:
+  - "System and developer messages become the system parameter (a list of text blocks)."
+  - "user becomes metadata.user_id. parallel_tool_calls: false becomes tool_choice.disable_parallel_tool_use: true."
+  - "A function without parameters gets an empty object schema, because input_schema is required."
+  - "The Anthropic documentation marks temperature as deprecated for newer models (only 1.0 accepted); check the model you use."
+tests:
+  - name: minimal
+    input:
+      model: gpt-4o
+      messages:
+        - role: user
+          content: Hello
+    expected:
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: Hello
+      max_tokens: 4096
+  - name: every supported field
+    input:
+      model: gpt-4o
+      messages:
+        - role: system
+          content: You are helpful.
+        - role: user
+          content: Hello
+        - role: assistant
+          content: Hi!
+        - role: user
+          content: Weather in Oslo?
+      temperature: 0.7
+      top_p: 0.9
+      max_completion_tokens: 1024
+      n: 2
+      seed: 7
+      frequency_penalty: 0.5
+      presence_penalty: -0.5
+      stop:
+        - END
+        - STOP
+      response_format:
+        type: json_schema
+        json_schema:
+          name: answer
+          schema:
+            type: object
+      tools:
+        - type: function
+          function:
+            name: get_weather
+            description: Get the weather of a city
+            parameters:
+              type: object
+              properties:
+                city:
+                  type: string
+                unit:
+                  type: string
+                  default: null
+              required:
+                - city
+      tool_choice:
+        type: function
+        function:
+          name: get_weather
+      parallel_tool_calls: false
+      stream: true
+      user: user-1
+    expected:
+      system:
+        - type: text
+          text: You are helpful.
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: Hello
+        - role: assistant
+          content:
+            - type: text
+              text: Hi!
+        - role: user
+          content:
+            - type: text
+              text: Weather in Oslo?
+      max_tokens: 1024
+      temperature: 0.7
+      top_p: 0.9
+      stop_sequences:
+        - END
+        - STOP
+      stream: true
+      metadata:
+        user_id: user-1
+      tools:
+        - name: get_weather
+          description: Get the weather of a city
+          input_schema:
+            type: object
+            properties:
+              city:
+                type: string
+              unit:
+                type: string
+                default: null
+            required:
+              - city
+      tool_choice:
+        type: tool
+        name: get_weather
+        disable_parallel_tool_use: true
+  - name: several system messages
+    input:
+      model: gpt-4o
+      messages:
+        - role: system
+          content: S1
+        - role: developer
+          content: S2
+        - role: user
+          content: Q
+    expected:
+      system:
+        - type: text
+          text: S1
+        - type: text
+          text: S2
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: Q
+      max_tokens: 4096
+  - name: tools, one without parameters
+    input:
+      model: gpt-4o
+      messages:
+        - role: user
+          content: Go
+      tools:
+        - type: function
+          function:
+            name: get_weather
+            description: Get the weather of a city
+            parameters:
+              type: object
+              properties:
+                city:
+                  type: string
+                unit:
+                  type: string
+                  default: null
+              required:
+                - city
+        - type: function
+          function:
+            name: ping
+      tool_choice: required
+    expected:
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: Go
+      max_tokens: 4096
+      tools:
+        - name: get_weather
+          description: Get the weather of a city
+          input_schema:
+            type: object
+            properties:
+              city:
+                type: string
+              unit:
+                type: string
+                default: null
+            required:
+              - city
+        - name: ping
+          input_schema:
+            type: object
+            properties: {}
+      tool_choice:
+        type: any
+  - name: stop as a string, content as parts
+    input:
+      model: gpt-4o
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: a
+            - type: text
+              text: b
+      max_tokens: 50
+      stop: END
+    expected:
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: a
+            - type: text
+              text: b
+      max_tokens: 50
+      stop_sequences:
+        - END
