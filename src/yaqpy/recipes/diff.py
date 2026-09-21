@@ -6,6 +6,9 @@ another value is *changed*. A removed and an added leaf that carry the same valu
 occurs once on each side, are reported as a *move* (a rename candidate) instead: ``max_tokens`` that
 turned up as ``generationConfig.maxOutputTokens`` is one number, not one deletion and one addition.
 Only a candidate: two different fields can hold the same number.
+
+Paths are compared as they are. When a list is rebuilt, its items are compared by position, so a
+list that lost its first item shows every later item as changed, unless the values can be followed.
 """
 
 from __future__ import annotations
@@ -62,10 +65,12 @@ def _movable(value: Any) -> bool:
 
 def diff(before: Any, after: Any) -> list[Change]:
     old, new = flatten(before), flatten(after)
-    removed = {p: v for p, v in old.items() if p not in new}
-    added = {p: v for p, v in new.items() if p not in old}
-    changes: list[Change] = [Change(CHANGED, p, before=old[p], after=new[p])
-                             for p in old if p in new and _fingerprint(old[p]) != _fingerprint(new[p])]
+    changed = {p: (old[p], new[p]) for p in old if p in new and _fingerprint(old[p]) != _fingerprint(new[p])}
+    # A path whose value changed is also a place a value left and a place a value arrived, so a
+    # value that moved into (or out of) it is found there too: when a list is rebuilt, the items
+    # change their positions and every position would otherwise look like an edit.
+    leaving = {**{p: v for p, v in old.items() if p not in new}, **{p: v[0] for p, v in changed.items()}}
+    arriving = {**{p: v for p, v in new.items() if p not in old}, **{p: v[1] for p, v in changed.items()}}
 
     def by_value(items: dict[str, Any]) -> dict[str, list[str]]:
         grouped: dict[str, list[str]] = {}
@@ -74,18 +79,30 @@ def diff(before: Any, after: Any) -> list[Change]:
                 grouped.setdefault(_fingerprint(value), []).append(path)
         return grouped
 
-    gone, came = by_value(removed), by_value(added)
+    gone, came = by_value(leaving), by_value(arriving)
+    changes: list[Change] = []
     moved_from: set[str] = set()
     moved_to: set[str] = set()
     for fingerprint, sources in gone.items():
         targets = came.get(fingerprint, [])
-        if len(sources) == 1 and len(targets) == 1:
-            changes.append(Change(MOVED, sources[0], targets[0], before=removed[sources[0]],
-                                  after=added[targets[0]]))
+        if len(sources) == 1 and len(targets) == 1 and sources[0] != targets[0]:
+            changes.append(Change(MOVED, sources[0], targets[0], before=leaving[sources[0]],
+                                  after=arriving[targets[0]]))
             moved_from.add(sources[0])
             moved_to.add(targets[0])
-    changes.extend(Change(REMOVED, p, before=v) for p, v in removed.items() if p not in moved_from)
-    changes.extend(Change(ADDED, p, after=v) for p, v in added.items() if p not in moved_to)
+    for path, (was, now) in changed.items():
+        if path in moved_from and path in moved_to:
+            continue                                            # both sides are explained by moves
+        if path in moved_to:
+            changes.append(Change(REMOVED, path, before=was))    # the new value came from elsewhere
+        elif path in moved_from:
+            changes.append(Change(ADDED, path, after=now))       # the old value went elsewhere
+        else:
+            changes.append(Change(CHANGED, path, before=was, after=now))
+    changes.extend(Change(REMOVED, p, before=v) for p, v in leaving.items()
+                   if p not in changed and p not in moved_from)
+    changes.extend(Change(ADDED, p, after=v) for p, v in arriving.items()
+                   if p not in changed and p not in moved_to)
     order = {MOVED: 0, CHANGED: 1, REMOVED: 2, ADDED: 3}
     changes.sort(key=lambda c: order[c.kind])       # stable: the input's order within each kind
     return changes

@@ -57,7 +57,8 @@ def render_report(run: RecipeRun) -> str:
     if report.added:
         out += ["", "Added by the recipe (the input gave nothing):"]
         out += [f"  {a.path} = {short(a.value)}  - {a.reason}" for a in report.added]
-    out += ["", "Changes (before -> after; a move is a candidate: the same value at another path):"]
+    out += ["", "Changes (before -> after). A move is a candidate: the same value at another path. Paths are",
+            "compared as they are, so list items are compared by position."]
     if not report.changes:
         out.append("  (none)")
     for change in report.changes:

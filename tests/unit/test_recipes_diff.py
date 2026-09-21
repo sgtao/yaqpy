@@ -51,6 +51,30 @@ class DiffTests(unittest.TestCase):
         self.assertIn((".messages[0].content", ".contents[0].parts[0].text"),
                       [(c.path, c.to_path) for c in moved])
 
+    def test_a_value_that_left_its_position_is_followed_instead_of_shown_as_an_edit(self) -> None:
+        before = {"m": [{"t": "first"}, {"t": "second"}]}
+        after = {"m": [{"t": "second"}]}
+        self.assertEqual(diff(before, after), [
+            Change(MOVED, ".m[1].t", ".m[0].t", before="second", after="second"),
+            Change(REMOVED, ".m[0].t", before="first"),          # what it displaced is not lost from view
+        ])
+
+    def test_an_old_value_that_went_elsewhere_leaves_the_new_one_as_an_addition(self) -> None:
+        before = {"a": "x", "b": {"c": 1}}
+        after = {"a": "brand new", "d": "x"}
+        kinds = {(c.kind, c.path, c.to_path) for c in diff(before, after)}
+        self.assertIn((MOVED, ".a", ".d"), kinds)
+        self.assertIn((ADDED, ".a", ""), kinds)
+        self.assertNotIn((CHANGED, ".a", ""), kinds)
+
+    def test_a_change_that_no_value_explains_stays_a_change(self) -> None:
+        self.assertEqual(diff({"a": {"n": 1}}, {"a": {"n": 2}}), [Change(CHANGED, ".a.n", before=1, after=2)])
+
+    def test_a_swap_is_two_moves(self) -> None:
+        got = diff({"a": "x", "b": "y"}, {"a": "y", "b": "x"})
+        self.assertEqual({(c.kind, c.path, c.to_path) for c in got},
+                         {(MOVED, ".a", ".b"), (MOVED, ".b", ".a")})
+
 
 if __name__ == "__main__":
     unittest.main()
