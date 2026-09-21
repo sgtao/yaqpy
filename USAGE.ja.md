@@ -37,7 +37,7 @@ uv run yaqpy -P -N -e '.items[] | select(.price > 500) | .name' examples/sample.
 
 ### 主なフラグ
 
-Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops` など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。yaqpy 独自のフラグは `--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}` です。
+Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops`、`-s` / `--split-exp` / `--split-exp-file`（結果ごとに別のファイルへ。[文書の分割](#文書の分割v030-で追加)）、`--string-interpolation[=false]`（文字列補間の切り替え）など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。yaqpy 独自のフラグは `--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}` です。
 
 - 出力形式は `-o`（`yaml` / `json` / `props` / `toon` / `xml` / `csv` / `tsv` / `toml`）で指定します。**`-p`（入力形式）だけを指定した場合、出力は Go 版との互換のため YAML のまま**です（警告が出ます）
 - 入力形式は、ファイルの拡張子（`.yaml` `.yml` `.json` `.toon` `.xml` `.csv` `.tsv` `.properties` `.toml`）から自動判定します。拡張子が不明なとき、および標準入力は YAML として扱います
@@ -140,7 +140,7 @@ shop:
 | 処理命令 `<?xml version="1.0"?>` | `+p_xml` というキー（接頭辞は `--xml-proc-inst-prefix`） |
 | `<!DOCTYPE …>` などの指令 | `+directive` というキー（名前は `--xml-directive-name`）。原文のまま保持 |
 | コメント `<!-- … -->` | YAML のコメント（先頭・行末・末尾）。XML へ書き戻すと元の位置に戻る |
-| 本文の値 | **すべて文字列**（`"4"`、`"true"`）。数値にするには `.shop.item[].price tag = "!!int"` のようにタグを付け替えます（Go 版の `from_yaml` による変換は未実装） |
+| 本文の値 | **すべて文字列**（`"4"`、`"true"`）。数値にするには `.shop.item[].price |= to_number`（または `.shop.item[].price tag = "!!int"` のようにタグを付け替え）とします |
 | CDATA | 中身がそのまま文字列になる |
 
 ### XML のフラグ
@@ -160,7 +160,7 @@ Go 版と同じ名前・既定値です：`--xml-attribute-prefix`（`+@`）、`
 - XML の入力は UTF-8 として読みます。`encoding="ISO-8859-1"` などの宣言があっても文字コードの変換はしません（Go 版は変換します）
 - 出力できるのは**マップ**（と、その中の配列・スカラー）だけです。トップが配列だと `cannot encode !!seq to XML - only maps can be encoded` になります
 - **混在コンテンツ**（`<a>Hello <b>bold</b> world</a>` のように、本文と子要素が交互に並ぶもの）は、本文が `+content` の配列にまとまります。XML に書き戻すときは本文を空白で区切って要素の前にまとめて書くので、**単語は残りますが、子要素との前後関係は保たれません**（Go 版は本文を書かずに落とします）
-- 互換テスト：Go 版の XML シナリオ 52 件のうち、実行できる 51 件がすべて合格です（残り 1 件は `from_yaml` 演算子が未実装のため）。ネストした配列を `-I 4` で YAML にしたときの字下げなど、**書式だけが異なる**（値は同じ）ものが 2 件あります
+- 互換テスト：Go 版の XML シナリオ 52 件がすべて合格です。ネストした配列を `-I 4` で YAML にしたときの字下げなど、**書式だけが異なる**（値は同じ）ものが 2 件あります
 
 ---
 [toTop](#toreadme)
@@ -443,12 +443,131 @@ yq.evaluate(expr, text)                                             # -> '{"port
 
 ---
 [toTop](#toreadme)
-## 実装済みの演算子（Phase 1 ＝ 38 種 ＋ `schema`）
+## 演算子
 
-`.`、`.a` / `."a b"` / `.a?` / `.a*`、`.[0]` / `.[]` / `.[1:3]`、`..` / `...`、`|`、`,`、`select`、`=` / `|=`、`+=` / `-=` / `*=`、`+`、`-`、`*`（`*+ *? *d *n *c` を含むディープマージ）、`/`、`%`、`//`、`==` / `!=`、`<` `<=` `>` `>=`、`and` / `or` / `not`、リテラル、`[ ]`、`{ }`、`length`、`keys`、`key`、`has`、`del`、`to_entries` / `from_entries` / `with_entries`、`map` / `map_values`、`sort_by` / `sort`、`path`、`as $x` / `$x`、`env` / `strenv`、`tag`、`style`、`line_comment` / `head_comment` / `foot_comment` / `comments`、`test`、`document_index` / `di`、`file_index` / `fi` / `filename`、`parent`、`explode`、`anchor` / `alias`、`min` / `max`、`any` / `all`、`set_path` / `del_paths`、`kind`、`line` / `column`、日時の加減算と比較（RFC3339）、`schema`（Go 版にはない拡張。[スキーマの出力](#スキーマの出力schemago-版にはない拡張)）
+Go 版 yq の演算子のうち、**ファイル・環境変数・外部コマンドに触れるもの（`load` `load_str` `eval` `envsubst` `system`）と `error` を除いて**すべて実装しています。この節の例は、実際に実行して結果を確かめたものです（`yaqpy 式 ファイル` の形で、入力は例の下に書いた YAML）。
 
-未実装（Phase 2 以降）の演算子も、式の構文としては解釈されます（`validate` や `compile` は成功します）が、**実行すると `Error: unknown operator ...` で終了します**。文字列補間 `\(exp)` も Phase 2 です。未実装の一覧は次節を参照してください。
+### 基本
 
+`.`、`.a` / `."a b"` / `.a?` / `.a*`、`.[0]` / `.[]` / `.[1:3]`、`..` / `...`、`|`、`,`、`select`、`=` / `|=`、`+=` / `-=` / `*=`、`+`、`-`、`*`（`*+ *? *d *n *c` を含むディープマージ）、`/`、`%`、`//`、`==` / `!=`、`<` `<=` `>` `>=`、`and` / `or` / `not`、リテラル、`[ ]`、`{ }`、`length`、`keys`、`key`、`has`、`del`、`to_entries` / `from_entries` / `with_entries`、`map` / `map_values`、`sort_by` / `sort`、`path`、`as $x` / `$x`、`env` / `strenv`、`tag`、`style`、`line_comment` / `head_comment` / `foot_comment` / `comments`、`document_index` / `di`、`file_index` / `fi` / `filename`、`parent`、`explode`、`anchor` / `alias`、`min` / `max`、`any` / `all`、`set_path` / `del_paths`、`kind`、`line` / `column`、`schema`（Go 版にはない拡張。[スキーマの出力](#スキーマの出力schemago-版にはない拡張)）
+
+### 文字列（v0.3.0 で追加）
+
+| 演算子 | 内容 | 例 → 結果 |
+|---|---|---|
+| `join(区切り)` | 配列の要素をつないで 1 つの文字列に（`null` は空文字） | `.tags \| join(", ")`（`tags: [a, b, c]`）→ `a, b, c` |
+| `split(区切り)` | 文字列を配列に（区切りが空なら 1 文字ずつ。`null` は結果なし） | `.path \| split("/")`（`path: usr/local/bin`）→ `[usr, local, bin]` |
+| `sub(正規表現; 置換)` | 一致した部分をすべて置換。置換には `$1` `${1}` `${名前}` `$0` が使えます | `.a \|= sub("([a-z]+)-([0-9]+)", "$2-$1")`（`a: abc-42`）→ `a: 42-abc` |
+| `test(正規表現)` | 一致するか（`true` / `false`） | `.[] \| test("^a")`（`[apple, banana]`）→ `true` `false` |
+| `match(正規表現)` `match(正規表現; "g")` | `string` `offset` `length` `captures` を持つマップ。`"g"` で一致をすべて | `[match("a"; "g") \| .offset]`（`banana`）→ `[1, 3, 5]` |
+| `capture(正規表現)` | 名前付きグループ `(?P<名前>…)` をキーにしたマップ | `capture("(?P<key>[a-z]+)-(?P<num>[0-9]+)")`（`abc-42`）→ `key: abc` `num: "42"` |
+| `trim` | 前後の空白を取る | `.a \| trim`（`a: "  hi  "`）→ `hi` |
+| `upcase` `downcase` | 大文字・小文字にする | `.a \| upcase`（`a: hello`）→ `HELLO` |
+| `to_string` | 文字列にする（数値・真偽値は `"12"` のように引用符付きの文字列、マップや配列は YAML の文字列） | `.a \| to_string`（`a: 12`）→ `"12"`（`-r=false` のとき） |
+| `to_number`（`tonumber`） | 文字列を数値にする（`3` → 整数、`3.5` `-1e3` → 小数、`0x1F` も整数）。読めなければエラー | `.[] \| to_number`（`["3", "3.5"]`）→ `3` `3.5` |
+| **文字列補間** `"…\(式)…"` | 二重引用符の文字列の中に式の値を埋め込む | `"Hello, \(.name)!"`（`name: World`）→ `Hello, World!` |
+
+- 文字列補間は `--string-interpolation=false` で無効にできます（Go 版と同じフラグ）。`\\(` と書くと補間せず `\(` になります。式の中の `)` は `\)` と書きます。マップや配列の値は、YAML の文字列として入ります
+- 2 つの引数は `;` で区切ります。`sub("a", "b")` のように `,` でも動きますが、`match` の `"g"` は `;` のあとに書いたときだけオプションになります（`match("a", "g")` の `"g"` は無視されます。Go 版と同じ）
+
+#### 正規表現：Go（RE2）との違い
+
+yaqpy は Python の `re` を使い、Go 版の正規表現に近づける処理を入れています。
+
+- `$`（`(?m)` なし）と `\z` は**文字列の終わりだけ**に一致します（Python の `$` は末尾の改行の手前にも一致しますが、Go に合わせました。YAML の複数行文字列は末尾に改行が付くので違いが出ます）
+- `(?<名前>…)`（Go 1.22 以降）、`[[:alpha:]]` などの POSIX クラス、`\Q…\E`、先頭の `(?i)` `(?m)` `(?s)` が使えます
+- `sub` の置換は Go の書き方（`$1` `${名前}` `$$`）です。`\1` は特別な意味を持ちません
+- `match` の `offset` と `length` は **UTF-8 のバイト数**です（Go 版と同じ。日本語を含む文字列では文字数と一致しません）
+- **使えない**もの：`\pL` `\p{Greek}` などの Unicode クラス、`(?U)`、先頭以外のインラインフラグ（`a(?i)b`）。エラーで知らせます
+
+### 配列・マップ（v0.3.0 で追加）
+
+| 演算子 | 内容 | 例 → 結果 |
+|---|---|---|
+| `reverse` | 配列を逆順に | `reverse`（`[1, 2, 3]`）→ `[3, 2, 1]` |
+| `shuffle` | 配列をランダムに並べ替える | 順序は実行のたびに変わります（[違い](#go-版-yq-との違い)） |
+| `first` / `first(条件)` | 先頭の要素 / 条件に合う最初の要素 | `first(. > 7)`（`[7, 8, 9]`）→ `8` |
+| `filter(条件)` | 条件に合う要素だけの配列 | `filter(. > 1)`（`[1, 2, 3]`）→ `[2, 3]` |
+| `unique` `unique_by(式)` | 重複を取り除く（最初のものを残す） | `unique_by(.n)`（`[{n: a, v: 1}, {n: b, v: 2}, {n: a, v: 3}]`）→ `n: a` と `n: b` の 2 件 |
+| `group_by(式)` | 式の値が同じ要素をまとめる（出てきた順） | `group_by(.k)` → `k` ごとの配列の配列 |
+| `flatten` `flatten(深さ)` | 入れ子の配列を平らに | `flatten(1)`（`[1, [2, [3]]]`）→ `[1, 2, [3]]` |
+| `pivot` | 行と列を入れ替える（配列の配列、またはマップの配列） | `pivot`（`[[1, 2], [3, 4]]`）→ `[[1, 3], [2, 4]]` |
+| `pick([キー…])` `omit([キー…])` | 指定したキー（配列なら番号）だけを残す / 取り除く | `pick(["a", "c"])`（`{a: 1, b: 2, c: 3}`）→ `{a: 1, c: 3}` |
+| `sort_keys(式)` | マップのキーを並べ替える（式が指すマップを、その場で） | `sort_keys(.)`（`{b: 1, a: 2}`）→ `{a: 2, b: 1}` |
+| `with(パス; 更新)` | パスが指す各項目に、更新の式を適用する | `with(.a.b; . = "new")`（`a: {b: old}`）→ `a: {b: new}` |
+| `reduce`（`.[] as $x ireduce (初期値; 更新)`） | 畳み込み | `.[] as $x ireduce (0; . + $x)`（`[1, 2, 3, 4]`）→ `10` |
+| `array_to_map` | 配列を、番号をキーにしたマップに | `array_to_map`（`[a, b]`）→ `{0: a, 1: b}` |
+| `contains(値)` | 文字列・配列・マップが値を含むか | `contains(["b"])`（`[a, b, c]`）→ `true` |
+
+- `first`（引数なし）をマップに使うと、Go 版と同じく**最初のキー**を返します
+
+### encode / decode（v0.3.0 で追加）
+
+| 演算子 | 内容 |
+|---|---|
+| `to_json` `to_json(インデント)` `@json` | 値を JSON の**文字列**にする（既定の字下げは 2。`to_json(0)` と `@json` は 1 行） |
+| `to_yaml` `to_yaml(インデント)` `@yaml` | 値を YAML の文字列に（既定の字下げは 2） |
+| `to_xml` `to_xml(インデント)` `@xml` / `to_props` `@props` / `to_csv` `@csv` / `to_tsv` `@tsv` | それぞれの形式の文字列に（CSV・TSV は末尾の改行なし） |
+| `from_json` `from_yaml`（`@jsond` `@yamld`）/ `from_xml` `@xmld` / `from_props` `@propsd` / `from_csv` `@csvd` / `from_tsv` `@tsvd` | 文字列を読んで値にする |
+| `@base64` `@base64d` | base64 にする / 戻す（`=` の付け忘れは補い、前後の空白と途中の改行は無視） |
+| `@uri` `@urid` | URL エンコード（空白は `+`）/ 戻す |
+| `@sh` | シェルに安全に渡せる形にする（`it's here` → `it\'s' here'`） |
+
+```bash
+uv run yaqpy '.b = (.a | to_json(0))' x.yaml      # a: {c: 1}  →  b: '{"c":1}'
+uv run yaqpy '.b = (.a | from_json)' x.yaml       # a: '{"x": 1}'  →  b が {x: 1} のマップに
+uv run yaqpy '.a |= (from_yaml | .foo = "cat" | to_yaml)' x.yaml   # 文字列の中の YAML を書き換える
+```
+
+- 読み込み（`from_*`）で、元の文字列に末尾の改行がなければ、書き戻し（`to_*`）でも付けません（`from_yaml | … | to_yaml` で往復しても、行が増えません）
+- 空の文字列を読むと `null` になります（Go 版は形式によってエラー `EOF` になります）
+- `@base64` `@uri` `@sh` は**文字列だけ**を受け取ります（数値などは、先に `@yaml` や `to_string` で文字列にします）
+
+### 日時（v0.3.0 で追加）
+
+| 演算子 | 内容 | 例 → 結果 |
+|---|---|---|
+| `now` | 現在時刻（RFC 3339）。`!!timestamp` | `now` → `2021-05-19T01:02:03Z` |
+| `tz("地域名")` | 別のタイムゾーンにする。IANA 名（`Asia/Tokyo`）、`UTC`、`Local`（この PC の時間帯） | `now \| tz("Asia/Tokyo")` → `2021-05-19T10:02:03+09:00` |
+| `from_unix` | UNIX 時間（秒）を日時にする（この PC の時間帯。ミリ秒まで） | `1675301929 \| from_unix \| tz("UTC")` → `2023-02-02T01:38:49Z` |
+| `to_unix` | 日時を UNIX 時間（秒）にする | `now \| to_unix` → `1621386123` |
+| `format_datetime("書式")` | 日時を書式で文字列にする | `.a \|= format_datetime("Monday, 02-Jan-06 at 3:04PM")` |
+| `with_dtf("書式"; 式)` | 式の中の日時演算（`format_datetime` `tz` `to_unix` `+=` `-=` `<` `sort_by`）が、RFC 3339 ではなくこの書式の文字列を読み書きするようにする | `.a \|= with_dtf("02-Jan-2006"; format_datetime("2006-01-02"))` |
+
+- **書式は Go の書き方**です。基準の日時 `Mon Jan 2 15:04:05 MST 2006`（2006 年 1 月 2 日 15 時 4 分 5 秒）を、欲しい形で書きます：`2006-01-02`、`02-Jan-2006`、`Monday, 02-Jan-06 at 3:04PM MST`、`15:04:05.000`。数字の意味は、`2006` 年（`06` は下 2 桁）、`01` `1` `Jan` `January` 月、`02` `2` `_2` 日、`Mon` `Monday` 曜日、`15` 時（24 時間）、`03` `3` 時（12 時間）、`04` 分、`05` 秒、`PM` 午前・午後、`MST` 時間帯の略称、`-0700` `-07:00` `Z07:00` オフセット、`.000` 小数秒
+- 加減算の期間は Go の書き方です：`.a += "3h10m"`、`.a -= "1.5h"`（`ns` `us` `ms` `s` `m` `h`）
+- `format_datetime` の結果は YAML の値として読み直します（`2006-01-02` の結果は日付、`2` は整数、`Monday` は文字列）
+- 時刻は**マイクロ秒**までです（Go はナノ秒）。年は 1〜9999 です
+- **`tz("Asia/Tokyo")` のような IANA 名には、OS の時間帯データが要ります。** Windows には標準で入っていないので、`pip install tzdata` を実行してください（多くの macOS・Linux では不要です）。データがないと `unknown time zone Asia/Tokyo (this system has no time zone database; …)` になります。`UTC` と `Local` はデータなしで使えます
+- 未知の略称（`AEDT` など）は、Go と同じく**オフセット 0** の時間帯として名前だけ保ちます
+
+### 文書の分割（v0.3.0 で追加）
+
+- **`split_doc`**：一致した節点それぞれを別の文書にして、出力で `---` で区切ります（`.[] | split_doc`）
+- **`-s` / `--split-exp`**：結果ごとに、別のファイルに書き出します。ファイル名は式で決めます（式は各結果に対して評価され、`$index` が 0 から数えた通し番号です）
+
+```bash
+# 文書ごとに、.a の値をファイル名にして書く（test_doc1.yml と test_doc2.yml ができる）
+uv run yaqpy -s '.a' multi.yaml
+
+# 配列の要素ごとに name.yml を作る（区切りの --- なし）
+uv run yaqpy -N -s '.name' '.[]' people.yaml
+
+# 通し番号で（part_0.json, part_1.json …）
+uv run yaqpy -o json -s '"part_" + $index' multi.yaml
+
+# 式をファイルから（--split-exp-file）
+uv run yaqpy --split-exp-file name.yq multi.yaml
+```
+
+- 名前に拡張子（`.` のあとの英数字）がなければ、出力形式に合わせて付きます（`yml` `json` `properties` `xml` `toml` `csv` …）。必要なディレクトリは作ります
+- 2 つ目以降のファイルは、Go 版と同じく、文書が変わるところで `---` から始まります（`-N` で消せます）
+- **`-i` とは同時に使えません**（`write in place cannot be used with split file`）
+- **安全のため、名前に `..` を含むものは書きません**（名前はデータから決まるので、文書の中身でツリーの外に書けないようにするためです。Go 版にはない制限です）。`--security-disable-file-ops` を付けると `-s` も使えません。ライブラリ（`SecurityPolicy.strict()`）でも、`allow_file=True` にするまで使えません
+
+### まだ使えないもの
+
+`load` `load_str`（ファイルを読む）、`eval`、`envsubst`、`system`（外部コマンド）、`error` は**実装していません**。式としては解釈されますが、**実行すると `Error: unknown operator ...` で終了します**。ファイル・環境変数・外部コマンドに触れるため、安全性の設計をしてから入れる予定です（改修計画の O3）。
 ---
 [toTop](#toreadme)
 ## Go 版 yq との違い
@@ -458,16 +577,17 @@ yaqpy は Go 版 yq（v4.53.6）の**独立した再実装**です。
 | 分類 | 内容 |
 |---|---|
 | 追加した機能 | TOON 形式の入出力、**`schema` 演算子（JSON Schema の出力）**、Python ライブラリ API、デスクトップ GUI（XML・CSV/TSV・properties・TOML は Go 版にもあり、同じ規則で実装） |
-| **未実装の演算子** | `join` `split` `sub` `match` `capture` `trim` `upcase` `downcase` `to_string` `to_number` `unique` `unique_by` `group_by` `reverse` `shuffle` `sort_keys` `flatten` `first` `pick` `omit` `with` `reduce` `pivot` `contains` `filter` `eval` `error` `envsubst` `encode` / `decode`（`@base64` など）`load` `load_str` `split_doc` `system` と、日時の `now` `tz` `from_unix` `to_unix` `format_datetime` `with_dtf`。式としては解釈されますが、実行すると `Error: unknown operator ...` で終了します |
-| 未対応のフォーマット | INI・HCL・Lua・shell 変数・base64・URI など、Go 版にあるその他の形式。TOML はコメントを保持しない（`-i` は既定で拒否） |
-| 未対応のオプション | `-s`（`--split-exp`）、`-f`（`--front-matter`）、`-C`（色付き出力）。文字列補間 `\(...)` |
-| その他 | 日時は RFC3339 形式のみ。Python 3.13 以上が必要 |
+| **未実装の演算子** | `load` `load_str` `eval` `envsubst` `system` `error`。式としては解釈されますが、実行すると `Error: unknown operator ...` で終了します（ファイル・環境変数・外部コマンドに触れるため、安全性の設計をしてから入れる予定です） |
+| 未対応のフォーマット | INI・HCL・Lua・shell 変数・KYaml など、Go 版にあるその他の形式（base64・URI・`sh` は形式ではなく演算子 `@base64` `@uri` `@sh` として使えます）。TOML はコメントを保持しない（`-i` は既定で拒否） |
+| 未対応のオプション | `-f`（`--front-matter`）、`-C`（色付き出力） |
+| 演算子の細かい違い | ① **`shuffle` の並びは Go 版と違います**（Go の乱数列を再現しないため。並べ替えとしては正しい）② 正規表現は Python の `re` を、Go（RE2）に近づけて使っています。`\pL` などの Unicode クラスと `(?U)` は使えません（[正規表現](#正規表現gore2との違い)）③ 空の文字列を `from_*` で読むと、Go 版は形式によって `EOF` エラー、yaqpy は `null` ④ `-s` は名前に `..` を含むものを書きません ⑤ `tz` の IANA 名は OS の時間帯データが要ります（Windows は `pip install tzdata`）⑥ 時刻の精度はマイクロ秒（Go はナノ秒）、年は 1〜9999 |
+| その他 | Python 3.13 以上が必要 |
 
-**互換性テスト**：Go 版の演算子のテストシナリオ 1,091 件を互換テストにしています。実装済みの機能に当たる 841 件のうち 837 件が一致します（残り 4 件は既知の差異）。形式（XML・CSV/TSV・TOML・properties）のシナリオ 154 件は、実行できる 151 件のうち 146 件が一致します（不一致 5 件は TOML のコメントを保持するもの）。`schema` は Go 版にないため、互換テストの対象外です。
+**互換性テスト**：Go 版の演算子のテストシナリオ 1,091 件を互換テストにしています。実行できて結果を比べられる 1,051 件のうち 1,047 件が一致します（99.6%。残り 4 件は `shuffle` の並びの違いで、既知の差異です）。ほかは、未実装の演算子に当たる 28 件（`load` `envsubst` `eval`）と、環境や外部コマンドに依存して比べられない 12 件です。形式（XML・CSV/TSV・TOML・properties）のシナリオ 154 件は、149 件が一致します（不一致 5 件は TOML のコメントを保持するもの）。`schema` は Go 版にないため、互換テストの対象外です。
 
-**安全側の既定**：ライブラリとして使うときは、ファイル読み込み（`load` など）・環境変数（`env` / `strenv`）・外部コマンド（`system`）の各演算子が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込みが有効です（外部コマンドは無効）。
+**安全側の既定**：ライブラリとして使うときは、ファイル読み込み（`load` など）・ファイルへの書き出し（`-s`）・環境変数（`env` / `strenv`）・外部コマンド（`system`）が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込み・書き出しが有効です（外部コマンドは無効）。
 
-> 現状、`env` / `strenv` だけが「許可されていなければ拒否」の検査を実装しています。`load` `load_str` `system` は演算子自体が未実装です。
+> 現状、`env` / `strenv` と `-s` だけが「許可されていなければ拒否」の検査を実装しています。`load` `load_str` `system` は演算子自体が未実装です。
 
 ---
 [toTop](#toreadme)
