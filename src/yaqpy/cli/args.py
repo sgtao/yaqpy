@@ -8,7 +8,10 @@ from dataclasses import dataclass
 
 from yaqpy.app.dto import EvalMode, EvaluateRequest, InputSource
 from yaqpy.formats.registry import FormatRegistry, builtin_formats
-from yaqpy.options import Limits, Options, PropertiesOptions, SecurityPolicy, ToonOptions, YamlOptions
+from yaqpy.options import (
+    CsvOptions, Limits, Options, PropertiesOptions, SchemaOptions, SecurityPolicy, TomlOptions,
+    ToonOptions, XmlOptions, YamlOptions,
+)
 
 _TOON_DELIMITERS = {"comma": ",", "tab": "\t", "pipe": "|"}
 
@@ -71,6 +74,10 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         raise InvocationError("cannot pass files in when using null-input flag")
     if ns.indent < 0:
         raise InvocationError("indent must not be negative")
+    if ns.schema_enum_max < 0:
+        raise InvocationError("--schema-enum-max must not be negative")
+    if ns.schema:
+        expression = f"{expression} | schema" if expression else "schema"
 
     # formats (Go's configureInputFormat / configureOutputFormat)
     input_filename = files[0] if files else ""
@@ -128,6 +135,26 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
             delimiter=_TOON_DELIMITERS[ns.toon_delimiter],
             indent=ns.indent if ns.indent >= 1 else 2,
         ),
+        xml=XmlOptions(
+            indent=ns.indent,
+            attribute_prefix=ns.xml_attribute_prefix,
+            content_name=ns.xml_content_name,
+            strict_mode=ns.xml_strict_mode,
+            keep_namespace=ns.xml_keep_namespace,
+            raw_token=ns.xml_raw_token,
+            proc_inst_prefix=ns.xml_proc_inst_prefix,
+            directive_name=ns.xml_directive_name,
+            skip_proc_inst=ns.xml_skip_proc_inst,
+            skip_directives=ns.xml_skip_directives,
+        ),
+        csv=CsvOptions(
+            separator=ns.csv_separator,
+            auto_parse=ns.csv_auto_parse,
+            tsv_auto_parse=ns.tsv_auto_parse,
+        ),
+        toml=TomlOptions(allow_lossy=ns.toml_allow_lossy),
+        schema=SchemaOptions(strict=ns.schema_strict, enum_max=ns.schema_enum_max,
+                             per_doc=ns.schema_per_doc),
         security=security,
         limits=Limits(),
     )

@@ -21,8 +21,13 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
   |---|:-:|:-:|
   | YAML | ○ | ○ |
   | JSON | ○ | ○ |
+  | XML | ○ | ○ |
+  | CSV / TSV | ○ | ○ |
+  | TOML（読むときコメントは保持しない。`-i` は既定で拒否） | ○ | ○ |
+  | properties | ○ | ○ |
   | TOON（LLM に渡すためトークン数を減らす形式。Go 版にない拡張） | ○ | ○ |
-  | properties | — | ○ |
+
+- **スキーマの出力**（Go 版にない拡張）：`yaqpy --schema data.yaml` で、データを表す JSON Schema（Draft 2020-12）を JSON でも YAML でも出せます
 
 - **Go 版 yq との互換性**：Go 版のテストシナリオ 1,091 件を互換テストにしています（実装済みの機能に当たる 841 件のうち 837 件が一致）。**未実装の演算子・形式があります**（`join` `split` `unique` `pick` など）。実行すると `Error: unknown operator ...` で終了します。一覧は [Go 版 yq との違い](USAGE.ja.md#go-版-yq-との違い) を参照してください
 - **安全側の既定**：ライブラリとして使うときは、ファイル読み込み・環境変数・外部コマンドの演算子が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込みが有効です（外部コマンドは無効）
@@ -73,7 +78,7 @@ items:
 yaqpy '.server.port' config.yaml                              # 取得 → 8080
 yaqpy '.items[] | select(.price > 500) | .name' config.yaml   # 絞り込み → book
 yaqpy -i '.server.port = 9090' config.yaml                    # 更新（コメント・並び順はそのまま）
-yaqpy -o json '.server' config.yaml                           # 形式変換（yaml / json / props / toon）
+yaqpy -o json '.server' config.yaml                           # 形式変換（yaml / json / xml / csv / tsv / toml / props / toon）
 ```
 
 **Python ライブラリ**
@@ -96,7 +101,7 @@ yaqpy-gui                # または: yaqpy --gui
 
 | 内容 | ファイル |
 |---|---|
-| コマンド・TOON・ライブラリの使い方、対応演算子、Go 版 yq との違い | [USAGE.ja.md](USAGE.ja.md) |
+| コマンド・各形式（XML・CSV・TOML・properties・TOON）・スキーマの出力・ライブラリの使い方、対応演算子、Go 版 yq との違い | [USAGE.ja.md](USAGE.ja.md) |
 | GUI の使い方（画面の見方、式の書き方、保存・設定・エラー） | [USAGE-GUI.ja.md](USAGE-GUI.ja.md) |
 | 開発者向け（セットアップ、設計、テスト、リポジトリ構成） | [DEVELOPMENT.md](DEVELOPMENT.md) |
 | 版ごとの変更（できること、既知の制限） | [CHANGELOG.md](CHANGELOG.md) |

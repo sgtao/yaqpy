@@ -23,12 +23,17 @@ def make_presenter(state: GuiState) -> MainPresenter:
 
 
 def input_format_choices() -> list[str]:
-    """props は出力専用なのでここには出てこない。"""
+    """読める形式（デコーダのある形式）。形式レジストリから自動で決まる。"""
     return [AUTO, *make_service().list_formats().input_formats]
 
 
 def output_format_choices() -> list[str]:
     return [AUTO, *make_service().list_formats().output_formats]
+
+
+def open_extensions() -> list[str]:
+    """「開く」ダイアログに出す拡張子。読める形式の登録から導く（GUI 側に対応表を持たない）。"""
+    return make_service().formats.input_extensions()
 
 
 def extension_for(format_name: str) -> str:

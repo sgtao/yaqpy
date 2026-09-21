@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- 商品一覧 -->
+<shop name="stationery">
+  <item id="1">
+    <name>pen</name>
+    <price>120</price>
+  </item>
+  <item id="2">
+    <name>book</name>
+    <price>980</price>
+  </item>
+</shop>

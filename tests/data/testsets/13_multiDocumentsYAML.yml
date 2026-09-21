@@ -1,0 +1,38 @@
+# Kubernetes 風のマニフェスト（複数ドキュメント）
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: demo
+data:
+  LOG_LEVEL: info
+  MAX_CONNECTIONS: "100"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: app
+  namespace: demo
+  labels:
+    app: web
+    tier: frontend
+spec:
+  replicas: 3
+  template:
+    spec:
+      containers:
+        - name: web
+          image: nginx:1.27
+          ports:
+            - containerPort: 80
+          env:
+            - name: LOG_LEVEL
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: LOG_LEVEL
+---
+# 3 つ目はスカラーだけのドキュメント
+just a plain string document
+...

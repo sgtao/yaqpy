@@ -5,7 +5,7 @@ from __future__ import annotations
 import threading
 
 from yaqpy.core.operators import (  # noqa: F401  (imported for the @operator side effects)
-    anchors, arithmetic, assign, basic, collections, logic, meta, multiply, traverse,
+    anchors, arithmetic, assign, basic, collections, logic, meta, multiply, schema, traverse,
 )
 from yaqpy.core.operators.registry import _BUILTIN_HANDLERS, OperatorRegistry, make_spec, operator
 

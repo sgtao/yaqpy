@@ -1,0 +1,665 @@
+{
+ "summary": {
+  "all": {
+   "total": 154,
+   "counts": {
+    "exact": 143,
+    "unsupported": 3,
+    "semantic": 3,
+    "fail": 5
+   },
+   "pass_rate": 0.9668874172185431
+  },
+  "xml": {
+   "total": 52,
+   "counts": {
+    "exact": 49,
+    "unsupported": 1,
+    "semantic": 2
+   },
+   "pass_rate": 1.0
+  },
+  "csv": {
+   "total": 18,
+   "counts": {
+    "exact": 18
+   },
+   "pass_rate": 1.0
+  },
+  "toml": {
+   "total": 62,
+   "counts": {
+    "exact": 56,
+    "semantic": 1,
+    "fail": 5
+   },
+   "pass_rate": 0.9193548387096774
+  },
+  "properties": {
+   "total": 22,
+   "counts": {
+    "exact": 20,
+    "unsupported": 2
+   },
+   "pass_rate": 1.0
+  }
+ },
+ "scenarios": {
+  "xml#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#2": {
+   "status": "exact",
+   "detail": "expected error \"bad file 'sample.yml': invalid XML: Encountered chardata [value] outside of XML node\", got \"bad file 'sample.yml': invalid XML: Encountered chardata [value] outside of XML node\""
+  },
+  "xml#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#14": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "xml#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#17": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "xml#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#26": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#28": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#29": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#30": {
+   "status": "semantic",
+   "detail": ""
+  },
+  "xml#31": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#32": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#33": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#34": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#35": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#36": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#37": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#38": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#39": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#40": {
+   "status": "exact",
+   "detail": "expected error 'cannot encode !!seq to XML - only maps can be encoded', got 'cannot encode !!seq to XML - only maps can be encoded'"
+  },
+  "xml#41": {
+   "status": "exact",
+   "detail": "expected error 'cannot encode !!seq to XML - only maps can be encoded', got 'cannot encode !!seq to XML - only maps can be encoded'"
+  },
+  "xml#42": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#43": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#44": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#45": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#46": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#47": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#48": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#49": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#50": {
+   "status": "exact",
+   "detail": ""
+  },
+  "xml#51": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "csv#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#3": {
+   "status": "semantic",
+   "detail": "expected error \"bad file 'sample.yml': unterminated basic string\", got \"bad file 'sample.yml': unterminated basic string (line 1, column 5)\""
+  },
+  "toml#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#12": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#13": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#21": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#22": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#23": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#24": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#25": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#26": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#27": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#28": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#29": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#30": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#31": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#32": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#33": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#34": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#35": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#36": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#37": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#38": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#39": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#40": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#41": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#42": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#43": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#44": {
+   "status": "fail",
+   "detail": ""
+  },
+  "toml#45": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#46": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#47": {
+   "status": "fail",
+   "detail": ""
+  },
+  "toml#48": {
+   "status": "fail",
+   "detail": ""
+  },
+  "toml#49": {
+   "status": "fail",
+   "detail": ""
+  },
+  "toml#50": {
+   "status": "fail",
+   "detail": ""
+  },
+  "toml#51": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#52": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#53": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#54": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#55": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#56": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#57": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#58": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#59": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#60": {
+   "status": "exact",
+   "detail": ""
+  },
+  "toml#61": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#0": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#1": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#2": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#3": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#4": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#5": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#6": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#7": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#8": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#9": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#10": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#11": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#12": {
+   "status": "unsupported",
+   "detail": "unknown operator DECODE"
+  },
+  "properties#13": {
+   "status": "unsupported",
+   "detail": "unknown operator REDUCE"
+  },
+  "properties#14": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#15": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#16": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#17": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#18": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#19": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#20": {
+   "status": "exact",
+   "detail": ""
+  },
+  "properties#21": {
+   "status": "exact",
+   "detail": ""
+  }
+ }
+}

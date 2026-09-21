@@ -79,6 +79,22 @@ class FormatRegistry:
     def output_formats(self) -> list[str]:
         return [s.name for s in self._specs if s.encoder_factory is not None]
 
+    def input_extensions(self) -> list[str]:
+        """File extensions (without the dot) of every format that can be read.
+
+        The GUI's "open" dialog uses this, so a newly registered input format shows up there
+        without a second table.
+        """
+        out: list[str] = []
+        for spec in self._specs:
+            if spec.decoder_factory is None:
+                continue
+            for ext in spec.extensions:
+                name = ext.lstrip(".")
+                if name not in out:
+                    out.append(name)
+        return out
+
     def all_names(self) -> list[str]:
         names: list[str] = []
         for spec in self._specs:
@@ -105,9 +121,12 @@ _builtin: FormatRegistry | None = None
 def builtin_formats() -> FormatRegistry:
     global _builtin
     if _builtin is None:
+        from yaqpy.formats.csv_codec import CsvDecoder, CsvEncoder
         from yaqpy.formats.json_codec import JsonDecoder, JsonEncoder
-        from yaqpy.formats.props_codec import PropertiesEncoder
+        from yaqpy.formats.props_codec import PropertiesDecoder, PropertiesEncoder
+        from yaqpy.formats.toml_codec import TomlDecoder, TomlEncoder
         from yaqpy.formats.toon_codec import ToonDecoder, ToonEncoder
+        from yaqpy.formats.xml_codec import XmlDecoder, XmlEncoder
         from yaqpy.formats.yaml.codec import YamlDecoder, YamlEncoder
 
         reg = FormatRegistry()
@@ -125,7 +144,7 @@ def builtin_formats() -> FormatRegistry:
         ))
         reg.register(FormatSpec(
             "props", ("p", "properties"), (".properties",),
-            decoder_factory=None,
+            decoder_factory=lambda o: PropertiesDecoder(o),
             encoder_factory=lambda o, u: PropertiesEncoder(o, unwrap_scalar=u),
             unwrap_scalar_default=True,
         ))
@@ -133,6 +152,30 @@ def builtin_formats() -> FormatRegistry:
             "toon", (), (".toon",),
             decoder_factory=lambda o: ToonDecoder(o),
             encoder_factory=lambda o, u: ToonEncoder(o, unwrap_scalar=u),
+            unwrap_scalar_default=False,
+        ))
+        reg.register(FormatSpec(
+            "xml", ("x",), (".xml",),
+            decoder_factory=lambda o: XmlDecoder(o),
+            encoder_factory=lambda o, u: XmlEncoder(o, unwrap_scalar=u),
+            unwrap_scalar_default=False,
+        ))
+        reg.register(FormatSpec(
+            "csv", ("c",), (".csv",),
+            decoder_factory=lambda o: CsvDecoder(o),
+            encoder_factory=lambda o, u: CsvEncoder(o, unwrap_scalar=u),
+            unwrap_scalar_default=False,
+        ))
+        reg.register(FormatSpec(
+            "tsv", ("t",), (".tsv",),
+            decoder_factory=lambda o: CsvDecoder(o, tsv=True),
+            encoder_factory=lambda o, u: CsvEncoder(o, tsv=True, unwrap_scalar=u),
+            unwrap_scalar_default=False,
+        ))
+        reg.register(FormatSpec(
+            "toml", (), (".toml",),
+            decoder_factory=lambda o: TomlDecoder(o),
+            encoder_factory=lambda o, u: TomlEncoder(o, unwrap_scalar=u),
             unwrap_scalar_default=False,
         ))
         _builtin = reg.freeze()

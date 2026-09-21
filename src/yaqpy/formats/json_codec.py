@@ -17,13 +17,17 @@ class _Raw(str):
     """A number kept as its original text."""
 
 
+class _Object(list):
+    """The ``(key, value)`` pairs of a JSON object. A subclass so that ``{}`` (no pairs) is not
+    mistaken for ``[]``."""
+
+
 def _pairs_hook(pairs: list[tuple[str, Any]]) -> list[tuple[str, Any]]:
-    return pairs
+    return _Object(pairs)
 
 
 def _to_node(value: Any, parent: Node | None = None) -> Node:
-    if isinstance(value, list) and value and isinstance(value[0], tuple) and len(value[0]) == 2 \
-            and all(isinstance(p, tuple) for p in value):
+    if isinstance(value, _Object):
         node = Node.mapping(parent=parent)
         for key, child in value:
             key_node = Node.string(str(key))
@@ -34,7 +38,7 @@ def _to_node(value: Any, parent: Node | None = None) -> Node:
             child_node.key = key_node
             node.content.extend((key_node, child_node))
         return node
-    if isinstance(value, list) and (not value or not isinstance(value[0], tuple)):
+    if isinstance(value, list):
         node = Node.sequence(parent=parent)
         for i, child in enumerate(value):
             key_node = Node.integer(i)
@@ -44,8 +48,6 @@ def _to_node(value: Any, parent: Node | None = None) -> Node:
             child_node.key = key_node
             node.content.append(child_node)
         return node
-    if isinstance(value, list):  # empty object decoded via pairs hook
-        return Node.mapping(parent=parent)
     if value is None:
         return Node(Kind.SCALAR, tag="!!null", value="null", parent=parent)
     if isinstance(value, bool):

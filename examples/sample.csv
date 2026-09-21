@@ -1,0 +1,4 @@
+name,price,in_stock
+pen,120,true
+book,980,false
+"note, A4",250,true

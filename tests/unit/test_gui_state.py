@@ -72,7 +72,8 @@ class DiTests(unittest.TestCase):
         from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
 
         self.assertIn("yaml", input_format_choices())
-        self.assertNotIn("props", input_format_choices())   # props は入力に使えない
+        for name in ("json", "toon", "xml", "csv", "tsv", "props"):
+            self.assertIn(name, input_format_choices())      # 登録された形式は自動で選べる
         self.assertIn("props", output_format_choices())
         self.assertEqual(extension_for("json"), "json")
         self.assertEqual(extension_for("props"), "properties")

@@ -287,6 +287,7 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     LexRule("AssignRefVariable", r"ref", _op("ASSIGN_VARIABLE", P.AssignVarPrefs(is_reference=True))),
     LexRule("CreateMap", r":\s*", _op("CREATE_MAP")),
     _simple("length", "LENGTH"),
+    _simple("schema", "SCHEMA"),
     _simple("line", "LINE"),
     _simple("column", "COLUMN"),
     _simple("eval", "EVAL"),

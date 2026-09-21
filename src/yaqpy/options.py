@@ -83,6 +83,56 @@ class ToonOptions:
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
+class XmlOptions:
+    """XML settings; the defaults and the CLI flags follow the Go yq (``--xml-*``)."""
+
+    indent: int = 2
+    attribute_prefix: str = "+@"
+    content_name: str = "+content"
+    strict_mode: bool = False
+    keep_namespace: bool = True
+    raw_token: bool = True
+    proc_inst_prefix: str = "+p_"
+    directive_name: str = "+directive"
+    skip_proc_inst: bool = False
+    skip_directives: bool = False
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class CsvOptions:
+    """CSV / TSV settings (``--csv-separator``, ``--csv-auto-parse``, ``--tsv-auto-parse``)."""
+
+    separator: str = ","
+    auto_parse: bool = True
+    tsv_auto_parse: bool = True
+
+    def __post_init__(self) -> None:
+        if len(self.separator) != 1:
+            raise ValueError("csv separator must be a single character")
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class TomlOptions:
+    """TOML settings. ``allow_lossy`` lets ``-i`` rewrite a TOML file although the comments
+    are not kept (``--toml-allow-lossy``)."""
+
+    allow_lossy: bool = False
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
+class SchemaOptions:
+    """Settings of the ``schema`` operator (a yaqpy extension)."""
+
+    strict: bool = False        # additionalProperties: false on every object
+    enum_max: int = 0           # > 0: strings with at most this many distinct values become an enum
+    per_doc: bool = False       # one schema per input node instead of one for all of them
+
+    def __post_init__(self) -> None:
+        if self.enum_max < 0:
+            raise ValueError("enum_max must not be negative")
+
+
+@dataclass(frozen=True, slots=True, kw_only=True)
 class Options:
     input_format: str = "yaml"
     output_format: str | None = None
@@ -95,6 +145,10 @@ class Options:
     json: JsonOptions = field(default_factory=JsonOptions)
     props: PropertiesOptions = field(default_factory=PropertiesOptions)
     toon: ToonOptions = field(default_factory=ToonOptions)
+    xml: XmlOptions = field(default_factory=XmlOptions)
+    csv: CsvOptions = field(default_factory=CsvOptions)
+    toml: TomlOptions = field(default_factory=TomlOptions)
+    schema: SchemaOptions = field(default_factory=SchemaOptions)
     security: SecurityPolicy = field(default_factory=SecurityPolicy.strict)
     limits: Limits = field(default_factory=Limits)
 

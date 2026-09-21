@@ -15,17 +15,18 @@ from yaqpy.errors import (
     UnknownFormatError, YamlSyntaxError, YqError,
 )
 from yaqpy.options import (
-    JsonOptions, Limits, Options, PropertiesOptions, SecurityPolicy, ToonOptions, YamlOptions,
+    CsvOptions, JsonOptions, Limits, Options, PropertiesOptions, SchemaOptions, SecurityPolicy,
+    TomlOptions, ToonOptions, XmlOptions, YamlOptions,
 )
 
-__version__ = "0.1.0"
+__version__ = "0.2.0"
 
 __all__ = [
     "Yq", "compile", "dump", "evaluate", "evaluate_all", "load", "query", "update",
     "Expression", "Kind", "Node", "Style",
     "EvaluationError", "EvaluationLimitError", "ExpressionSyntaxError", "FormatError",
     "SecurityError", "UnknownFormatError", "YamlSyntaxError", "YqError",
-    "JsonOptions", "Limits", "Options", "PropertiesOptions", "SecurityPolicy", "ToonOptions",
-    "YamlOptions",
+    "CsvOptions", "JsonOptions", "Limits", "Options", "PropertiesOptions", "SchemaOptions",
+    "SecurityPolicy", "TomlOptions", "ToonOptions", "XmlOptions", "YamlOptions",
     "__version__",
 ]

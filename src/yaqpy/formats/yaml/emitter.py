@@ -59,6 +59,15 @@ class YamlEmitter:
             return " " + _ensure_hash(node.line_comment.split("\n")[0])
         return ""
 
+    @staticmethod
+    def _line_comment_rest(node: Node, col: int) -> list[str]:
+        """Lines 2..n of a multi-line line comment: go-yaml writes them below, at the current indent."""
+        if "\n" not in node.line_comment:
+            return []
+        pad = " " * col
+        return [pad + _ensure_hash(raw.lstrip()) if raw.strip() else ""
+                for raw in node.line_comment.split("\n")[1:]]
+
     def _emit_comment_lines(self, lines: list[str], comment: str, col: int) -> None:
         if not comment:
             return
@@ -95,7 +104,10 @@ class YamlEmitter:
 
     def _emit_mapping(self, lines: list[str], node: Node, col: int) -> None:
         pad = " " * col
+        foot_written = False
         for key, value in node.map_items():
+            if foot_written:
+                lines.append("")            # go-yaml's foot_indent: a foot comment is set apart
             self._emit_comment_lines(lines, key.head_comment, col)
             if value.head_comment and value.head_comment != key.head_comment:
                 self._emit_comment_lines(lines, value.head_comment, col)
@@ -113,6 +125,7 @@ class YamlEmitter:
             self._emit_comment_lines(lines, key.foot_comment, col)
             if value.foot_comment and value.foot_comment != key.foot_comment:
                 self._emit_comment_lines(lines, value.foot_comment, col)
+            foot_written = bool(key.foot_comment or value.foot_comment)
 
     def _key_text(self, key: Node, col: int) -> str | None:
         if key.kind is Kind.ALIAS:
@@ -140,13 +153,16 @@ class YamlEmitter:
                     lines.extend(body.split("\n"))
             else:
                 lines.append((head + " " + text).rstrip() + comment)
+                lines.extend(self._line_comment_rest(key if key_comment else value, col))
             return
         if value.style & Style.FLOW or not value.content:
             lines.append(head + " " + self._props(value) + self._flow(value)
                          + (key_comment or self._line_comment(value)))
+            lines.extend(self._line_comment_rest(key if key_comment else value, col))
             return
         props = self._props(value)
         lines.append((head + " " + props).rstrip() + (key_comment or self._line_comment(value)))
+        lines.extend(self._line_comment_rest(key if key_comment else value, col))
         if value.kind is Kind.MAPPING:
             self._emit_mapping(lines, value, col + self.indent)
         else:
@@ -155,10 +171,14 @@ class YamlEmitter:
 
     def _emit_sequence(self, lines: list[str], node: Node, col: int) -> None:
         pad = " " * col
+        foot_written = False
         for item in node.content:
+            if foot_written:
+                lines.append("")
             self._emit_comment_lines(lines, item.head_comment, col)
             self._emit_block_value(lines, item, col, pad, is_seq_item=True, key_text=None)
             self._emit_comment_lines(lines, item.foot_comment, col)
+            foot_written = bool(item.foot_comment)
 
     def _emit_block_value(self, lines: list[str], value: Node, col: int, pad: str, *,
                           is_seq_item: bool, key_text: str | None) -> None:
@@ -273,10 +293,12 @@ class YamlEmitter:
                 return _double_quote(value)
             return self._block_scalar(value, col, literal=True)
         explicit_tag = bool(style & Style.TAGGED) or (tag != "" and not tag.startswith("!!"))
+        if tag == "!!str" and not explicit_tag and resolve_plain(value) != "!!str":
+            return _double_quote(value)         # would be read back as another type: go-yaml forces "..."
         if self._plain_ok(value, tag, in_flow, explicit_tag):
             return value
         if _single_quote_ok(value) and not _PRINTABLE_RE.search(value):
-            return _double_quote(value) if '"' not in value and "\\" not in value else _single_quote(value)
+            return _single_quote(value)         # plain is not possible: go-yaml falls back to '...'
         return _double_quote(value)
 
     @staticmethod
@@ -339,7 +361,9 @@ def _ensure_hash(text: str) -> str:
 
 
 def _single_quote_ok(value: str) -> bool:
-    return not _PRINTABLE_RE.search(value) and "\n" not in value
+    # go-yaml treats tab and carriage return as special characters: only "..." can carry them
+    return not _PRINTABLE_RE.search(value) and "\n" not in value and "\t" not in value \
+        and "\r" not in value
 
 
 def _single_quote(value: str) -> str:

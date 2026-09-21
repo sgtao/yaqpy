@@ -2,6 +2,10 @@
 
 Usage:
     uv run python tools/golden_report.py [--fails] [--file operator_add] [--write tests/golden/manifest.json]
+    uv run python tools/golden_report.py --formats [--fails] [--file xml] [--write-formats tests/golden/formats_manifest.json]
+
+The default report covers the operator scenarios. ``--formats`` reports the format scenarios
+(XML, CSV/TSV, TOML, properties) instead, with one pass rate per format.
 """
 
 from __future__ import annotations
@@ -16,6 +20,53 @@ sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 
 from tests.support.golden import MVP_FILES, load_scenarios, run_scenario, summarize  # noqa: E402
+from tests.support.golden_formats import (  # noqa: E402
+    FORMAT_FILES, load_format_scenarios, run_format_scenario, summarize_formats,
+)
+
+
+def _rate(value: float | None) -> str:
+    return "n/a" if value is None else f"{value:.1%}"
+
+
+def format_report(args: argparse.Namespace) -> int:
+    scenarios = load_format_scenarios()
+    if args.file:
+        scenarios = [s for s in scenarios if s["source"] == args.file + "_test.go"]
+    outcomes = [run_format_scenario(s) for s in scenarios]
+    summary = summarize_formats(outcomes)
+
+    print(f"{'format':12} {'total':>6} {'exact':>6} {'sem':>5} {'fail':>5} {'err':>5} {'unsup':>6} "
+          f"{'other':>6} {'pass rate':>10}")
+    for name in FORMAT_FILES:
+        item = summary[name]
+        c = item["counts"]
+        other = c.get("unresolved", 0) + c.get("skipped", 0)
+        print(f"{name:12} {item['total']:6} {c.get('exact', 0):6} {c.get('semantic', 0):5} "
+              f"{c.get('fail', 0):5} {c.get('error', 0):5} {c.get('unsupported', 0):6} {other:6} "
+              f"{_rate(item['pass_rate']):>10}")
+    print()
+    total = summary["all"]
+    print(f"FORMATS scenarios: {total['total']:4}  pass rate {_rate(total['pass_rate'])}  "
+          f"{total['counts']}")
+
+    if args.fails:
+        for o in outcomes:
+            if o.status in ("fail", "error"):
+                print("-" * 70)
+                print(f"{o.status.upper()} {o.id}: {o.detail}")
+                if o.expected is not None:
+                    print("expected:", json.dumps(o.expected, ensure_ascii=False))
+                if o.actual is not None:
+                    print("actual:  ", json.dumps(o.actual, ensure_ascii=False))
+    if args.write_formats:
+        manifest = {
+            "summary": summary,
+            "scenarios": {o.id: {"status": o.status, "detail": o.detail} for o in outcomes},
+        }
+        Path(args.write_formats).write_text(json.dumps(manifest, ensure_ascii=False, indent=1) + "\n",
+                                            encoding="utf-8")
+    return 0
 
 
 def main() -> int:
@@ -24,7 +75,13 @@ def main() -> int:
     ap.add_argument("--file", default="", help="only scenarios from this Go test file (without _test.go)")
     ap.add_argument("--write", default="", help="write the manifest JSON to this path")
     ap.add_argument("--mvp-only", action="store_true")
+    ap.add_argument("--formats", action="store_true",
+                    help="report the format scenarios (XML, CSV/TSV, TOML, properties)")
+    ap.add_argument("--write-formats", default="",
+                    help="with --formats: write the format manifest JSON to this path")
     args = ap.parse_args()
+    if args.formats:
+        return format_report(args)
 
     scenarios = load_scenarios()
     if args.file:
