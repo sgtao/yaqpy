@@ -1,0 +1,194 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Anthropic Messages request body",
+  "$comment": "Written from https://platform.claude.com/docs/en/api/messages and the parameters of MessageCreateParams in anthropic-sdk-python (src/anthropic/types/message_create_params.py), both read 2026-09-22: the property names, the required keys (model, max_tokens, messages), the roles (user, assistant), the tool_choice types and the documented range of temperature (0 to 1; the documentation marks temperature as deprecated for newer models). Message contents are checked as far as the block type and the text go.",
+  "type": "object",
+  "required": [
+    "model",
+    "max_tokens",
+    "messages"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "model": {
+      "type": "string"
+    },
+    "max_tokens": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "messages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/message"
+      }
+    },
+    "system": {
+      "oneOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "type",
+              "text"
+            ],
+            "properties": {
+              "type": {
+                "const": "text"
+              },
+              "text": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "temperature": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "top_p": {
+      "type": "number"
+    },
+    "top_k": {
+      "type": "integer"
+    },
+    "stop_sequences": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "stream": {
+      "type": "boolean"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "oneOf": [
+          {
+            "required": [
+              "name",
+              "input_schema"
+            ],
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "input_schema": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "type": {
+                    "const": "object"
+                  }
+                }
+              }
+            }
+          },
+          {
+            "required": [
+              "type"
+            ],
+            "properties": {
+              "type": {
+                "type": "string"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "tool_choice": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "auto",
+            "any",
+            "tool",
+            "none"
+          ]
+        },
+        "name": {
+          "type": "string"
+        },
+        "disable_parallel_tool_use": {
+          "type": "boolean"
+        }
+      }
+    },
+    "metadata": {
+      "type": "object",
+      "properties": {
+        "user_id": {
+          "type": "string"
+        }
+      }
+    },
+    "thinking": {},
+    "cache_control": {},
+    "container": {},
+    "inference_geo": {},
+    "output_config": {},
+    "service_tier": {},
+    "user_profile_id": {},
+    "workspace_id": {}
+  },
+  "$defs": {
+    "message": {
+      "type": "object",
+      "required": [
+        "role",
+        "content"
+      ],
+      "properties": {
+        "role": {
+          "enum": [
+            "user",
+            "assistant"
+          ]
+        },
+        "content": {
+          "oneOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "required": [
+                  "type"
+                ],
+                "properties": {
+                  "type": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  }
+}

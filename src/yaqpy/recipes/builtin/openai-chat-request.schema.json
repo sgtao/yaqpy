@@ -1,0 +1,404 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "OpenAI Chat Completions request body",
+  "$comment": "Written from components.schemas.CreateChatCompletionRequest of https://raw.githubusercontent.com/openai/openai-openapi/master/openapi.yaml (read 2026-09-22): the property names, the required keys (model, messages), the ranges of temperature / top_p / n / the penalties, stop (at most 4) and the message roles. Message contents are checked as far as text parts go.",
+  "type": "object",
+  "required": [
+    "model",
+    "messages"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "audio": {},
+    "frequency_penalty": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -2,
+      "maximum": 2
+    },
+    "function_call": {},
+    "functions": {},
+    "logit_bias": {},
+    "logprobs": {},
+    "max_completion_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "max_tokens": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "messages": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/message"
+      }
+    },
+    "metadata": {},
+    "modalities": {},
+    "model": {
+      "type": "string"
+    },
+    "moderation": {},
+    "n": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 1,
+      "maximum": 128
+    },
+    "parallel_tool_calls": {
+      "type": "boolean"
+    },
+    "prediction": {},
+    "presence_penalty": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": -2,
+      "maximum": 2
+    },
+    "prompt_cache_key": {},
+    "prompt_cache_options": {},
+    "prompt_cache_retention": {},
+    "reasoning_effort": {},
+    "response_format": {
+      "type": "object",
+      "required": [
+        "type"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "text",
+            "json_object",
+            "json_schema"
+          ]
+        },
+        "json_schema": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "schema": {
+              "type": "object"
+            }
+          }
+        }
+      }
+    },
+    "safety_identifier": {},
+    "seed": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "service_tier": {},
+    "stop": {
+      "oneOf": [
+        {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "items": {
+            "type": "string"
+          }
+        }
+      ]
+    },
+    "store": {},
+    "stream": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "stream_options": {},
+    "temperature": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 2
+    },
+    "tool_choice": {
+      "oneOf": [
+        {
+          "enum": [
+            "none",
+            "auto",
+            "required"
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "type",
+            "function"
+          ],
+          "properties": {
+            "type": {
+              "const": "function"
+            },
+            "function": {
+              "type": "object",
+              "required": [
+                "name"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/tool"
+      }
+    },
+    "top_logprobs": {},
+    "top_p": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "user": {
+      "type": "string"
+    },
+    "verbosity": {},
+    "web_search_options": {}
+  },
+  "$defs": {
+    "message": {
+      "type": "object",
+      "required": [
+        "role"
+      ],
+      "oneOf": [
+        {
+          "properties": {
+            "role": {
+              "enum": [
+                "system",
+                "developer"
+              ]
+            },
+            "content": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "text"
+                    ],
+                    "properties": {
+                      "type": {
+                        "const": "text"
+                      },
+                      "text": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "required": [
+            "role",
+            "content"
+          ]
+        },
+        {
+          "properties": {
+            "role": {
+              "const": "user"
+            },
+            "content": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "type"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "required": [
+            "role",
+            "content"
+          ]
+        },
+        {
+          "properties": {
+            "role": {
+              "const": "assistant"
+            },
+            "content": {
+              "oneOf": [
+                {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "type"
+                    ],
+                    "properties": {
+                      "type": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "required": [
+            "role"
+          ]
+        },
+        {
+          "properties": {
+            "role": {
+              "const": "tool"
+            },
+            "tool_call_id": {
+              "type": "string"
+            },
+            "content": {
+              "oneOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "array",
+                  "minItems": 1,
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "type",
+                      "text"
+                    ],
+                    "properties": {
+                      "type": {
+                        "const": "text"
+                      },
+                      "text": {
+                        "type": "string"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          },
+          "required": [
+            "role",
+            "content",
+            "tool_call_id"
+          ]
+        },
+        {
+          "properties": {
+            "role": {
+              "const": "function"
+            }
+          },
+          "required": [
+            "role"
+          ]
+        }
+      ]
+    },
+    "tool": {
+      "type": "object",
+      "required": [
+        "type",
+        "function"
+      ],
+      "properties": {
+        "type": {
+          "const": "function"
+        },
+        "function": {
+          "type": "object",
+          "required": [
+            "name"
+          ],
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "parameters": {
+              "type": "object"
+            },
+            "strict": {
+              "type": [
+                "boolean",
+                "null"
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}
