@@ -186,6 +186,24 @@ class ErrorTests(unittest.TestCase):
             with self.subTest(text=text), self.assertRaises(FormatError):
                 read(text)
 
+    def test_dates_and_times_must_be_in_range(self) -> None:
+        for text in ("a = 2000-02-30\n", "a = 2001-02-29\n", "a = 2000-13-01\n", "a = 2000-00-10\n",
+                     "a = 2000-01-01T24:00:00Z\n", "a = 07:60:00\n", "a = 2000-01-01T00:00:61Z\n",
+                     "a = 2000-01-01T00:00:00+24:00\n", "a = 2000-01-01T00:00:00+01:60\n"):
+            with self.subTest(text=text), self.assertRaises(FormatError):
+                read(text)
+        for text in ("a = 2000-02-29\n", "a = 23:59:59\n", "a = 2000-01-01T23:59:60Z\n",
+                     "a = 2000-12-31 23:59:59+23:59\n"):
+            with self.subTest(text=text):
+                read(text)
+
+    def test_comments_may_not_hold_control_characters(self) -> None:
+        with self.assertRaises(FormatError):
+            read("a = 1 # bad \x01 comment\n")
+        with self.assertRaises(FormatError):
+            read("# bad \x7f\na = 1\n")
+        self.assertEqual(read("a = 1 # tab\there\r\n# ok\r\nb = 2\r\n"), {"a": 1, "b": 2})
+
     def test_error_names_the_file(self) -> None:
         with self.assertRaises(FormatError) as ctx:
             list(TomlDecoder().decode_documents("a =\n", filename="x.toml"))

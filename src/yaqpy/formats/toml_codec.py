@@ -20,6 +20,7 @@ tables]]``; a value is a table section unless it carries the ``inline`` hint.
 
 from __future__ import annotations
 
+import datetime
 import re
 from collections.abc import Iterator
 from typing import TextIO
@@ -43,6 +44,7 @@ _FLOAT = re.compile(
     r"[+-]?(?:0|[1-9](?:_?[0-9])*)(?:\.[0-9](?:_?[0-9])*)?(?:[eE][+-]?[0-9](?:_?[0-9])*)?"
     r"|[+-]?(?:inf|nan)")
 _DELIMITERS = " \t\r\n,]}#"
+_COMMENT_CONTROL = re.compile("[\x00-\x08\x0a-\x1f\x7f]")     # a tab is the only control character allowed
 _ESCAPES = {"b": "\b", "t": "\t", "n": "\n", "f": "\f", "r": "\r", '"': '"', "\\": "\\"}
 
 
@@ -82,7 +84,14 @@ class _Parser:
     def _skip_comment(self) -> None:
         if self._peek() == "#":
             end = self.s.find("\n", self.i)
-            self.i = self.n if end < 0 else end
+            end = self.n if end < 0 else end
+            body = self.s[self.i:end]
+            if body.endswith("\r"):
+                body = body[:-1]
+            bad = _COMMENT_CONTROL.search(body)
+            if bad:
+                raise self.error("control characters are not allowed in a comment", self.i + bad.start())
+            self.i = end
 
     def _skip_space_lines_comments(self) -> None:
         """Blanks, newlines and comments (between expressions and inside arrays)."""
@@ -278,8 +287,10 @@ class _Parser:
                 return Node(Kind.SCALAR, tag="!!bool", value=word)
         m = _DATETIME.match(s, start)
         if m is not None and (m.end() >= self.n or s[m.end()] in _DELIMITERS):
-            self.i = m.end()
             text = m.group()
+            if not _valid_datetime(text):
+                raise self.error(f"invalid date or time {text!r}")
+            self.i = m.end()
             tag = "!!timestamp" if text[4:5] == "-" else "!!str"       # a bare time is no timestamp
             return Node(Kind.SCALAR, tag=tag, value=text)
         end = start
@@ -440,6 +451,26 @@ class _Parser:
             else:
                 self._keyval(self.current, 0)
             self._end_of_expression()
+
+
+def _valid_datetime(text: str) -> bool:
+    """The numbers of a matched date/time are in range (month, day of the month, hour ...)."""
+    if text[4:5] == "-":
+        try:
+            datetime.date(int(text[0:4]), int(text[5:7]), int(text[8:10]))
+        except ValueError:
+            return False
+        text = text[11:]
+        if not text:
+            return True
+    if len(text) < 8:
+        return False
+    if int(text[0:2]) > 23 or int(text[3:5]) > 59 or int(text[6:8]) > 60:
+        return False
+    tail = text[-6:]
+    if tail[0] in "+-" and tail[3:4] == ":":
+        return int(tail[1:3]) <= 23 and int(tail[4:6]) <= 59
+    return True
 
 
 def _string(value: str) -> Node:
