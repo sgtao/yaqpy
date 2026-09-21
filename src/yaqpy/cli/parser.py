@@ -39,7 +39,22 @@ def parse_bool(text: str) -> bool:
 _OPTIONAL_VALUE_FLAGS = {
     "-r", "--unwrapScalar", "--unwrap-scalar", "--header-preprocess",
     "--yaml-fix-merge-anchor-to-spec",
+    "--xml-strict-mode", "--xml-keep-namespace", "--xml-raw-token", "--xml-skip-proc-inst",
+    "--xml-skip-directives", "--csv-auto-parse", "--tsv-auto-parse",
 }
+
+_SEPARATOR_ESCAPES = (("\\n", "\n"), ("\\t", "\t"), ("\\r", "\r"), ("\\f", "\f"), ("\\v", "\v"))
+
+
+def parse_separator(text: str) -> str:
+    """``--csv-separator``: one character; ``\\t`` and friends are accepted (Go's ``runeValue``)."""
+    value = text
+    for escaped, real in _SEPARATOR_ESCAPES:
+        value = value.replace(escaped, real)
+    if len(value) != 1:
+        raise argparse.ArgumentTypeError(
+            f"[{value}] is not a valid character. Must be length 1 was {len(value)}")
+    return value
 
 
 def normalise_argv(argv: list[str]) -> list[str]:
@@ -102,6 +117,32 @@ def build_parser() -> _Parser:
                    help="print to stdout in TOON (Token-Oriented Object Notation); same as -o toon")
     g.add_argument("--toon-delimiter", choices=["comma", "tab", "pipe"], default="comma",
                    help="delimiter for TOON arrays and table rows (default: comma)")
+    f = parser.add_argument_group("format options")
+    f.add_argument("--xml-attribute-prefix", default="+@", help="prefix for xml attributes")
+    f.add_argument("--xml-content-name", default="+content",
+                   help="name for xml content (if no attribute name is present).")
+    f.add_argument("--xml-strict-mode", nargs="?", const=True, default=False, type=parse_bool,
+                   help="enables strict parsing of XML.")
+    f.add_argument("--xml-keep-namespace", nargs="?", const=True, default=True, type=parse_bool,
+                   help="enables keeping namespace after parsing attributes")
+    f.add_argument("--xml-raw-token", nargs="?", const=True, default=True, type=parse_bool,
+                   help="use the raw token names (namespace prefixes are not translated)")
+    f.add_argument("--xml-proc-inst-prefix", default="+p_",
+                   help='prefix for xml processing instructions (e.g. <?xml version="1"?>)')
+    f.add_argument("--xml-directive-name", default="+directive",
+                   help="name for xml directives (e.g. <!DOCTYPE thing cat>)")
+    f.add_argument("--xml-skip-proc-inst", nargs="?", const=True, default=False, type=parse_bool,
+                   help='skip over process instructions (e.g. <?xml version="1"?>)')
+    f.add_argument("--xml-skip-directives", nargs="?", const=True, default=False, type=parse_bool,
+                   help="skip over directives (e.g. <!DOCTYPE thing cat>)")
+    f.add_argument("--csv-auto-parse", nargs="?", const=True, default=True, type=parse_bool,
+                   help="parse CSV YAML/JSON values")
+    f.add_argument("--csv-separator", default=",", type=parse_separator, help="CSV Separator character")
+    f.add_argument("--tsv-auto-parse", nargs="?", const=True, default=True, type=parse_bool,
+                   help="parse TSV YAML/JSON values")
+    f.add_argument("--toml-allow-lossy", action="store_true",
+                   help="allow -i to rewrite a TOML file although its comments are not kept "
+                        "(yaqpy extension)")
     i = parser.add_argument_group("input")
     i.add_argument("-i", "--inplace", action="store_true",
                    help="update the file in place of first file given.")
