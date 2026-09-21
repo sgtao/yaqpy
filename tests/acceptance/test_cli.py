@@ -435,5 +435,94 @@ class SecurityTests(CliTestCase):
         self.assertIn("disabled", r.stderr)
 
 
+REQUEST = '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hello"}], "stream": true}'
+
+
+class RecipeTests(CliTestCase):
+    """--recipe in a real process: the result goes to stdout, the report to stderr, exit codes."""
+
+    def test_the_result_is_on_stdout_and_the_report_on_stderr(self) -> None:
+        path = self.write("request.json", REQUEST)
+        r = yq("--recipe", "openai-to-gemini", "-I", "0", path)
+        self.assertEqual(r.returncode, 0)
+        self.assertEqual(r.stdout, '{"contents":[{"role":"user","parts":[{"text":"Hello"}]}]}\n')
+        self.assertIn("dropped .model", r.stderr)
+        self.assertIn("dropped .stream", r.stderr)
+
+    def test_a_pipeline_gets_only_the_body(self) -> None:
+        r = yq("--recipe", "openai-to-gemini", "-I", "0", stdin=REQUEST)
+        self.assertEqual(r.returncode, 0)
+        self.assertTrue(r.stdout.startswith('{"contents"'))
+        self.assertNotIn("dropped", r.stdout)
+
+    def test_a_chain_of_two_recipes_through_a_pipe(self) -> None:
+        first = yq("--recipe", "openai-to-gemini", "-I", "0", stdin=REQUEST)
+        second = yq("--recipe", "gemini-to-anthropic", "-I", "0", stdin=first.stdout)
+        self.assertEqual(second.returncode, 0)
+        self.assertEqual(second.stdout, '{"messages":[{"role":"user","content":[{"type":"text","text":"Hello"}]}],'
+                                        '"max_tokens":4096}\n')
+        self.assertIn("added .max_tokens = 4096", second.stderr)
+
+    def test_report_and_recipe_test(self) -> None:
+        path = self.write("request.json", REQUEST)
+        r = yq("--recipe", "openai-to-anthropic", "--report", path)
+        self.assertEqual(r.returncode, 0)
+        self.assertIn("Verdict: needs a look", r.stdout)
+        self.assertEqual(r.stderr, "")
+        t = yq("--recipe", "openai-to-anthropic", "--recipe-test")
+        self.assertEqual((t.returncode, t.stdout.splitlines()[-1]), (0, "5/5 passed"))
+
+    def test_apply_writes_only_into_the_output_directory(self) -> None:
+        path = self.write("request.json", REQUEST)
+        out_dir = self.dir / "converted"
+        r = yq("--recipe", "openai-to-gemini", "--apply", "--out-dir", str(out_dir), path)
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertTrue((out_dir / "request.json").exists())
+        self.assertEqual(Path(path).read_text(encoding="utf-8"), REQUEST)      # the input is untouched
+        refused = yq("--recipe", "openai-to-gemini", "--apply", "--out-dir", str(self.dir), path)
+        self.assertEqual(refused.returncode, 1)
+        self.assertEqual(Path(path).read_text(encoding="utf-8"), REQUEST)
+
+    def test_list_recipes_and_bad_use(self) -> None:
+        listing = yq("--list-recipes")
+        self.assertEqual(listing.returncode, 0)
+        self.assertIn("openai-to-gemini", listing.stdout)
+        bad = yq("--recipe", "nope", self.write("x.json", "{}"))
+        self.assertEqual((bad.returncode, bad.stdout), (1, ""))
+        self.assertIn("unknown recipe", bad.stderr)
+
+    def test_a_recipe_cannot_read_the_environment(self) -> None:
+        recipe = self.write("spy.yaqpy", "env(HOME)")
+        r = yq("--recipe", recipe, self.write("x.json", "{}"))
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("env operations have been disabled", r.stderr)
+
+
+class DescribeTests(CliTestCase):
+    def test_each_flag_prints_and_exits_zero_from_an_empty_directory(self) -> None:
+        for flag, start in (("--print-spec", "# yaqpy 式の仕様"), ("--example", "# yaqpy の使用例"),
+                            ("--guide-prompt", "# yaqpy の式を書いてください"),
+                            ("--skill-md", "---\nname: yaqpy\n")):
+            with self.subTest(flag=flag):
+                r = yq(flag, cwd=str(self.dir))
+                self.assertEqual((r.returncode, r.stderr), (0, ""))
+                self.assertTrue(r.stdout.startswith(start))
+
+    def test_the_skill_can_be_placed_and_its_example_commands_run(self) -> None:
+        skill = yq("--skill-md").stdout
+        target = self.dir / ".claude" / "skills" / "yaqpy" / "SKILL.md"
+        target.parent.mkdir(parents=True)
+        target.write_text(skill, encoding="utf-8", newline="\n")
+        self.assertTrue(target.read_text(encoding="utf-8").startswith("---\nname: yaqpy\n"))
+        data = self.write("shop.yaml", "server:\n  port: 8080\nitems:\n  - {name: pen, price: 120}\n"
+                                       "  - {name: cap, price: 80}\n")
+        self.assertEqual(yq(".server.port", data).stdout, "8080\n")           # the first example of the skill
+        self.assertEqual(yq(".items[] | select(.price > 100) | .name", data).stdout, "pen\n")
+
+    def test_prune_flags_in_a_real_process(self) -> None:
+        r = yq("-o", "json", "-I", "0", "--prune-null", "--prune-empty", stdin='{"a": null, "b": {}, "d": 1}')
+        self.assertEqual((r.returncode, r.stdout), (0, '{"d":1}\n'))
+
+
 if __name__ == "__main__":
     unittest.main()
