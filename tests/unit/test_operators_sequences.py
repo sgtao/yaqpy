@@ -160,5 +160,93 @@ class PivotTests(unittest.TestCase):
         self.assertIn("can only pivot elements of !!seq or !!map types", str(raised.exception))
 
 
+class PickOmitTests(unittest.TestCase):
+    def test_pick_keeps_the_order_of_the_request(self) -> None:
+        self.assertEqual(list(run('pick(["c", "a"])', "{a: 1, b: 2, c: 3}")), ["c", "a"])
+
+    def test_pick_ignores_missing_keys(self) -> None:
+        self.assertEqual(run('pick(["a", "zzz"])', "{a: 1}"), {"a": 1})
+
+    def test_pick_from_an_array_by_index(self) -> None:
+        self.assertEqual(run("pick([2, 0, 9, -1])", "[a, b, c]"), ["c", "a"])
+
+    def test_pick_needs_integer_indices_for_arrays(self) -> None:
+        with self.assertRaises(EvaluationError) as raised:
+            run('pick(["x"])', "[a, b]")
+        self.assertEqual(str(raised.exception), "cannot index array with x")
+
+    def test_pick_from_a_scalar_is_an_error(self) -> None:
+        with self.assertRaises(EvaluationError):
+            run('pick(["a"])', "3")
+
+    def test_omit_drops_keys_and_indices(self) -> None:
+        self.assertEqual(run('omit(["b"])', "{a: 1, b: 2, c: 3}"), {"a": 1, "c": 3})
+        self.assertEqual(run("omit([0, 2])", "[a, b, c, d]"), ["b", "d"])
+
+    def test_omit_nothing_or_from_a_scalar_changes_nothing(self) -> None:
+        self.assertEqual(run("omit([])", "{a: 1}"), {"a": 1})
+        self.assertEqual(run('omit(["a"])', "3"), 3)
+
+    def test_paths_are_renumbered_after_omit(self) -> None:
+        paths = yaqpy.evaluate("omit([0]) | .[] | path | .[0]", "[a, b, c]")
+        self.assertEqual(paths.split(), ["0", "1"])
+
+
+class SortKeysTests(unittest.TestCase):
+    def test_sorts_in_place(self) -> None:
+        self.assertEqual(list(run("sort_keys(.)", "{b: 1, a: 2, C: 3}")), ["C", "a", "b"])
+
+    def test_sorts_a_nested_map_only(self) -> None:
+        out = run("sort_keys(.x)", "{z: 1, x: {b: 1, a: 2}}")
+        self.assertEqual(list(out), ["z", "x"])
+        self.assertEqual(list(out["x"]), ["a", "b"])
+
+    def test_deep_with_recursive_descent(self) -> None:
+        out = run("sort_keys(..)", "{b: {d: 1, c: 2}, a: 3}")
+        self.assertEqual(list(out), ["a", "b"])
+        self.assertEqual(list(out["b"]), ["c", "d"])
+
+
+class WithReduceTests(unittest.TestCase):
+    def test_with_updates_relative_to_the_path(self) -> None:
+        self.assertEqual(run('with(.a; .b = 1 | .c = "x")', "a: {}"), {"a": {"b": 1, "c": "x"}})
+
+    def test_with_needs_a_block(self) -> None:
+        with self.assertRaises(EvaluationError) as raised:
+            run(".a |= with(.b)", "a: {b: 1}")
+        self.assertIn("with must be given a block (;)", str(raised.exception))
+
+    def test_reduce_sums(self) -> None:
+        self.assertEqual(run(".[] as $x ireduce (0; . + $x)", "[1, 2, 3, 4]"), 10)
+
+    def test_reduce_does_not_leak_its_variable(self) -> None:
+        # an unset variable gives no result
+        self.assertEqual(yaqpy.evaluate(".[] as $x ireduce (0; . + $x) | $x", "[1, 2]"), "")
+
+    def test_reduce_needs_a_variable_assignment(self) -> None:
+        with self.assertRaises(EvaluationError) as raised:
+            run(".[] ireduce (0; . + 1)", "[1]")
+        self.assertIn("reduce must be given a variables assignment", str(raised.exception))
+
+    def test_array_to_map(self) -> None:
+        self.assertEqual(run("array_to_map", "[a, b]"), {"0": "a", "1": "b"})
+
+
+class ContainsTests(unittest.TestCase):
+    def test_string_and_list_and_map(self) -> None:
+        self.assertIs(run('contains("ell")', "hello"), True)
+        self.assertIs(run("contains([2, 3])", "[1, 2, 3]"), True)
+        self.assertIs(run('contains({"a": 1})', "{a: 1, b: 2}"), True)
+        self.assertIs(run('contains({"a": 9})', "{a: 1, b: 2}"), False)
+
+    def test_kinds_must_match(self) -> None:
+        with self.assertRaises(EvaluationError) as raised:
+            run("contains([1])", "hello")
+        self.assertEqual(str(raised.exception), "!!seq cannot check contained in !!str")
+
+    def test_tags_must_match_for_scalars(self) -> None:
+        self.assertIs(run("contains(1)", "1.0"), False)
+
+
 if __name__ == "__main__":
     unittest.main()
