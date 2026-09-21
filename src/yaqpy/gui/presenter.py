@@ -12,10 +12,11 @@ from yaqpy.app.ports import FileSystemPort
 from yaqpy.app.printer import MemorySink
 from yaqpy.app.service import YqService
 from yaqpy.core.engine.limits import StepBudget
+from yaqpy.errors import UnknownFormatError
 from yaqpy.gui import intake, texts
 from yaqpy.gui.errors_ja import ErrorViewModel, to_view_model
 from yaqpy.gui.paths import DEFAULT_MAX_DEPTH, DEFAULT_MAX_ITEMS, PathCandidate, collect_paths
-from yaqpy.gui.state import DocumentState, GuiState, build_options, truncate_for_display
+from yaqpy.gui.state import AUTO, DocumentState, GuiState, build_options, truncate_for_display
 
 
 @dataclass(frozen=True, slots=True)
@@ -227,6 +228,31 @@ class MainPresenter:
             merged = expression
         self.state.query.expression = merged
         return merged
+
+    def adopted_formats(self) -> tuple[str, str]:
+        """いま採用される（入力形式, 出力形式）。プルダウンが auto でも指定でも実際の形式名を返す。
+
+        Service と同じ規則：入力 auto はファイル名の拡張子で判定（貼り付けは YAML）、
+        出力 auto は入力と同じ。実行結果に頼らないので、開いた直後やエラーのときも使える。
+        文書がなければ ("", "")。
+        """
+        document, query = self.state.document, self.state.query
+        if not document.is_loaded:
+            return "", ""
+        formats = self._service.formats
+        input_name = query.input_format
+        if input_name in ("", AUTO):
+            input_name = formats.from_filename(document.source_name).name
+        output_name = query.output_format
+        if output_name in ("", AUTO):
+            output_name = input_name
+        return self._canonical(input_name), self._canonical(output_name)
+
+    def _canonical(self, name: str) -> str:
+        try:
+            return self._service.formats.get(name).name
+        except UnknownFormatError:
+            return name
 
     # ------------------------------------------------------------------ 保存（G3）
 

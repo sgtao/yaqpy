@@ -78,5 +78,63 @@ class OpenAndRunTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(p.state.document.original_text, FILES[path])
 
 
+class AdoptedFormatsTests(unittest.IsolatedAsyncioTestCase):
+    """画面の見出しの横に出す「実際に採る形式」。auto でも指定でも同じ規則で決まる。"""
+
+    async def test_no_document_means_no_format(self) -> None:
+        self.assertEqual(make_presenter().adopted_formats(), ("", ""))
+
+    async def test_auto_is_resolved_from_the_extension(self) -> None:
+        for path, expected in (("/w/shop.xml", "xml"), ("/w/items.csv", "csv"),
+                               ("/w/items.tsv", "tsv"), ("/w/app.toml", "toml"),
+                               ("/w/app.properties", "props")):
+            with self.subTest(path=path):
+                p = make_presenter()
+                await p.open_path(path)
+                self.assertEqual(p.adopted_formats(), (expected, expected))
+
+    async def test_output_auto_follows_a_specified_input(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/shop.xml")
+        p.state.query.input_format = "yaml"
+        self.assertEqual(p.adopted_formats(), ("yaml", "yaml"))
+
+    async def test_a_specified_output_is_shown_as_it_is(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/shop.xml")
+        p.state.query.output_format = "toon"
+        self.assertEqual(p.adopted_formats(), ("xml", "toon"))
+        p.state.query.input_format = "xml"
+        p.state.query.output_format = "json"
+        self.assertEqual(p.adopted_formats(), ("xml", "json"))
+
+    async def test_pasted_text_is_yaml(self) -> None:
+        p = make_presenter()
+        p.open_text("a: 1\n")
+        self.assertEqual(p.adopted_formats(), ("yaml", "yaml"))
+
+    async def test_it_does_not_need_a_successful_run(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/broken.toml")
+        vm = await p.run()
+        self.assertFalse(vm.ok)
+        self.assertEqual(p.adopted_formats(), ("toml", "toml"))
+
+    async def test_it_agrees_with_what_the_run_really_used(self) -> None:
+        for output in ("auto", "json", "yaml", "toon"):
+            with self.subTest(output=output):
+                p = make_presenter()
+                await p.open_path("/w/shop.xml")
+                p.state.query.output_format = output
+                vm = await p.run()
+                self.assertEqual(p.adopted_formats(), (vm.input_format, vm.output_format))
+
+    async def test_a_closed_document_has_none(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/shop.xml")
+        p.close_document()
+        self.assertEqual(p.adopted_formats(), ("", ""))
+
+
 if __name__ == "__main__":
     unittest.main()
