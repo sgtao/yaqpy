@@ -73,7 +73,7 @@ def _add_scalars(ctx: Context, target: Node, lhs: Node, rhs: Node) -> None:
     if not lhs_tag.startswith("!!"):
         lhs_tag = lhs.guess_tag()
         lhs_is_custom = True
-    if looks_like_datetime(lhs.tag, lhs.value, ctx.get_datetime_layout()):
+    if lhs.tag == "!!timestamp" or looks_like_datetime(lhs_tag, lhs.value, ctx.get_datetime_layout()):
         target.value = _shift_datetime(ctx.get_datetime_layout(), lhs.value, rhs.value, 1)
     elif lhs_tag == "!!str":
         target.tag = lhs.tag

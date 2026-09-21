@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import functools
+from datetime import datetime
 
 from yaqpy.core.engine.context import Context
 from yaqpy.core.engine.helpers import create_boolean, cross_function, truthy
@@ -10,6 +11,7 @@ from yaqpy.core.engine.navigator import Navigator
 from yaqpy.core.lang.ast import ExprNode, Operation, create_traversal_tree
 from yaqpy.core.lang.prefs import MultiplyPrefs, TraversePrefs
 from yaqpy.core.model import tags
+from yaqpy.core.model.datetime_util import RFC3339, parse_datetime
 from yaqpy.core.model.node import Kind, Node, Style
 from yaqpy.core.operators.multiply import multiply
 from yaqpy.core.operators.registry import operator
@@ -315,9 +317,20 @@ def map_values_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context
 
 # ----------------------------------------------------------------------------- sort
 
-def _compare_nodes(lhs: Node, rhs: Node) -> int:
+def _both_datetimes(lhs: Node, rhs: Node, layout: str) -> tuple[datetime, datetime] | None:
+    """The two parsed times when both nodes are timestamps in ``layout``, else None."""
+    try:
+        return parse_datetime(layout, lhs.value), parse_datetime(layout, rhs.value)
+    except ValueError:
+        return None
+
+
+def _compare_nodes(lhs: Node, rhs: Node, layout: str = RFC3339) -> int:
     lhs_tag = lhs.guess_tag()
     rhs_tag = rhs.guess_tag()
+    is_datetime = lhs_tag == "!!timestamp" and rhs_tag == "!!timestamp"
+    if lhs_tag == "!!str" and layout != RFC3339:      # a string may be a time in a custom layout
+        is_datetime = _both_datetimes(lhs, rhs, layout) is not None
     if lhs_tag == "!!null" and rhs_tag != "!!null":
         return -1
     if lhs_tag != "!!null" and rhs_tag == "!!null":
@@ -329,6 +342,11 @@ def _compare_nodes(lhs: Node, rhs: Node) -> int:
     if lhs_tag == "!!bool" and rhs_tag == "!!bool":
         a, b = lhs.is_truthy(), rhs.is_truthy()
         return 0 if a == b else (1 if a else -1)
+    if is_datetime:
+        times = _both_datetimes(lhs, rhs, layout)
+        if times is None:                             # sort by the text instead
+            return (lhs.value > rhs.value) - (lhs.value < rhs.value)
+        return (times[0] > times[1]) - (times[0] < times[1])
     if lhs_tag == "!!int" and rhs_tag == "!!int":
         a, b = tags.parse_int(lhs.value)[1], tags.parse_int(rhs.value)[1]
         return (a > b) - (a < b)
@@ -338,10 +356,10 @@ def _compare_nodes(lhs: Node, rhs: Node) -> int:
     return (lhs.value > rhs.value) - (lhs.value < rhs.value)
 
 
-def _compare_contexts(a: tuple[Node, Context], b: tuple[Node, Context]) -> int:
+def _compare_contexts(a: tuple[Node, Context], b: tuple[Node, Context], layout: str = RFC3339) -> int:
     lhs_nodes, rhs_nodes = a[1].nodes, b[1].nodes
     for lhs, rhs in zip(lhs_nodes, rhs_nodes):
-        result = _compare_nodes(lhs, rhs)
+        result = _compare_nodes(lhs, rhs, layout)
         if result != 0:
             return result
     return (len(lhs_nodes) > len(rhs_nodes)) - (len(lhs_nodes) < len(rhs_nodes))
@@ -357,7 +375,8 @@ def sort_by(nav: Navigator, ctx: Context, rhs: ExprNode | None) -> Context:
         for value in node.values():
             compare_ctx = nav.evaluate(ctx.single_readonly_child(value), rhs)
             sortable.append((value, compare_ctx))
-        sortable.sort(key=functools.cmp_to_key(_compare_contexts))
+        layout = ctx.get_datetime_layout()
+        sortable.sort(key=functools.cmp_to_key(lambda a, b: _compare_contexts(a, b, layout)))
         sorted_node = node.copy_without_content()
         if node.kind is Kind.MAPPING:
             for value, _ in sortable:
