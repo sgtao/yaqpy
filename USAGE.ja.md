@@ -498,13 +498,13 @@ recipe openai-to-gemini: examples/openai-request.json
 | 関数ツール以外のツール（Gemini の `googleSearch` など、Anthropic のサーバーツール） | 関数だけを変換します |
 | レシピが知らないキー（`reasoning_effort` `thinking` `safetySettings` など） | **「NOT HANDLED」として報告します**（黙って落としません） |
 
-### 補うもの（入力になければ、報告します）
+### 補うもの
 
 | 補うもの | 理由 |
 |---|---|
 | Anthropic への変換で、`max_tokens: 4096` | Messages API は `max_tokens` が必須です。**4096 はレシピの既定値**で、入力の値ではありません（`max_tokens` か `max_completion_tokens` があれば、その値を使います） |
 | Gemini → OpenAI で、`response_format.json_schema.name: "response"` | OpenAI は JSON Schema に名前を要求しますが、Gemini には名前がありません |
-| `parameters` のない関数に、空の `input_schema` | Anthropic の `input_schema` は必須です（`{"type": "object", "properties": {}}`） |
+| `parameters` のない関数に、空の `input_schema`（**報告には出ません**） | Anthropic の `input_schema` は必須です（`{"type": "object", "properties": {}}`）。「引数なし」と同じ意味なので、報告しません |
 
 ### 報告の読み方
 

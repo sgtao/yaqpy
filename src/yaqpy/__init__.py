@@ -24,7 +24,7 @@ from yaqpy.options import (
 from yaqpy.recipes import Recipe, build_recipe
 from yaqpy.recipes.analysis import RecipeReport
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "Yq", "compile", "dump", "evaluate", "evaluate_all", "load", "query", "update",
