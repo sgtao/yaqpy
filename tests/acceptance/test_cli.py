@@ -261,6 +261,111 @@ class NulSeparatorTests(CliTestCase):
         self.assertEqual(r.returncode, 1)
 
 
+class SplitTests(CliTestCase):
+    """``-s`` / ``--split-exp``: ported from acceptance_tests/split-printer.sh and bad_args.sh."""
+
+    DOCS = "a: test_doc1\n--- \na: test_doc2\n"
+
+    def read(self, name: str) -> str:
+        return (self.dir / name).read_text(encoding="utf-8")
+
+    def check_named_docs(self, mode: str = "e") -> None:
+        path = self.write("test.yml", self.DOCS)
+        r = yq(mode, path, "-s", ".a", cwd=str(self.dir))
+        self.assertEqual((r.returncode, r.stdout, r.stderr), (0, "", ""))
+        self.assertEqual(self.read("test_doc1.yml"), "a: test_doc1\n")
+        # the second file starts with the separator, as in Go
+        self.assertEqual(self.read("test_doc2.yml"), "---\na: test_doc2\n")
+
+    def test_basic_split_with_name(self) -> None:
+        self.check_named_docs("e")
+
+    def test_basic_split_with_name_eval_all(self) -> None:
+        self.check_named_docs("ea")
+
+    def test_custom_extension(self) -> None:
+        path = self.write("test.yml", self.DOCS)
+        yq("e", path, "-s", '.a + ".yaml"', cwd=str(self.dir))
+        self.assertEqual(self.read("test_doc1.yaml"), "a: test_doc1\n")
+        self.assertEqual(self.read("test_doc2.yaml"), "---\na: test_doc2\n")
+
+    def test_expression_from_a_file(self) -> None:
+        path = self.write("test.yml", self.DOCS)
+        expression = self.write("test_splitExp.yml", ".a\n")
+        r = yq(path, "--split-exp-file", expression, cwd=str(self.dir))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertEqual(self.read("test_doc1.yml"), "a: test_doc1\n")
+
+    def test_index_variable(self) -> None:
+        for mode in ("e", "ea"):
+            with self.subTest(mode=mode):
+                path = self.write("test.yml", self.DOCS)
+                yq(mode, path, "-s", '"test_" + $index', cwd=str(self.dir))
+                self.assertEqual(self.read("test_0.yml"), "a: test_doc1\n")
+                self.assertEqual(self.read("test_1.yml"), "---\na: test_doc2\n")
+
+    def test_array_items_without_separators(self) -> None:
+        path = self.write("test.yml", "- name: test_fred\n  age: 35\n- name: test_catherine\n  age: 37\n")
+        second = self.write("test2.yml", "- name: test_mike\n  age: 564\n")
+        for mode in ("e", "ea"):
+            with self.subTest(mode=mode):
+                r = yq(mode, "--no-doc", "-s", ".name", ".[]", path, second, cwd=str(self.dir))
+                self.assertEqual(r.returncode, 0, r.stderr)
+                self.assertEqual(self.read("test_fred.yml"), "name: test_fred\nage: 35\n")
+                self.assertEqual(self.read("test_catherine.yml"), "name: test_catherine\nage: 37\n")
+                self.assertEqual(self.read("test_mike.yml"), "name: test_mike\nage: 564\n")
+
+    def test_directories_are_created(self) -> None:
+        path = self.write("test.yml", "f: test_dir1/test_file1\n---\nf: test_dir2/dir22/test_file2\n---\nf: test_file3\n")
+        yq("e", "--no-doc", "-s", ".f", path, cwd=str(self.dir))
+        self.assertEqual(self.read("test_dir1/test_file1.yml"), "f: test_dir1/test_file1\n")
+        self.assertEqual(self.read("test_dir2/dir22/test_file2.yml"), "f: test_dir2/dir22/test_file2\n")
+        self.assertEqual(self.read("test_file3.yml"), "f: test_file3\n")
+
+    def test_the_extension_follows_the_output_format(self) -> None:
+        path = self.write("test.yml", "a: one\n---\na: two\n")
+        for fmt, ext in (("json", "json"), ("props", "properties"), ("xml", "xml"), ("toml", "toml")):
+            with self.subTest(fmt=fmt):
+                r = yq("-o", fmt, "-s", '"out_" + $index', path, cwd=str(self.dir))
+                self.assertEqual(r.returncode, 0, r.stderr)
+                self.assertTrue((self.dir / f"out_0.{ext}").exists(), ext)
+
+    def test_the_json_file_holds_that_result(self) -> None:
+        path = self.write("test.yml", "a: one\n---\na: two\n")
+        yq("-o", "json", "-I0", "-s", ".a", path, cwd=str(self.dir))
+        self.assertEqual(self.read("one.json"), '{"a":"one"}\n')
+
+    def test_write_in_place_cannot_be_used_with_split(self) -> None:
+        path = self.write("test.yml", "a: 1\n")
+        for mode in ("e", "ea"):
+            with self.subTest(mode=mode):
+                r = yq(mode, "-s", "cat", "-i", '.a = "thing"', path)
+                self.assertEqual((r.returncode, r.stderr), (1, "Error: write in place cannot be used with split file\n"))
+
+    def test_a_bad_split_expression(self) -> None:
+        path = self.write("test.yml", "a: 1\n")
+        r = yq("-s", "!!!", path)
+        self.assertEqual(r.returncode, 1)
+        self.assertTrue(r.stderr.startswith("Error: bad split document expression:"), r.stderr)
+
+    def test_a_name_with_dot_dot_is_refused(self) -> None:
+        path = self.write("test.yml", "f: ../escaped\n")
+        r = yq("-s", ".f", path, cwd=str(self.dir))
+        self.assertEqual(r.returncode, 1)
+        self.assertIn("split file names must not contain '..'", r.stderr)
+        self.assertFalse((self.dir.parent / "escaped.yml").exists())
+
+    def test_file_operations_can_be_disabled(self) -> None:
+        path = self.write("test.yml", "a: one\n")
+        r = yq("--security-disable-file-ops", "-s", ".a", path, cwd=str(self.dir))
+        self.assertEqual((r.returncode, r.stderr), (1, "Error: file operations have been disabled\n"))
+        self.assertFalse((self.dir / "one.yml").exists())
+
+    def test_nothing_is_printed_to_stdout(self) -> None:
+        path = self.write("test.yml", "a: one\n")
+        self.assertEqual(yq("-s", ".a", path, cwd=str(self.dir)).stdout, "")
+
+
 class BadArgsTests(CliTestCase):
     def test_bad_expression(self) -> None:
         r = yq(".a |", stdin="a: 1\n")

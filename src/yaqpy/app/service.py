@@ -11,13 +11,13 @@ from yaqpy.app.dto import (
     EvalMode, EvaluateRequest, EvaluateResult, ExpressionInfo, FormatsInfo, InputSource,
 )
 from yaqpy.app.ports import EnvironmentPort, FileSystemPort
-from yaqpy.app.printer import InPlaceSink, ResultPrinter
+from yaqpy.app.printer import InPlaceSink, ResultPrinter, SplitWriter
 from yaqpy.core.engine import Context, EvalEnv, Navigator, StepBudget, system_clock
 from yaqpy.core.lang.ast import ExprNode
 from yaqpy.core.lang.parser import Expression, ExpressionCompiler
 from yaqpy.core.model.node import Node
 from yaqpy.core.operators import OperatorRegistry, builtin_registry
-from yaqpy.errors import ExpressionSyntaxError, FormatError, YqError
+from yaqpy.errors import ExpressionSyntaxError, FormatError, SecurityError, YqError
 from yaqpy.formats.registry import FormatRegistry, builtin_formats
 from yaqpy.formats.yaml.codec import YamlDecoder
 from yaqpy.options import Options
@@ -134,11 +134,12 @@ class YqService:
                 "--toml-allow-lossy to accept that.")
         decoder = self.formats.decoder_for(input_format, options)
         encoder = self.formats.encoder_for(output_format, options, unwrap)
-        printer = ResultPrinter(encoder, sink, nul_separated=options.nul_separated_output,
-                                max_depth=options.limits.max_depth,
-                                fix_merge=options.yaml.fix_merge_anchor_to_spec)
         env = self.make_env(options, budget)
         nav = Navigator(env)
+        printer = ResultPrinter(encoder, sink, nul_separated=options.nul_separated_output,
+                                max_depth=options.limits.max_depth,
+                                fix_merge=options.yaml.fix_merge_anchor_to_spec,
+                                split=self._split_writer(request, nav, output_format))
         document_count = 0
         try:
             if options.null_input or not request.inputs:
@@ -164,6 +165,21 @@ class YqService:
             input_format=input_format,
             output_format=output_format,
         )
+
+    def _split_writer(self, request: EvaluateRequest, nav: Navigator,
+                      output_format: str) -> SplitWriter | None:
+        if not request.split_expression:
+            return None
+        if request.in_place:
+            raise YqError("write in place cannot be used with split file")
+        if not request.options.security.allow_file:
+            raise SecurityError("file operations have been disabled", capability="file")
+        try:
+            name_expression = self.compile(request.split_expression)
+        except ExpressionSyntaxError as e:
+            raise ExpressionSyntaxError(f"bad split document expression: {e.message}",
+                                        expression=e.expression, position=e.position) from None
+        return SplitWriter(self.fs, nav, name_expression, output_format)
 
     def _root_context(self, nodes: Sequence[Node]) -> Context:
         return Context(tuple(nodes))

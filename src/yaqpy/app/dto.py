@@ -30,6 +30,7 @@ class EvaluateRequest:
     input_format: str | None = None     # resolved format name (None -> from options)
     output_format: str | None = None
     unwrap_scalar: bool | None = None
+    split_expression: str = ""          # -s: name a file per result with this expression
 
 
 @dataclass(frozen=True, slots=True)

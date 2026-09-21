@@ -167,7 +167,11 @@ def build_parser() -> _Parser:
                    help="Slurp any header comments and separators before processing expression.")
     i.add_argument("--yaml-fix-merge-anchor-to-spec", nargs="?", const=True, default=False,
                    type=parse_bool, help="Fix merge anchor to match YAML spec.")
-    i.add_argument("-s", "--split-exp", default="", help="(phase 2) print each result into a file named (exp)")
+    i.add_argument("-s", "--split-exp", default="",
+                   help="print each result (or doc) into a file named (exp). [exp] argument must return "
+                        "a string. You can use $index in the expression as the result counter. "
+                        "The necessary directories will be created.")
+    i.add_argument("--split-exp-file", default="", help="Use a file to specify the split-exp expression.")
     i.add_argument("-f", "--front-matter", default="", help="(phase 2) (extract|process) first input as yaml front-matter")
     s = parser.add_argument_group("security")
     s.add_argument("--security-disable-env-ops", action="store_true", help="Disable env related operations.")
