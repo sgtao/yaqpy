@@ -1,0 +1,29 @@
+defaults: &defaults
+  timeout: 30
+  retries: 3
+  log: &logSettings
+    level: warn
+    format: json
+
+extra: &extra
+  tracing: true
+
+environments:
+  development:
+    <<: *defaults
+    timeout: 5 # defaults を上書き
+    log:
+      <<: *logSettings
+      level: debug
+  staging:
+    <<: [*defaults, *extra]
+  production:
+    <<: *defaults
+    log: *logSettings
+
+regions: &regionList
+  - ap-northeast-1
+  - us-east-1
+backupRegions: *regionList
+primaryRegion: &primary ap-northeast-1
+failoverFrom: *primary

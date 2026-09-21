@@ -1,0 +1,30 @@
+plain: Hello, World
+singleQuoted: 'It''s a single-quoted string: # not a comment'
+doubleQuoted: "Tab:\tNewline:\nUnicode: あ Emoji: \U0001F600"
+quotedNumber: "123"
+quotedBool: 'true'
+japanese: 日本語の値もそのまま扱う
+multiLinePlain: this plain scalar
+  continues on the next line
+  and is folded into one line
+literalKeep: |
+  line 1
+    indented line 2
+  line 3
+literalStrip: |-
+  no trailing newline
+literalKeepAll: |+
+  keeps trailing newlines
+
+foldedText: >
+  folded lines
+  become one line.
+
+  A blank line makes a new paragraph.
+foldedStrip: >-
+  folded and
+  stripped
+explicitIndent: |2
+    starts with two extra spaces
+emptyString: ""
+specialChars: "key: value # hash - dash [brackets] {braces} &anchor *alias"

@@ -1,0 +1,35 @@
+%YAML 1.2
+---
+flowMap: {name: pen, price: 120, tags: [stationery, blue]}
+flowSeq: [1, two, 3.0, true, null]
+nestedFlow: {matrix: [[1, 2], [3, 4]], empty: {}}
+integers:
+  decimal: 42
+  negative: -17
+  hex: 0x1F
+  octal: 0o17
+floats:
+  simple: 1.50
+  exponent: 6.02e+23
+  infinity: .inf
+  negativeInfinity: -.Inf
+  notANumber: .NaN
+booleans: [true, True, FALSE]
+nulls:
+  tilde: ~
+  word: null
+  empty:
+explicitTags:
+  stringNumber: !!str 2026
+  intFromString: !!int "7"
+  floatTag: !!float 1
+  customTag: !point {x: 1, y: 2}
+  binary: !!binary aGVsbG8=
+dates:
+  date: 2026-09-17
+  timestamp: 2026-09-17T19:40:00+09:00
+"key with spaces": ok
+key.with.dots: ok
+"123": numeric-looking key
+? complex key
+: complex value

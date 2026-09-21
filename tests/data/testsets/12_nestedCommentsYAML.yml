@@ -1,0 +1,26 @@
+# アプリケーション設定（ドキュメント先頭のコメント）
+
+# サーバー設定
+server:
+  host: localhost # 開発用ホスト
+  port: 8080
+  tls:
+    enabled: false
+    # 証明書は本番のみ
+    certFile: ""
+
+# 接続先データベース
+databases:
+  - name: main
+    engine: postgres
+    replicas: 2
+  - name: cache
+    engine: redis # インメモリ
+    replicas: 0
+  # ここまでがデータベース一覧
+
+features:
+  beta:
+    - search
+    - export
+  deprecated: []
