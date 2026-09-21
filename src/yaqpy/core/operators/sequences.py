@@ -214,13 +214,24 @@ def _pivot_maps(seq: Node) -> Node:
     return result
 
 
+def _effective_tag(node: Node) -> str:
+    """The tag by kind for collections: pivot's own results have no tag (see ``_untagged``), and
+    they must still be accepted by another pivot."""
+    if node.kind is Kind.SEQUENCE:
+        return "!!seq"
+    if node.kind is Kind.MAPPING:
+        return "!!map"
+    return node.tag
+
+
 def _unique_element_tag(seq: Node) -> str:
     if not seq.content:
         return ""
-    first = seq.content[0].tag
+    first = _effective_tag(seq.content[0])
     for child in seq.content[1:]:
-        if child.tag != first:
-            raise EvaluationError(f"sequence contains elements of {first} and {child.tag} types")
+        if _effective_tag(child) != first:
+            raise EvaluationError(
+                f"sequence contains elements of {first} and {_effective_tag(child)} types")
     return first
 
 
@@ -228,7 +239,7 @@ def _unique_element_tag(seq: Node) -> str:
 def pivot_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
     results: list[Node] = []
     for candidate in ctx.nodes:
-        if candidate.tag != "!!seq":
+        if candidate.kind is not Kind.SEQUENCE:
             raise EvaluationError(f"cannot pivot node of type {candidate.tag}")
         tag = _unique_element_tag(candidate)
         if tag == "!!seq":
