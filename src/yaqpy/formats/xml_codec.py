@@ -433,6 +433,18 @@ def _head_and_line(node: Node) -> str:
     return _head(node) + _line(node)
 
 
+def _content_text(value: Node) -> str:
+    """The text of a ``+content`` value. Text that was split by child elements or comments comes
+    back as a list; its pieces are written one after the other, separated by a space (the
+    position between the children is not kept, the words are)."""
+    if value.kind is Kind.SCALAR:
+        return value.value
+    if value.kind is Kind.SEQUENCE and all(item.kind is Kind.SCALAR for item in value.content):
+        return " ".join(item.value for item in value.content)
+    raise FormatError(f"cannot use {value.tag} as the text of an element, only scalars and lists "
+                      "of scalars are supported", format="xml")
+
+
 class XmlEncoder:
     def __init__(self, options: Options | None = None, *, unwrap_scalar: bool = False) -> None:
         self.options = options or Options()
@@ -577,7 +589,7 @@ class XmlEncoder:
                 p.directive(value.value)
             elif key.value == prefs.content_name:
                 self._comment(p, _head_and_line(value))
-                p.char_data(value.value)
+                p.char_data(_content_text(value))
                 self._comment(p, _foot(value))
             elif not self._is_attribute(key.value):
                 self._do_encode(p, value, key.value)

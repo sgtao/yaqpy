@@ -300,6 +300,32 @@ class RoundTripTests(unittest.TestCase):
         self.assertNotIn("boom</r>", out)
 
 
+class MixedContentTests(unittest.TestCase):
+    """Text between child elements is grouped by the conversion; the words must not get lost."""
+
+    def test_text_around_children_survives_a_round_trip(self) -> None:
+        out = xml_to_xml("<a>Hello <b>bold</b> world <i>it</i> end</a>")
+        self.assertIn("Hello world end", out)
+        self.assertIn("<b>bold</b>", out)
+        self.assertIn("<i>it</i>", out)
+
+    def test_it_is_stable_after_the_first_pass(self) -> None:
+        first = xml_to_xml("<a>x <b>1</b> y</a>")
+        self.assertEqual(xml_to_xml(first), first)
+
+    def test_text_pieces_without_children_come_back_as_repeated_elements(self) -> None:
+        # a list of texts under one name is written as one element per text (as the Go yq does)
+        out = xml_to_xml("<a>one<!-- c -->two</a>")
+        self.assertIn(">one<", out)
+        self.assertIn(">two<", out)
+
+    def test_content_that_is_not_text_is_refused(self) -> None:
+        with self.assertRaises(FormatError):
+            yaml_to_xml("a:\n  +content:\n    k: v\n")
+        with self.assertRaises(FormatError):
+            yaml_to_xml("a:\n  +content: [[1], 2]\n")
+
+
 class SafetyTests(unittest.TestCase):
     def test_billion_laughs_is_not_expanded(self) -> None:
         entities = "".join(
