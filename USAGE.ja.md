@@ -325,6 +325,85 @@ Error: refusing to update a TOML file in place: its comments are not kept, so th
 
 ---
 [toTop](#toreadme)
+## スキーマの出力：`schema`（Go 版にはない拡張）
+
+データを見て、それを表す **JSON Schema（Draft 2020-12）** を出力します。相手から受け取った JSON / YAML の形をすぐ把握したいとき、API のリクエストボディの型を確かめたいときなどに使います。
+
+```bash
+# 演算子として（式の途中にも置けます）
+uv run yaqpy 'schema' examples/sample.yaml            # 入力と同じ形式（YAML）で出力
+uv run yaqpy -o json 'schema' examples/sample.yaml    # JSON Schema を JSON で
+uv run yaqpy '.items[] | schema' examples/sample.yaml # items の各要素を 1 つにまとめた形
+
+# 短縮形：--schema は式 'schema' の意味（式があれば '<式> | schema'）
+uv run yaqpy --schema examples/sample.yaml
+```
+
+```yaml
+$schema: https://json-schema.org/draft/2020-12/schema
+type: object
+properties:
+  server:
+    type: object
+    properties:
+      port:
+        type: integer
+      hosts:
+        type: array
+        items:
+          type: string
+      tls:
+        type: object
+        properties:
+          enabled:
+            type: boolean
+          cert:
+            type: string
+        required:
+          - enabled
+          - cert
+    required:
+      - port
+      - hosts
+      - tls
+  # …（backup と items は省略）
+required:
+  - server
+  - backup
+  - items
+```
+
+- JSON でも YAML でも（TOML など他の形式でも）出力でき、同じ内容です。入力が YAML・JSON・XML・CSV・TOML のどれでも使えます。出力形式は入力と同じか `-o` で指定します
+- 結果は通常のノードなので、`schema | .properties | keys` のようにさらに加工できます
+
+### 推論するもの
+
+| キーワード | 内容 |
+|---|---|
+| `type` | `string` `integer` `number` `boolean` `null` `object` `array`。整数と小数が混ざれば `number`。**型が混ざれば配列**（`type: [string, "null"]`）。日付・バイナリは `string` |
+| `properties` | オブジェクトのキーごとの型。キーが最初に現れた順 |
+| `required` | **すべてのサンプルに現れたキーだけ**。1 つでも欠けたキーは入りません |
+| `items` | 配列の要素すべてをまとめた型。要素が複数のオブジェクトなら、キーの和集合になり、`required` は共通のキーだけ。空の配列は `items` を書きません |
+| `format` | 文字列サンプルがすべて日時なら `date-time`、すべて日付なら `date` |
+| `additionalProperties: false` | `--schema-strict` を付けたときだけ。既定は書かない（開いたまま） |
+| `enum` | `--schema-enum-max N` を付けたときだけ。**文字列だけ**の項目で、値の種類が N 以下で、**同じ値が繰り返し出るとき**。全部違う値の列は自由な文章とみなして `enum` にしません |
+
+- アンカー・エイリアス・マージキー（`<<: *a`）は、コピーの上で展開してから調べます。`<<` がプロパティとして出ることはなく、元のデータは変わりません
+- 推測はサンプルに見えたことだけです（1 つしかない値から範囲や長さは推測しません）。生成したスキーマは、元のデータを必ず通します（テストで確認しています）
+
+### 複数の文書・要素
+
+- `schema` は、受け取ったノードすべてを **1 つのスキーマにまとめます**（`.items[] | schema` は各要素をまとめた形）
+- 複数ドキュメントのファイルは、通常の `eval` では**文書ごとに** 1 つずつ出力します。**全文書を 1 つにまとめる**には `ea`（eval-all）を使います：`uv run yaqpy ea schema multi.yaml`
+- `--schema-per-doc` を付けると、`ea` でも要素ごとに 1 つずつ出力します
+
+### 制限
+
+- 入れ子が 250 段を超えるデータは、途中で切らずにエラーにします。`Limits(max_steps=..., timeout_seconds=...)` の制限も効きます
+- `enum` の推定は、1 か所あたり 200 種類までの値だけを数えます（それを超えると `enum` にしません）
+
+---
+[toTop](#toreadme)
 ## GUI の使い方
 
 デスクトップアプリです（`uv sync --extra gui` のあと `uv run yaqpy-gui` または `uv run yaqpy --gui`）。画面の見方、式の書き方（初心者向け）、保存・設定・エラーの読み方は **[USAGE-GUI.ja.md](USAGE-GUI.ja.md)** にまとめています。
@@ -363,9 +442,9 @@ yq.evaluate(expr, text)                                             # -> '{"port
 
 ---
 [toTop](#toreadme)
-## 実装済みの演算子（Phase 1 ＝ 38 種）
+## 実装済みの演算子（Phase 1 ＝ 38 種 ＋ `schema`）
 
-`.`、`.a` / `."a b"` / `.a?` / `.a*`、`.[0]` / `.[]` / `.[1:3]`、`..` / `...`、`|`、`,`、`select`、`=` / `|=`、`+=` / `-=` / `*=`、`+`、`-`、`*`（`*+ *? *d *n *c` を含むディープマージ）、`/`、`%`、`//`、`==` / `!=`、`<` `<=` `>` `>=`、`and` / `or` / `not`、リテラル、`[ ]`、`{ }`、`length`、`keys`、`key`、`has`、`del`、`to_entries` / `from_entries` / `with_entries`、`map` / `map_values`、`sort_by` / `sort`、`path`、`as $x` / `$x`、`env` / `strenv`、`tag`、`style`、`line_comment` / `head_comment` / `foot_comment` / `comments`、`test`、`document_index` / `di`、`file_index` / `fi` / `filename`、`parent`、`explode`、`anchor` / `alias`、`min` / `max`、`any` / `all`、`set_path` / `del_paths`、`kind`、`line` / `column`、日時の加減算と比較（RFC3339）
+`.`、`.a` / `."a b"` / `.a?` / `.a*`、`.[0]` / `.[]` / `.[1:3]`、`..` / `...`、`|`、`,`、`select`、`=` / `|=`、`+=` / `-=` / `*=`、`+`、`-`、`*`（`*+ *? *d *n *c` を含むディープマージ）、`/`、`%`、`//`、`==` / `!=`、`<` `<=` `>` `>=`、`and` / `or` / `not`、リテラル、`[ ]`、`{ }`、`length`、`keys`、`key`、`has`、`del`、`to_entries` / `from_entries` / `with_entries`、`map` / `map_values`、`sort_by` / `sort`、`path`、`as $x` / `$x`、`env` / `strenv`、`tag`、`style`、`line_comment` / `head_comment` / `foot_comment` / `comments`、`test`、`document_index` / `di`、`file_index` / `fi` / `filename`、`parent`、`explode`、`anchor` / `alias`、`min` / `max`、`any` / `all`、`set_path` / `del_paths`、`kind`、`line` / `column`、日時の加減算と比較（RFC3339）、`schema`（Go 版にはない拡張。[スキーマの出力](#スキーマの出力schemago-版にはない拡張)）
 
 未実装（Phase 2 以降）の演算子も、式の構文としては解釈されます（`validate` や `compile` は成功します）が、**実行すると `Error: unknown operator ...` で終了します**。文字列補間 `\(exp)` も Phase 2 です。未実装の一覧は次節を参照してください。
 
@@ -377,7 +456,7 @@ yaqpy は Go 版 yq（v4.53.6）の**独立した再実装**です。
 
 | 分類 | 内容 |
 |---|---|
-| 追加した機能 | TOON 形式の入出力、Python ライブラリ API、デスクトップ GUI（XML・CSV/TSV・properties・TOML は Go 版にもあり、同じ規則で実装） |
+| 追加した機能 | TOON 形式の入出力、**`schema` 演算子（JSON Schema の出力）**、Python ライブラリ API、デスクトップ GUI（XML・CSV/TSV・properties・TOML は Go 版にもあり、同じ規則で実装） |
 | **未実装の演算子** | `join` `split` `sub` `match` `capture` `trim` `upcase` `downcase` `to_string` `to_number` `unique` `unique_by` `group_by` `reverse` `shuffle` `sort_keys` `flatten` `first` `pick` `omit` `with` `reduce` `pivot` `contains` `filter` `eval` `error` `envsubst` `encode` / `decode`（`@base64` など）`load` `load_str` `split_doc` `system` と、日時の `now` `tz` `from_unix` `to_unix` `format_datetime` `with_dtf`。式としては解釈されますが、実行すると `Error: unknown operator ...` で終了します |
 | 未対応のフォーマット | INI・HCL・Lua・shell 変数・base64・URI など、Go 版にあるその他の形式。TOML はコメントを保持しない（`-i` は既定で拒否） |
 | 未対応のオプション | `-s`（`--split-exp`）、`-f`（`--front-matter`）、`-C`（色付き出力）。文字列補間 `\(...)` |
