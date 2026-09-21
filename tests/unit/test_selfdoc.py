@@ -183,7 +183,7 @@ class GuidePromptTests(unittest.TestCase):
         self.assertNotIn(" eval ", usable_line + " ")
 
     def test_examples_carry_real_results(self) -> None:
-        for example in EXAMPLES[:8]:
+        for example in EXAMPLES[:10]:
             output, _ = run_example(SERVICE, example)
             self.assertIn(output.rstrip("\n"), self.prompt)
 

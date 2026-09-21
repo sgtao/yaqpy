@@ -281,7 +281,7 @@ def render_guide_prompt(service: YqService) -> str:
              "## コマンドの形", "", COMMAND_FORMS, "", "## 式の記法", "", SYNTAX_TABLE, "", "## 演算子", "",
              "```text", _prompt_operator_line(table), "```", "",
              "## やってはいけないこと", "", *_rules_lines(), "", "## 例", ""]
-    for example in EXAMPLES[:8]:
+    for example in EXAMPLES[:10]:
         lines += _example_block(service, example)
     lines += ["## 答え方", "",
               "1. 式を 1 つのコードブロックで示す（複数行のときは `--from-file` 用に、`#` のコメントを付けてよい）",
