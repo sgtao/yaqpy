@@ -9,8 +9,8 @@ from dataclasses import dataclass
 from yaqpy.app.dto import EvalMode, EvaluateRequest, InputSource
 from yaqpy.formats.registry import FormatRegistry, builtin_formats
 from yaqpy.options import (
-    CsvOptions, Limits, Options, PropertiesOptions, SecurityPolicy, TomlOptions, ToonOptions,
-    XmlOptions, YamlOptions,
+    CsvOptions, Limits, Options, PropertiesOptions, SchemaOptions, SecurityPolicy, TomlOptions,
+    ToonOptions, XmlOptions, YamlOptions,
 )
 
 _TOON_DELIMITERS = {"comma": ",", "tab": "\t", "pipe": "|"}
@@ -74,6 +74,10 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         raise InvocationError("cannot pass files in when using null-input flag")
     if ns.indent < 0:
         raise InvocationError("indent must not be negative")
+    if ns.schema_enum_max < 0:
+        raise InvocationError("--schema-enum-max must not be negative")
+    if ns.schema:
+        expression = f"{expression} | schema" if expression else "schema"
 
     # formats (Go's configureInputFormat / configureOutputFormat)
     input_filename = files[0] if files else ""
@@ -149,6 +153,8 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
             tsv_auto_parse=ns.tsv_auto_parse,
         ),
         toml=TomlOptions(allow_lossy=ns.toml_allow_lossy),
+        schema=SchemaOptions(strict=ns.schema_strict, enum_max=ns.schema_enum_max,
+                             per_doc=ns.schema_per_doc),
         security=security,
         limits=Limits(),
     )

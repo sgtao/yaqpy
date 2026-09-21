@@ -143,6 +143,16 @@ def build_parser() -> _Parser:
     f.add_argument("--toml-allow-lossy", action="store_true",
                    help="allow -i to rewrite a TOML file although its comments are not kept "
                         "(yaqpy extension)")
+    sc = parser.add_argument_group("schema (yaqpy extension)")
+    sc.add_argument("--schema", action="store_true",
+                    help="print a JSON Schema (Draft 2020-12) of the data; shorthand for the "
+                         "expression 'schema' (or '<expression> | schema')")
+    sc.add_argument("--schema-strict", action="store_true",
+                    help="write additionalProperties: false on every object")
+    sc.add_argument("--schema-enum-max", type=int, default=0, metavar="N",
+                    help="a string that takes at most N different values (and repeats) becomes an enum")
+    sc.add_argument("--schema-per-doc", action="store_true",
+                    help="one schema per document (or node) instead of one merged schema")
     i = parser.add_argument_group("input")
     i.add_argument("-i", "--inplace", action="store_true",
                    help="update the file in place of first file given.")
