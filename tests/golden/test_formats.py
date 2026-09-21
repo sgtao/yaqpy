@@ -23,6 +23,7 @@ MIN_PASS_RATE: dict[str, float] = {
     "xml": 0.85,        # F1（v0.2.0）の完了条件
     "csv": 0.90,        # F2 の完了条件（CSV/TSV）
     "properties": 0.90,  # F2（入力を追加。出力の不一致 5 件も解消）
+    "toml": 0.85,       # F3a の完了条件（コメントを保つシナリオ 5 件は F3b の範囲）
 }
 
 

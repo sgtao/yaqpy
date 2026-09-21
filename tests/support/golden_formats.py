@@ -76,7 +76,7 @@ CASES: dict[tuple[str, str], Case] = {
     ("csv", "decode-tsv-object"): Case("tsv", "yaml", _YAML),
     ("csv", "roundtrip-csv"): Case("csv", "csv", _YAML),
     # ---- TOML (toml_test.go: testTomlScenario)
-    ("toml", ""): Case("toml", "yaml", _YAML),
+    ("toml", ""): Case("json", "toml", _YAML),      # the standalone JSON -> TOML test has no type
     ("toml", "decode"): Case("toml", "yaml", _YAML),
     ("toml", "decode-error"): Case("toml", "yaml", _YAML, expects_error=True),
     ("toml", "roundtrip"): Case("toml", "toml", _YAML),
