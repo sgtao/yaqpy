@@ -29,10 +29,10 @@ YAML / JSON のファイルを開いて、**必要な部分だけを取り出し
 [toTop](#toreadme)
 ## 1. 起動する
 
-**GitHub のリリースから入れた場合**（詳しくは [README のインストール](README.md#インストール)）。`0.1.0` は入れた版の番号に読み替えます。
+**GitHub のリリースから入れた場合**（詳しくは [README のインストール](README.md#インストール)）。`0.2.0` は入れた版の番号に読み替えます。
 
 ```bash
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.1.0/yaqpy-0.1.0-py3-none-any.whl"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.2.0/yaqpy-0.2.0-py3-none-any.whl"
 yaqpy-gui                 # 専用コマンドで起動
 yaqpy --gui               # こちらでも同じ画面が開きます
 ```
