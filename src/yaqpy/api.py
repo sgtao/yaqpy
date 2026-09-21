@@ -9,6 +9,7 @@ from typing import Any
 from yaqpy.app.dto import EvalMode, EvaluateRequest, InputSource
 from yaqpy.app.ports import SandboxFileSystem, StaticEnvironment
 from yaqpy.app.printer import MemorySink
+from yaqpy.app.recipe_service import RecipeRun, RecipeService
 from yaqpy.app.service import YqService
 from yaqpy.core.lang.parser import Expression
 from yaqpy.core.model.convert import from_python, to_python
@@ -16,6 +17,7 @@ from yaqpy.core.model.node import Node
 from yaqpy.core.operators import OperatorRegistry, builtin_registry
 from yaqpy.formats.registry import FormatRegistry, builtin_formats
 from yaqpy.options import Options
+from yaqpy.recipes import Recipe, builtin_recipes
 
 
 class Yq:
@@ -112,6 +114,26 @@ class Yq:
         return sink.finish() or ""
 
 
+    # ------------------------------------------------------------------ recipes (a yaqpy extension)
+
+    def apply_recipe(self, recipe: str | Recipe, text: str, *, input_format: str = "json",
+                     output_format: str = "json", prune_null: bool = False, prune_empty: bool = False,
+                     options: Options | None = None) -> RecipeRun:
+        """Convert ``text`` with a recipe: a bundled one by name, or a ``Recipe`` you built.
+
+        Never reads files or environment variables, whatever the options say. The result holds the
+        converted text (``output``) and a ``report`` of what was dropped, added or does not fit the
+        target schema.
+        """
+        service = RecipeService(self._service)
+        if isinstance(recipe, str):
+            recipe = service.load(recipe)
+        return service.run(recipe, InputSource("<text>", text), options or self.options,
+                           input_format=service.input_format_for(recipe, "", input_format),
+                           output_format=service.output_format_for(recipe, output_format),
+                           prune_null=prune_null, prune_empty=prune_empty)
+
+
 _DEFAULT = Yq()
 
 
@@ -141,3 +163,15 @@ def load(text: str, *, format: str = "yaml", options: Options | None = None) -> 
 
 def dump(documents: Iterable[Node], *, format: str = "yaml", options: Options | None = None) -> str:
     return _DEFAULT.dump(documents, format=format, options=options)
+
+
+def list_recipes() -> dict[str, Recipe]:
+    """The bundled recipes by name."""
+    return dict(builtin_recipes())
+
+
+def apply_recipe(recipe: str | Recipe, text: str, *, input_format: str = "json",
+                 output_format: str = "json", prune_null: bool = False, prune_empty: bool = False,
+                 options: Options | None = None) -> RecipeRun:
+    return _DEFAULT.apply_recipe(recipe, text, input_format=input_format, output_format=output_format,
+                                 prune_null=prune_null, prune_empty=prune_empty, options=options)
