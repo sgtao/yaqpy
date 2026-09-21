@@ -123,7 +123,7 @@ def builtin_formats() -> FormatRegistry:
     if _builtin is None:
         from yaqpy.formats.csv_codec import CsvDecoder, CsvEncoder
         from yaqpy.formats.json_codec import JsonDecoder, JsonEncoder
-        from yaqpy.formats.props_codec import PropertiesEncoder
+        from yaqpy.formats.props_codec import PropertiesDecoder, PropertiesEncoder
         from yaqpy.formats.toon_codec import ToonDecoder, ToonEncoder
         from yaqpy.formats.xml_codec import XmlDecoder, XmlEncoder
         from yaqpy.formats.yaml.codec import YamlDecoder, YamlEncoder
@@ -143,7 +143,7 @@ def builtin_formats() -> FormatRegistry:
         ))
         reg.register(FormatSpec(
             "props", ("p", "properties"), (".properties",),
-            decoder_factory=None,
+            decoder_factory=lambda o: PropertiesDecoder(o),
             encoder_factory=lambda o, u: PropertiesEncoder(o, unwrap_scalar=u),
             unwrap_scalar_default=True,
         ))
