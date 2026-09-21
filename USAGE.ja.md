@@ -39,8 +39,8 @@ uv run yaqpy -P -N -e '.items[] | select(.price > 500) | .name' examples/sample.
 
 Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops` など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。yaqpy 独自のフラグは `--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}` です。
 
-- 出力形式は `-o`（`yaml` / `json` / `props` / `toon` / `xml` / `csv` / `tsv`）で指定します。**`-p`（入力形式）だけを指定した場合、出力は Go 版との互換のため YAML のまま**です（警告が出ます）
-- 入力形式は、ファイルの拡張子（`.yaml` `.yml` `.json` `.toon` `.xml` `.csv` `.tsv` `.properties`）から自動判定します。拡張子が不明なとき、および標準入力は YAML として扱います
+- 出力形式は `-o`（`yaml` / `json` / `props` / `toon` / `xml` / `csv` / `tsv` / `toml`）で指定します。**`-p`（入力形式）だけを指定した場合、出力は Go 版との互換のため YAML のまま**です（警告が出ます）
+- 入力形式は、ファイルの拡張子（`.yaml` `.yml` `.json` `.toon` `.xml` `.csv` `.tsv` `.properties` `.toml`）から自動判定します。拡張子が不明なとき、および標準入力は YAML として扱います
 
 ---
 [toTop](#toreadme)
@@ -253,6 +253,79 @@ features:
 
 ---
 [toTop](#toreadme)
+## TOML 入出力
+
+TOML 1.0 を読み書きします（`.toml` は拡張子で自動判定、`-p toml` / `-o toml`）。`pyproject.toml` のような設定ファイルの値を書き換える用途を想定しています。
+
+```bash
+# TOML → YAML
+uv run yaqpy -o yaml '.' examples/sample.toml
+
+# 値の取得
+uv run yaqpy '.project.version' examples/sample.toml
+
+# TOML のまま更新（標準出力へ。書式・並び順・インラインテーブルはそのまま）
+uv run yaqpy '.project.version = "0.2.0"' examples/sample.toml > new.toml
+
+# YAML → TOML
+uv run yaqpy -o toml '.' examples/sample.yaml
+```
+
+```toml
+[project]
+name = "demo"
+version = "0.2.0"
+authors = [{ name = "Ann", email = "ann@example.com" }]
+license = { file = "LICENSE" }
+
+[tool.build]
+retries = 3
+mask = 0xFF
+
+[[tool.hooks]]
+name = "lint"
+[[tool.hooks]]
+name = "test"
+```
+
+### 読み方
+
+- 標準の `tomllib` ではなく**自前のパーサ**で読みます（`tomllib` は `0xFF` を `255` にし、インラインテーブルと `[table]` を区別できないため）
+- **数値・日時・真偽値は原文のまま**保持します（`0xDEADBEEF`、`1_000`、`6.626e-34`、`1979-05-27T07:32:00-08:00`）。`.A += 1` を `0xDEADBEEF` に行うと `0xDEADBEF0` になります
+- **表の種類を覚えています**：`{ a = 1 }`（インラインテーブル）と `[table]`、`[[array.of.tables]]` は、TOML に書き戻すと元と同じ形になります
+- 空の入力・コメントだけの入力は、文書がないものとして何も出力しません
+- 構文エラーは行と桁つきで報告します（`unterminated basic string (line 1, column 5)`）。同じキーの重複、テーブルの再定義、`01` のような先頭のゼロ、末尾カンマのあるインラインテーブルなど、TOML 1.0 に反するものはエラーです
+- 入れ子（配列・インラインテーブル・テーブル名の深さ）は 200 段までです
+
+### 書き方
+
+- 値を先に、そのあとに `[テーブル]` と `[[テーブルの配列]]` を書きます（TOML の規則上、値をテーブルの後ろに置けないため）。YAML のフロー形式のマップ（`{a: 1}`）は、インラインテーブルにはせずテーブルとして書きます
+- キーは英数字と `_` `-` だけなら裸のキー、それ以外（空白・`.`・日本語など）は `"..."` で囲みます。文字列は常に `"..."` で、制御文字は `\uXXXX` にするので、出力は必ず有効な TOML です
+- `null` は TOML にないため、トップや表の中の値としては書かず、配列の中では `""` にします
+- YAML の行末コメント（`port: 8080 # 開発用`）と、キーの前のコメントは TOML のコメントとして書きます
+- トップがマップでないもの（配列など）はエラーです。スカラーは値だけを出します
+
+### コメントと `-i`（その場更新）
+
+**TOML を読むとき、コメントは保持されません**（今の版では読み飛ばします）。そのため、**`-i` で TOML ファイルを書き換えようとすると、既定では拒否します**（ファイルは変更されません）。
+
+```text
+Error: refusing to update a TOML file in place: its comments are not kept, so the file would lose them. ...
+```
+
+- 結果を別のファイルに書く（`> new.toml`）のが安全です
+- コメントを失ってもよいと分かっているときだけ `--toml-allow-lossy` を付けると `-i` が使えます
+- Go 版 yq はコメントを保つので、TOML のコメント保持は今後の課題です（互換テストで実際に不一致になるのは、コメントを保つ 5 件だけです）
+
+### Go 版との違い
+
+- 互換テスト：Go 版の TOML シナリオ 62 件のうち 57 件が合格（91.9%）。残る 5 件はいずれもコメントの保持に関するものです。エラー文言は Go 版と同じ内容に位置（行・桁）を加えています
+- 日時はすべて原文のまま扱い、`!!timestamp` にします（時刻だけの値は文字列）。Go 版は RFC 3339 でない日時（日付だけなど）をエラーにしますが、yaqpy は読めます
+- `1_000` のように `_` を含む数値も読めます（Go 版はエラー）
+- 文字列の出力は TOML の規則に従います（Go 版は `%q` で、TOML にないエスケープを書くことがあります）
+
+---
+[toTop](#toreadme)
 ## GUI の使い方
 
 デスクトップアプリです（`uv sync --extra gui` のあと `uv run yaqpy-gui` または `uv run yaqpy --gui`）。画面の見方、式の書き方（初心者向け）、保存・設定・エラーの読み方は **[USAGE-GUI.ja.md](USAGE-GUI.ja.md)** にまとめています。
@@ -305,9 +378,9 @@ yaqpy は Go 版 yq（v4.53.6）の**独立した再実装**です。
 
 | 分類 | 内容 |
 |---|---|
-| 追加した機能 | TOON 形式の入出力、Python ライブラリ API、デスクトップ GUI（XML・CSV/TSV・properties は Go 版にもあり、同じ規則で実装） |
+| 追加した機能 | TOON 形式の入出力、Python ライブラリ API、デスクトップ GUI（XML・CSV/TSV・properties・TOML は Go 版にもあり、同じ規則で実装） |
 | **未実装の演算子** | `join` `split` `sub` `match` `capture` `trim` `upcase` `downcase` `to_string` `to_number` `unique` `unique_by` `group_by` `reverse` `shuffle` `sort_keys` `flatten` `first` `pick` `omit` `with` `reduce` `pivot` `contains` `filter` `eval` `error` `envsubst` `encode` / `decode`（`@base64` など）`load` `load_str` `split_doc` `system` と、日時の `now` `tz` `from_unix` `to_unix` `format_datetime` `with_dtf`。式としては解釈されますが、実行すると `Error: unknown operator ...` で終了します |
-| 未対応のフォーマット | TOML など、Go 版にあるその他の形式 |
+| 未対応のフォーマット | INI・HCL・Lua・shell 変数・base64・URI など、Go 版にあるその他の形式。TOML はコメントを保持しない（`-i` は既定で拒否） |
 | 未対応のオプション | `-s`（`--split-exp`）、`-f`（`--front-matter`）、`-C`（色付き出力）。文字列補間 `\(...)` |
 | その他 | 日時は RFC3339 形式のみ。Python 3.13 以上が必要 |
 
