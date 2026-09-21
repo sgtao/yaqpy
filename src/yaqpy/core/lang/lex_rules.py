@@ -283,8 +283,10 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     LexRule("RecursiveDecentIncludingKeys", r"\.\.\.", _recursive_descent(True)),
     LexRule("RecursiveDecent", r"\.\.", _recursive_descent(False)),
     LexRule("GetVariable", r"\$[a-zA-Z_\-0-9]+", _get_variable),
-    LexRule("AssignAsVariable", r"as", _op("ASSIGN_VARIABLE", P.AssignVarPrefs())),
-    LexRule("AssignRefVariable", r"ref", _op("ASSIGN_VARIABLE", P.AssignVarPrefs(is_reference=True))),
+    # not when a longer word follows: "ascii_downcase" must not start with the keyword "as"
+    LexRule("AssignAsVariable", r"as(?![A-Za-z0-9_])", _op("ASSIGN_VARIABLE", P.AssignVarPrefs())),
+    LexRule("AssignRefVariable", r"ref(?![A-Za-z0-9_])",
+            _op("ASSIGN_VARIABLE", P.AssignVarPrefs(is_reference=True))),
     LexRule("CreateMap", r":\s*", _op("CREATE_MAP")),
     _simple("length", "LENGTH"),
     _simple("schema", "SCHEMA"),
