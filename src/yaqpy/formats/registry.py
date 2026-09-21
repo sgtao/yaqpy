@@ -124,6 +124,7 @@ def builtin_formats() -> FormatRegistry:
         from yaqpy.formats.json_codec import JsonDecoder, JsonEncoder
         from yaqpy.formats.props_codec import PropertiesEncoder
         from yaqpy.formats.toon_codec import ToonDecoder, ToonEncoder
+        from yaqpy.formats.xml_codec import XmlDecoder, XmlEncoder
         from yaqpy.formats.yaml.codec import YamlDecoder, YamlEncoder
 
         reg = FormatRegistry()
@@ -149,6 +150,12 @@ def builtin_formats() -> FormatRegistry:
             "toon", (), (".toon",),
             decoder_factory=lambda o: ToonDecoder(o),
             encoder_factory=lambda o, u: ToonEncoder(o, unwrap_scalar=u),
+            unwrap_scalar_default=False,
+        ))
+        reg.register(FormatSpec(
+            "xml", ("x",), (".xml",),
+            decoder_factory=lambda o: XmlDecoder(o),
+            encoder_factory=lambda o, u: XmlEncoder(o, unwrap_scalar=u),
             unwrap_scalar_default=False,
         ))
         _builtin = reg.freeze()
