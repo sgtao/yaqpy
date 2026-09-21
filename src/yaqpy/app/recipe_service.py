@@ -66,7 +66,15 @@ class RecipeService:
         directory = os.path.dirname(reference)
 
         def read_related(name: str) -> str:
-            return self.service.fs.read_text(os.path.join(directory, name))
+            # A recipe may name a schema (or an expression) next to it, never a file elsewhere:
+            # its metadata must not be a way to read an arbitrary file.
+            normal = os.path.normpath(name)
+            if os.path.isabs(name) or normal == ".." or normal.startswith(".." + os.sep) \
+                    or name.startswith(("/", "\\")) or (len(name) > 1 and name[1] == ":"):
+                raise RecipeError(
+                    f"{reference}: {name!r} must be a file in the folder of the recipe (no absolute "
+                    f"path, no '..')")
+            return self.service.fs.read_text(os.path.join(directory, normal))
 
         base = os.path.basename(reference)
         try:

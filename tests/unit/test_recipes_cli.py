@@ -266,5 +266,40 @@ class PruneFlagTests(CliTestCase):
         self.assertEqual(json.loads(out), {"c": 1})
 
 
+class RecipeMetadataCannotReadOtherFilesTests(CliTestCase):
+    """The expression cannot touch files (strict security); neither may the metadata name one."""
+
+    def setUp(self) -> None:
+        super().setUp()
+        self.write("secret.json", '{"type": "object", "const": "TOP-SECRET-VALUE"}')
+        self.source = self.write("in.json", '{"a": 1}')
+
+    def recipe_naming(self, target: str) -> str:
+        self.write("box/r.yaqpy", ".")
+        self.write("box/r.recipe.yaml", f"target_schema: {target}\n")
+        return str(self.dir / "box" / "r.yaqpy")
+
+    def test_a_parent_folder_and_an_absolute_path_are_refused(self) -> None:
+        for target in ("../secret.json", "..\\\\secret.json", str(self.dir / "secret.json").replace("\\", "/"),
+                       "sub/../../secret.json"):
+            with self.subTest(target=target):
+                code, out, err = self.run_cli("--recipe", self.recipe_naming(f'"{target}"'), self.source)
+                self.assertEqual((code, out), (1, ""))
+                self.assertIn("must be a file in the folder of the recipe", err)
+                self.assertNotIn("TOP-SECRET-VALUE", out + err)
+
+    def test_a_file_next_to_the_recipe_is_fine(self) -> None:
+        self.write("box/schema.json", '{"type": "object", "required": ["b"]}')
+        code, out, err = self.run_cli("--recipe", self.recipe_naming("schema.json"), "-I0", self.source)
+        self.assertEqual((code, json.loads(out)), (0, {"a": 1}))
+        self.assertIn("target schema: .b: required", err)
+
+    def test_the_same_holds_for_a_metadata_only_recipe_that_names_an_expression_file(self) -> None:
+        self.write("box/only.recipe.yaml", "expression_file: ../secret.json\n")
+        code, out, err = self.run_cli("--recipe", str(self.dir / "box" / "only.recipe.yaml"), self.source)
+        self.assertEqual((code, out), (1, ""))
+        self.assertIn("must be a file in the folder of the recipe", err)
+
+
 if __name__ == "__main__":
     unittest.main()
