@@ -26,6 +26,17 @@ PASTE_DEBOUNCE_SECONDS = 0.3
 PASTE_MIN_LINES = 10             # 未読込のあいだの貼り付け欄の高さ
 PANE_HEADER_HEIGHT = 44         # 右見出しの保存ボタンに高さを合わせ、左右の枠の上端を揃える
 MONO = ft.TextStyle(font_family="Consolas", size=12)
+BUTTON_TEXT_SIZE = 14           # Flet のボタン文字（labelLarge）と同じ大きさ。ファイル名の表示に使う
+FILTER_ROW_SPACING = 14         # 「プロパティ」行と「式」行のあいだ（ラベルが重ならないように）
+
+
+def _format_badge() -> tuple[ft.Container, ft.Text]:
+    """見出しの横に、いま採用している形式を出す小さな札。空のときは隠す。"""
+    text = ft.Text("", size=11, weight=ft.FontWeight.W_600,
+                   color=ft.Colors.ON_SECONDARY_CONTAINER)
+    badge = ft.Container(content=text, visible=False, bgcolor=ft.Colors.SECONDARY_CONTAINER,
+                         border_radius=10, padding=ft.Padding.symmetric(horizontal=8, vertical=2))
+    return badge, text
 
 
 def _options(names: list[str]) -> list[ft.DropdownOption]:
@@ -45,7 +56,8 @@ class MainPage:
         self._validate_token = 0
 
         # --- ファイルバー ---
-        self._file_label = ft.Text(texts.MSG_NO_DOCUMENT, size=12, selectable=True)
+        self._file_label = ft.Text(texts.MSG_NO_DOCUMENT, size=BUTTON_TEXT_SIZE,
+                                   weight=ft.FontWeight.BOLD, selectable=True)
         self._close_button = ft.Button(content=texts.BTN_CLOSE, icon=ft.Icons.CLOSE,
                                        on_click=self._on_close, disabled=True)
 
@@ -99,6 +111,9 @@ class MainPage:
         self._progress = ft.ProgressBar(visible=False)
 
         # --- 2 ペイン ---
+        # 見出しの横：入力形式・出力形式が auto でも指定でも、実際に採る形式名を出す
+        self._original_badge, self._original_format = _format_badge()
+        self._converted_badge, self._converted_format = _format_badge()
         # 未読込のあいだは貼り付け欄として編集可にする（ドロップが使えない環境の保険）
         self._original = ft.TextField(multiline=True, expand=True, text_style=MONO,
                                       border=ft.OutlineInputBorder())
@@ -156,18 +171,20 @@ class MainPage:
             self._candidate_note,
             ft.Row([self._expr_field, self._run_button, self._cancel_button], spacing=8),
             self._expr_error,
-        ], spacing=2)
+        ], spacing=FILTER_ROW_SPACING)
 
         # 複数行 TextField は内容の高さになるので、スクロールする Column で包む。
         # こうすると窓の高さを使い切り、長い文書は枠の中でスクロールする。
         panes = ft.Row([
-            ft.Column([ft.Row([ft.Text(texts.LBL_ORIGINAL, size=12, weight=ft.FontWeight.W_600)],
+            ft.Column([ft.Row([ft.Text(texts.LBL_ORIGINAL, size=12, weight=ft.FontWeight.W_600),
+                               self._original_badge],
                               height=PANE_HEADER_HEIGHT,
                               vertical_alignment=ft.CrossAxisAlignment.CENTER),
                        ft.Column([self._drop_hint, self._original],
                                  scroll=ft.ScrollMode.AUTO, expand=True)],
                       expand=True, spacing=4),
             ft.Column([ft.Row([ft.Text(texts.LBL_CONVERTED, size=12, weight=ft.FontWeight.W_600),
+                               self._converted_badge,
                                ft.Container(expand=True),
                                self._copy_button, self._save_button],
                               height=PANE_HEADER_HEIGHT,
@@ -215,6 +232,15 @@ class MainPage:
         self._close_button.disabled = False
         self._run_button.disabled = False
         self._expr_error.visible = False
+        self._refresh_format_badges()
+
+    def _refresh_format_badges(self) -> None:
+        """見出しの横の形式名を、いまの選択（auto を解決した後）に合わせる。"""
+        input_name, output_name = self._p.adopted_formats()
+        for badge, text, name in ((self._original_badge, self._original_format, input_name),
+                                  (self._converted_badge, self._converted_format, output_name)):
+            text.value = name
+            badge.visible = bool(name)
 
     async def _after_load(self) -> None:
         await self._run()
@@ -291,6 +317,7 @@ class MainPage:
         self._status_text.value = ""
         self._format_text.value = ""
         self._settings_link.visible = False
+        self._refresh_format_badges()
 
     def _on_open_settings_click(self, e: ft.Event[ft.TextButton]) -> None:
         if self._on_open_settings is not None:
@@ -501,6 +528,7 @@ class MainPage:
             self._status_text.color = ft.Colors.ON_SURFACE
 
     def _apply(self, vm: RunViewModel) -> None:
+        self._refresh_format_badges()
         if not vm.ok:
             self._converted.value = ""
             self._truncated_note.visible = False
