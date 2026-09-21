@@ -2,24 +2,24 @@
  "summary": {
   "all": {
    "counts": {
-    "exact": 999,
-    "unsupported": 45,
+    "exact": 1016,
     "semantic": 31,
     "fail": 4,
+    "unsupported": 28,
     "unresolved": 12
    },
-   "pass_rate": 0.9961315280464217,
+   "pass_rate": 0.9961941008563273,
    "total": 1091
   },
   "mvp": {
    "counts": {
-    "exact": 744,
-    "unsupported": 16,
+    "exact": 749,
     "semantic": 14,
     "fail": 1,
+    "unsupported": 11,
     "unresolved": 5
    },
-   "pass_rate": 0.9986824769433466,
+   "pass_rate": 0.9986910994764397,
    "total": 780
   }
  },
@@ -225,12 +225,12 @@
    "detail": ""
   },
   "operator_add#47": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_add#48": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_add#49": {
    "status": "exact",
@@ -1173,40 +1173,40 @@
    "detail": ""
   },
   "operator_datetime#0": {
-   "status": "unsupported",
-   "detail": "unknown operator FORMAT_DATE_TIME"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#1": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#2": {
-   "status": "unsupported",
-   "detail": "unknown operator FORMAT_DATE_TIME"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#3": {
-   "status": "unsupported",
-   "detail": "unknown operator NOW"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#4": {
-   "status": "unsupported",
-   "detail": "unknown operator FROM_UNIX"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#5": {
-   "status": "unsupported",
-   "detail": "unknown operator NOW"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#6": {
-   "status": "unsupported",
-   "detail": "unknown operator NOW"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#7": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#8": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#9": {
    "status": "exact",
@@ -1217,16 +1217,16 @@
    "detail": ""
   },
   "operator_datetime#11": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#12": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_datetime#13": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_delete#0": {
    "status": "exact",
@@ -3173,8 +3173,8 @@
    "detail": ""
   },
   "operator_sort#13": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_sort#14": {
    "status": "exact",
@@ -3513,12 +3513,12 @@
    "detail": ""
   },
   "operator_subtract#13": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_subtract#14": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH_DATE_TIME_FORMAT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_subtract#15": {
    "status": "exact",

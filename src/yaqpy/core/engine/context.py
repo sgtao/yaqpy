@@ -39,6 +39,9 @@ class Context:
     def writable_clone(self) -> Context:
         return Context(self.nodes, self.variables, False, self.datetime_layout)
 
+    def with_datetime_layout(self, layout: str) -> Context:
+        return Context(self.nodes, self.variables, self.read_only, layout)
+
     def deep_clone(self) -> Context:
         return self.child(n.copy() for n in self.nodes)
 
