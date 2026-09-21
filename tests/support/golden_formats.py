@@ -20,7 +20,7 @@ from yaqpy.app.ports import InMemoryFileSystem, StaticEnvironment
 from yaqpy.app.printer import MemorySink
 from yaqpy.app.service import YqService
 from yaqpy.core.model.convert import to_python
-from yaqpy.errors import UnknownFormatError, YqError
+from yaqpy.errors import EvaluationError, ExpressionSyntaxError, UnknownFormatError, YqError
 from yaqpy.formats.yaml.codec import YamlDecoder
 from yaqpy.options import CsvOptions, Options, PropertiesOptions, XmlOptions, YamlOptions
 from tests.support.golden import Outcome
@@ -135,12 +135,12 @@ def run_format_scenario(scenario: dict[str, Any]) -> Outcome:
         actual = service.evaluate(request, MemorySink()).output or ""
     except UnknownFormatError as e:
         return Outcome(sid, source, "unsupported", str(e))
+    except (ExpressionSyntaxError, EvaluationError) as e:
+        if "unknown operator" in str(e) and not case.expects_error:
+            return Outcome(sid, source, "unsupported", str(e))     # an operator that is not built yet
+        return _failed(sid, source, scenario, case, e)
     except YqError as e:
-        if case.expects_error:
-            status = "exact" if str(e) == scenario["expected_error"] else "semantic"
-            return Outcome(sid, source, status,
-                           f"expected error {scenario['expected_error']!r}, got {str(e)!r}")
-        return Outcome(sid, source, "error", f"{type(e).__name__}: {e}")
+        return _failed(sid, source, scenario, case, e)
     except Exception as e:  # noqa: BLE001 - report crashes as errors
         return Outcome(sid, source, "error", f"CRASH {type(e).__name__}: {e}")
     if case.expects_error:
@@ -154,6 +154,14 @@ def run_format_scenario(scenario: dict[str, Any]) -> Outcome:
                                                              options):
         return Outcome(sid, source, "semantic", "", [expected], [actual])
     return Outcome(sid, source, "fail", "", [expected], [actual])
+
+
+def _failed(sid: str, source: str, scenario: dict[str, Any], case: Case, error: YqError) -> Outcome:
+    if case.expects_error:
+        status = "exact" if str(error) == scenario["expected_error"] else "semantic"
+        return Outcome(sid, source, status,
+                       f"expected error {scenario['expected_error']!r}, got {str(error)!r}")
+    return Outcome(sid, source, "error", f"{type(error).__name__}: {error}")
 
 
 def _same_data(expected: str, actual: str, output_format: str, options: Options) -> bool:

@@ -3,18 +3,21 @@
   "all": {
    "total": 154,
    "counts": {
-    "unsupported": 148,
-    "fail": 5,
-    "exact": 1
+    "exact": 50,
+    "unsupported": 97,
+    "semantic": 2,
+    "fail": 5
    },
-   "pass_rate": 0.16666666666666666
+   "pass_rate": 0.9122807017543859
   },
   "xml": {
    "total": 52,
    "counts": {
-    "unsupported": 52
+    "exact": 49,
+    "unsupported": 1,
+    "semantic": 2
    },
-   "pass_rate": null
+   "pass_rate": 1.0
   },
   "csv": {
    "total": 18,
@@ -42,532 +45,532 @@
  },
  "scenarios": {
   "xml#0": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#1": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#2": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": "expected error \"bad file 'sample.yml': invalid XML: Encountered chardata [value] outside of XML node\", got \"bad file 'sample.yml': invalid XML: Encountered chardata [value] outside of XML node\""
   },
   "xml#3": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#4": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#5": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#6": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#7": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#8": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#9": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#10": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#11": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#12": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#13": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#14": {
    "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown operator DECODE"
   },
   "xml#15": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#16": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#17": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "semantic",
+   "detail": ""
   },
   "xml#18": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#19": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#20": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#21": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#22": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#23": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#24": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#25": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#26": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#27": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#28": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#29": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#30": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "semantic",
+   "detail": ""
   },
   "xml#31": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#32": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#33": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#34": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#35": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#36": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#37": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#38": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#39": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#40": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": "expected error 'cannot encode !!seq to XML - only maps can be encoded', got 'cannot encode !!seq to XML - only maps can be encoded'"
   },
   "xml#41": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": "expected error 'cannot encode !!seq to XML - only maps can be encoded', got 'cannot encode !!seq to XML - only maps can be encoded'"
   },
   "xml#42": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#43": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#44": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#45": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#46": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#47": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#48": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#49": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#50": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "xml#51": {
-   "status": "unsupported",
-   "detail": "unknown format 'xml' please use [yaml|y|json|j|props|p|toon]"
+   "status": "exact",
+   "detail": ""
   },
   "csv#0": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#1": {
    "status": "unsupported",
-   "detail": "unknown format 'tsv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'tsv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#2": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#3": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#4": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#5": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#6": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#7": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#8": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#9": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#10": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#11": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#12": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#13": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#14": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#15": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#16": {
    "status": "unsupported",
-   "detail": "unknown format 'tsv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'tsv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "csv#17": {
    "status": "unsupported",
-   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'csv' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#0": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#1": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#2": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#3": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#4": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#5": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#6": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#7": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#8": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#9": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#10": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#11": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#12": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#13": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#14": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#15": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#16": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#17": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#18": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#19": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#20": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#21": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#22": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#23": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#24": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#25": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#26": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#27": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#28": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#29": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#30": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#31": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#32": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#33": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#34": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#35": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#36": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#37": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#38": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#39": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#40": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#41": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#42": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#43": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#44": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#45": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#46": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#47": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#48": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#49": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#50": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#51": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#52": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#53": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#54": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#55": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#56": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#57": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#58": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#59": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#60": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "toml#61": {
    "status": "unsupported",
-   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon]"
+   "detail": "unknown format 'toml' please use [yaml|y|json|j|props|p|toon|xml|x]"
   },
   "properties#0": {
    "status": "fail",

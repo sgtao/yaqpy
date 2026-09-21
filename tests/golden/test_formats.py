@@ -19,7 +19,9 @@ from tests.support.golden_formats import (
 MANIFEST = Path(__file__).resolve().parent / "formats_manifest.json"
 
 # 形式を実装したフェーズで引き上げる（合格率 = 完全一致＋意味的に一致 ÷ 実行できたシナリオ）。
-MIN_PASS_RATE: dict[str, float] = {}
+MIN_PASS_RATE: dict[str, float] = {
+    "xml": 0.85,        # F1（v0.2.0）の完了条件
+}
 
 
 def _known_failures() -> set[str]:
