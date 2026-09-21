@@ -25,9 +25,9 @@ from collections.abc import Iterator
 from typing import TextIO
 
 from yaqpy.core.model.leading import DOC_SEPARATOR_MARKER
+from yaqpy.core.model.depth import node_depth
 from yaqpy.core.model.node import Kind, Node
 from yaqpy.errors import FormatError
-from yaqpy.formats.base import node_depth
 from yaqpy.formats import xml_tokens as xt
 from yaqpy.options import Options
 

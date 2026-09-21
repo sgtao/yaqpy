@@ -24,9 +24,9 @@ import re
 from collections.abc import Iterator
 from typing import TextIO
 
+from yaqpy.core.model.depth import node_depth
 from yaqpy.core.model.node import Kind, Node
 from yaqpy.errors import FormatError
-from yaqpy.formats.base import node_depth
 from yaqpy.options import Options
 
 MAX_DEPTH = 200
