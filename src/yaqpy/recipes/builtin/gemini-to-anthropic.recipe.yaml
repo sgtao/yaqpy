@@ -47,7 +47,7 @@ adds:
 notes:
   - "systemInstruction becomes the system parameter (a list of text blocks). A content without a role is read as a user message; the role model becomes assistant."
   - "A function without parameters gets an empty object schema, because input_schema is required."
-  - "allowedFunctionNames with several names is not converted to a tool_choice (only one name becomes tool_choice tool)."
+  - "allowedFunctionNames with several names becomes tool_choice any (the restriction to those names is lost); with one name it becomes tool_choice tool."
   - "The Anthropic documentation marks temperature as deprecated for newer models (only 1.0 accepted); check the model you use."
 tests:
   - name: minimal
