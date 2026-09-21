@@ -3,6 +3,61 @@
 
 ---
 [toTop](#toreadme)
+## [0.2.0] - 2026-09-21（未リリース）
+
+**形式の拡充とスキーマ出力の版です。** XML・CSV / TSV・TOML を読み書きでき、properties も読めるようになりました。あわせて、データから JSON Schema を作る `schema` を加えました。本体は引き続き Python の標準ライブラリだけで動きます。
+
+### 新しくできること
+
+**形式の追加**（詳しい規則は [USAGE.ja.md](USAGE.ja.md) の各節）
+
+| 形式 | 入力 | 出力 | 拡張子・名前 |
+|---|:-:|:-:|---|
+| XML | ○ | ○ | `.xml` / `-p xml` `-o xml`（別名 `x`） |
+| CSV / TSV | ○ | ○ | `.csv` `.tsv` / `csv` `tsv`（別名 `c` `t`） |
+| TOML | ○ | ○ | `.toml` / `toml` |
+| properties | **○（新）** | ○ | `.properties` / `props` |
+
+- **XML**：Go 版 yq と同じ変換規則（属性 `+@名前`、本文 `+content`、コメント・処理命令・`<!DOCTYPE>` を保持）。宣言された実体は**展開しない**ので、外部実体や Billion laughs の危険がありません。入れ子は 200 段まで
+- **CSV / TSV**：1 行目がヘッダ、セルは YAML の値として読みます（数値・真偽値・null、`cool: true` のような構造も）。`--csv-auto-parse=false` `--csv-separator` `--tsv-auto-parse=false`
+- **TOML**：自前のパーサで、**数値の元の書き方（`0xFF`）とインラインテーブル／`[table]` の区別を保ったまま**読み書きします（`pyproject.toml` の値を書き換えても見た目が変わりません）。**コメントは保持されません**。そのため **`-i` は既定で拒否**します（`--toml-allow-lossy` で許可）
+- **properties の入力**：`a.b.c = x` を階層に、`pets.0` / `pets[0]`（`--properties-array-brackets`）を配列にします。項目の直前のコメントは項目のコメントになります
+- XML・CSV・TOML・properties の Go 版フラグ（`--xml-*` `--csv-*` `--tsv-auto-parse`）は Go 版と同じ名前・既定値です
+- 形式は登録するだけで、`-p auto` の拡張子判定と **GUI の形式の選択肢・「開く」ダイアログにも自動で出ます**
+
+**スキーマの出力：`schema`**（Go 版にない拡張）
+
+- `yaqpy --schema data.yaml`、または式の中で `schema`（`.items[] | schema`）。データから **JSON Schema（Draft 2020-12）** を作り、JSON でも YAML でも出せます
+- `type`・`properties`・`required`（全サンプルにあるキーだけ）・`items`・`format`（日付・日時）を推論します。`--schema-strict`（`additionalProperties: false`）、`--schema-enum-max N`（`enum` の推定）、`--schema-per-doc`（文書ごと）はオプションです
+- 生成したスキーマは元のデータを必ず通します
+
+### 修正
+
+- **JSON の `{}`（空のオブジェクト）が `[]`（空の配列）になるバグを修正**しました。`{"a": {}}` が `a: []` になっていました（v0.1.0 からの不具合）
+- **YAML の出力を go-yaml に合わせました**：`cool: true` のような、プレーンにできない文字列は `'...'`（従来は `"..."`）、複数行の行コメントの 2 行目以降と、フットコメントのあとの空行を落とさない
+- properties の出力：コメント付きの項目の前に空行を入れる（Go 版と同じ）。`-r=false` では空白を含む値を `"..."` で囲む
+
+### 互換性の見える化
+
+Go 版の**形式のシナリオ 154 件**（`tests/golden/formats/`）を互換テストに加えました。実行できるもののうち合格したのは次のとおりです（演算子のシナリオ 1,091 件は従来どおり 837 件が一致）。
+
+| 形式 | シナリオ | 合格 | 内訳・不一致の理由 |
+|---|---:|---:|---|
+| XML | 52 | 51 | 残り 1 件は `from_yaml` 演算子が未実装（v0.3.0 の予定）。書式だけが違うもの 2 件を含みます |
+| CSV / TSV | 18 | 18 | すべて完全一致 |
+| TOML | 62 | 57 | 残り 5 件は**コメントを保持する**もの（今の版は保持しない） |
+| properties | 22 | 20 | 残り 2 件は `from_yaml`・`array_to_map` が未実装 |
+
+`python tools/golden_report.py --formats` で一覧を確認できます。
+
+### 既知の制限（この版で変わったもの）
+
+- **未対応のフォーマット**：INI・HCL・Lua・shell 変数・base64・URI など（CSV / TSV / XML / TOML / properties の入力は使えるようになりました）
+- **TOML** のコメントは保持されません（`-i` は既定で拒否）。XML は文字コード宣言（`encoding="ISO-8859-1"` など）があっても UTF-8 として読みます。CSV の文字コードは UTF-8 のみです
+- 演算子の未実装は、この版では変わりません（`from_yaml`・`join`・`split` など。v0.3.0 で拡充する予定です）
+
+---
+[toTop](#toreadme)
 ## [0.1.0] - 2026-09-20
 
 **初版です。** YAML / JSON をコマンドや Python から、**式で取り出し・更新・変換**できます。Go 版 [yq](https://github.com/mikefarah/yq)（v4.53.6）の式を手本にし、**Python の標準ライブラリだけ**で実装しています。
