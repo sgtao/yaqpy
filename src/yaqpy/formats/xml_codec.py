@@ -27,6 +27,7 @@ from typing import TextIO
 from yaqpy.core.model.leading import DOC_SEPARATOR_MARKER
 from yaqpy.core.model.node import Kind, Node
 from yaqpy.errors import FormatError
+from yaqpy.formats.base import node_depth
 from yaqpy.formats import xml_tokens as xt
 from yaqpy.options import Options
 
@@ -432,20 +433,6 @@ def _head_and_line(node: Node) -> str:
     return _head(node) + _line(node)
 
 
-def _depth(root: Node, limit: int) -> int:
-    """Nesting depth of a node tree (stops early once ``limit`` is exceeded)."""
-    deepest = 0
-    stack = [(root, 1)]
-    while stack:
-        node, level = stack.pop()
-        deepest = max(deepest, level)
-        if deepest > limit:
-            return deepest
-        for child in node.content:
-            stack.append((child, level + 1))
-    return deepest
-
-
 class XmlEncoder:
     def __init__(self, options: Options | None = None, *, unwrap_scalar: bool = False) -> None:
         self.options = options or Options()
@@ -468,7 +455,7 @@ class XmlEncoder:
 
     def encode(self, out: TextIO, node: Node) -> None:
         limit = min(self.options.limits.max_depth, MAX_DEPTH)
-        if _depth(node, limit + 1) > limit + 1:      # + the value under the innermost element
+        if node_depth(node, limit + 1) > limit + 1:      # + the value under the innermost element
             raise FormatError(f"XML nesting too deep (more than {limit} levels)", format="xml")
         try:
             out.write(self._encode(node))

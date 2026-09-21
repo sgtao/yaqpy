@@ -18,3 +18,17 @@ class Encoder(Protocol):
     def print_document_separator(self, out: TextIO) -> None: ...
     def print_leading_content(self, out: TextIO, content: str) -> None: ...
     def encode(self, out: TextIO, node: Node) -> None: ...
+
+
+def node_depth(root: Node, limit: int) -> int:
+    """Nesting depth of a node tree (stops early once ``limit`` is exceeded)."""
+    deepest = 0
+    stack = [(root, 1)]
+    while stack:
+        node, level = stack.pop()
+        deepest = max(deepest, level)
+        if deepest > limit:
+            return deepest
+        for child in node.content:
+            stack.append((child, level + 1))
+    return deepest

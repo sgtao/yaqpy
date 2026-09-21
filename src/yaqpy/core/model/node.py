@@ -58,7 +58,7 @@ class Node:
         "head_comment", "line_comment", "foot_comment",
         "parent", "key", "leading_content",
         "document_index", "filename", "file_index",
-        "line", "column", "evaluate_together", "is_map_key",
+        "line", "column", "evaluate_together", "is_map_key", "encode_hint",
     )
 
     def __init__(
@@ -84,6 +84,7 @@ class Node:
         column: int = 0,
         evaluate_together: bool = False,
         is_map_key: bool = False,
+        encode_hint: str = "",
     ) -> None:
         self.kind = kind
         self.style = style
@@ -105,6 +106,8 @@ class Node:
         self.column = column
         self.evaluate_together = evaluate_together
         self.is_map_key = is_map_key
+        # how a format-specific encoder should write a mapping (TOML): "", "inline" or "block"
+        self.encode_hint = encode_hint
 
     # ------------------------------------------------------------------ factories
     @classmethod
@@ -295,6 +298,7 @@ class Node:
             column=self.column,
             evaluate_together=self.evaluate_together,
             is_map_key=self.is_map_key,
+            encode_hint=self.encode_hint,
         )
         if deep:
             clone.add_children(self.content)
@@ -357,6 +361,8 @@ class Node:
             self.anchor = other.anchor
         if self.style is Style.NONE:
             self.style = other.style
+        if other.encode_hint:
+            self.encode_hint = other.encode_hint
         if other.foot_comment != "":
             self.foot_comment = other.foot_comment
         if other.head_comment != "":
