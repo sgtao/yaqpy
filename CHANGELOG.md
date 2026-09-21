@@ -3,7 +3,7 @@
 
 ---
 [toTop](#toreadme)
-## [0.3.0] - 未リリース
+## [0.3.0] - 2026-09-21
 
 **演算子の拡充の版です。** v0.2.0 までは、`join` や `unique` など多くの演算子を実行すると `unknown operator` になりました。この版で、**ファイル・環境変数・外部コマンドに触れるもの（`load` `load_str` `eval` `envsubst` `system`）と `error` を除く、Go 版 yq のすべての演算子**が使えます。本体は引き続き Python の標準ライブラリだけで動きます。各演算子の使い方は [USAGE.ja.md](USAGE.ja.md#演算子) にあります。
 
