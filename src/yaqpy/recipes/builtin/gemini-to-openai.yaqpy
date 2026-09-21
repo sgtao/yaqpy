@@ -1,0 +1,28 @@
+# Gemini generateContent request body -> OpenAI Chat Completions request body.
+# Style rules: see openai-to-gemini.yaqpy.
+# A message with exactly one text part gets a plain string as its content (the form every
+# OpenAI-compatible server reads); more parts stay a list of text parts.
+. as $raw
+# Gemini's parameters uses the OpenAPI schema (type names in capitals); JSON Schema wants lower case.
+| ($raw | (.tools[]?.functionDeclarations[]?.parameters | .. | select(kind == "map" and has("type")) | .type | select(tag == "!!str")) |= downcase) as $in
+| {}
+| .messages = ([$in | {"role": "system", "content": [.systemInstruction.parts[]? | select(has("text")) | {"type": "text", "text": .text}]} | select(.content | length > 0)]
+    + [$in.contents[]? | ({"role": "user"} + pick(["role"]) + {"content": [.parts[]? | select(has("text")) | {"type": "text", "text": .text}]}) | select(.content | length > 0)])
+| (.messages[] | select(.role == "model") | .role) = "assistant"
+| (.messages[] | select(.content | length == 1) | .content) |= .[0].text
+| (select($in.generationConfig.temperature != null) | .temperature) = $in.generationConfig.temperature
+| (select($in.generationConfig.topP != null) | .top_p) = $in.generationConfig.topP
+| (select($in.generationConfig.maxOutputTokens != null) | .max_completion_tokens) = $in.generationConfig.maxOutputTokens
+| (select($in.generationConfig.candidateCount != null) | .n) = $in.generationConfig.candidateCount
+| (select($in.generationConfig.seed != null) | .seed) = $in.generationConfig.seed
+| (select($in.generationConfig.frequencyPenalty != null) | .frequency_penalty) = $in.generationConfig.frequencyPenalty
+| (select($in.generationConfig.presencePenalty != null) | .presence_penalty) = $in.generationConfig.presencePenalty
+| (select($in.generationConfig.stopSequences | length > 0) | .stop) = $in.generationConfig.stopSequences
+| (select($in.generationConfig.responseMimeType == "application/json") | .response_format.type) = "json_object"
+# OpenAI requires a name for a json_schema; Gemini has none, so "response" is used
+| (select($in.generationConfig.responseMimeType == "application/json" and $in.generationConfig.responseJsonSchema != null) | .response_format) = {"type": "json_schema", "json_schema": {"name": "response", "schema": $in.generationConfig.responseJsonSchema}}
+| (select([$in.tools[]?.functionDeclarations[]?] | length > 0) | .tools) = [$in.tools[]?.functionDeclarations[]? | {"type": "function", "function": (pick(["name", "description"]) + (pick(["parametersJsonSchema"]) | with_entries(.key = "parameters")) + (pick(["parameters"]) | with_entries(.key = "parameters")))}]
+| (select($in.toolConfig.functionCallingConfig.mode == "AUTO") | .tool_choice) = "auto"
+| (select($in.toolConfig.functionCallingConfig.mode == "NONE") | .tool_choice) = "none"
+| (select($in.toolConfig.functionCallingConfig.mode == "ANY") | .tool_choice) = "required"
+| (select($in.toolConfig.functionCallingConfig.mode == "ANY" and ($in.toolConfig.functionCallingConfig.allowedFunctionNames | length) == 1) | .tool_choice) = {"type": "function", "function": {"name": $in.toolConfig.functionCallingConfig.allowedFunctionNames[0]}}

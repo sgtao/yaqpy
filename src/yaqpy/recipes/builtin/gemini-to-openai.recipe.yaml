@@ -1,0 +1,239 @@
+name: gemini-to-openai
+version: 1
+title: Gemini generateContent request -> OpenAI Chat Completions request
+description: |
+  Converts the body of a Gemini generateContent request into the body of an OpenAI Chat
+  Completions request. Text contents, the sampling parameters, function declarations and
+  toolConfig are converted; everything else is reported as dropped.
+input: {format: json, api: gemini-generate-content}
+output: {format: json, api: openai-chat-completions}
+target_schema: openai-chat-request.schema.json
+carries:
+  - .contents
+  - .systemInstruction
+  - .generationConfig.temperature
+  - .generationConfig.topP
+  - .generationConfig.maxOutputTokens
+  - .generationConfig.candidateCount
+  - .generationConfig.seed
+  - .generationConfig.frequencyPenalty
+  - .generationConfig.presencePenalty
+  - .generationConfig.stopSequences
+  - .generationConfig.responseMimeType
+  - .generationConfig.responseJsonSchema
+  - .tools
+  - .toolConfig
+drops:
+  - {path: .model, reason: "model names do not carry over between vendors; name the model where you send the request"}
+  - {path: .generationConfig.topK, reason: "OpenAI has no top_k"}
+  - {path: .safetySettings, reason: "OpenAI has no counterpart"}
+  - {path: .cachedContent, reason: "OpenAI has no counterpart"}
+  - {path: ".contents[].parts[].inlineData", reason: "only text parts are converted; media is dropped"}
+  - {path: ".contents[].parts[].fileData", reason: "only text parts are converted; media is dropped"}
+  - {path: ".contents[].parts[].functionCall", reason: "function calls in the history are not converted (text only)"}
+  - {path: ".contents[].parts[].functionResponse", reason: "function results in the history are not converted (text only)"}
+  - {path: ".systemInstruction.parts[].inlineData", reason: "only text parts are converted"}
+  - {path: ".systemInstruction.parts[].fileData", reason: "only text parts are converted"}
+  - {path: ".tools[].googleSearch", reason: "only function declarations are converted"}
+  - {path: ".tools[].googleSearchRetrieval", reason: "only function declarations are converted"}
+  - {path: ".tools[].codeExecution", reason: "only function declarations are converted"}
+  - {path: ".tools[].urlContext", reason: "only function declarations are converted"}
+  - {path: ".tools[].googleMaps", reason: "only function declarations are converted"}
+  - {path: ".tools[].fileSearch", reason: "only function declarations are converted"}
+  - {path: ".tools[].computerUse", reason: "only function declarations are converted"}
+  - {path: ".tools[].mcpServers", reason: "only function declarations are converted"}
+adds:
+  - {path: .response_format.json_schema.name, reason: "OpenAI requires a name for a JSON Schema response format; Gemini has none, so the recipe uses 'response'"}
+notes:
+  - "A message with exactly one text part gets a plain string as content; more parts stay a list of text parts."
+  - "A content without a role is read as a user message."
+  - "The role model becomes assistant. max_completion_tokens is used for maxOutputTokens (max_tokens is the older, deprecated name)."
+  - "Function parameters are read from parametersJsonSchema, or from parameters (the OpenAPI schema; its type names are turned into lower case). Other OpenAPI-only keywords such as nullable are not translated."
+  - "allowedFunctionNames with several names becomes tool_choice required (the list of names is lost); with one name it becomes that function."
+tests:
+  - name: minimal
+    input:
+      contents:
+        - role: user
+          parts:
+            - text: Hello
+    expected:
+      messages:
+        - role: user
+          content: Hello
+  - name: every supported field
+    input:
+      systemInstruction:
+        parts:
+          - text: You are helpful.
+      contents:
+        - role: user
+          parts:
+            - text: Hello
+        - role: model
+          parts:
+            - text: Hi!
+        - role: user
+          parts:
+            - text: Weather in
+            - text: Oslo?
+      generationConfig:
+        temperature: 0.7
+        topP: 0.9
+        topK: 40
+        maxOutputTokens: 1024
+        candidateCount: 2
+        seed: 7
+        frequencyPenalty: 0.5
+        presencePenalty: -0.5
+        stopSequences:
+          - END
+          - STOP
+        responseMimeType: application/json
+        responseJsonSchema:
+          type: object
+      tools:
+        - functionDeclarations:
+            - name: get_weather
+              description: Get the weather of a city
+              parametersJsonSchema:
+                type: object
+                properties:
+                  city:
+                    type: string
+                  unit:
+                    type: string
+                    default: null
+                required:
+                  - city
+      toolConfig:
+        functionCallingConfig:
+          mode: ANY
+          allowedFunctionNames:
+            - get_weather
+      safetySettings:
+        - category: HARM_CATEGORY_HARASSMENT
+          threshold: BLOCK_NONE
+    expected:
+      messages:
+        - role: system
+          content: You are helpful.
+        - role: user
+          content: Hello
+        - role: assistant
+          content: Hi!
+        - role: user
+          content:
+            - type: text
+              text: Weather in
+            - type: text
+              text: Oslo?
+      temperature: 0.7
+      top_p: 0.9
+      max_completion_tokens: 1024
+      n: 2
+      seed: 7
+      frequency_penalty: 0.5
+      presence_penalty: -0.5
+      stop:
+        - END
+        - STOP
+      response_format:
+        type: json_schema
+        json_schema:
+          name: response
+          schema:
+            type: object
+      tools:
+        - type: function
+          function:
+            name: get_weather
+            description: Get the weather of a city
+            parameters:
+              type: object
+              properties:
+                city:
+                  type: string
+                unit:
+                  type: string
+                  default: null
+              required:
+                - city
+      tool_choice:
+        type: function
+        function:
+          name: get_weather
+  - name: a system instruction of two parts
+    input:
+      systemInstruction:
+        parts:
+          - text: S1
+          - text: S2
+      contents:
+        - role: user
+          parts:
+            - text: Q
+    expected:
+      messages:
+        - role: system
+          content:
+            - type: text
+              text: S1
+            - type: text
+              text: S2
+        - role: user
+          content: Q
+  - name: tools declared with the OpenAPI schema
+    input:
+      contents:
+        - role: user
+          parts:
+            - text: Go
+      tools:
+        - functionDeclarations:
+            - name: get_weather
+              description: Get the weather of a city
+              parameters:
+                type: OBJECT
+                properties:
+                  city:
+                    type: STRING
+                required:
+                  - city
+            - name: ping
+      toolConfig:
+        functionCallingConfig:
+          mode: AUTO
+    expected:
+      messages:
+        - role: user
+          content: Go
+      tools:
+        - type: function
+          function:
+            name: get_weather
+            description: Get the weather of a city
+            parameters:
+              type: object
+              properties:
+                city:
+                  type: string
+              required:
+                - city
+        - type: function
+          function:
+            name: ping
+      tool_choice: auto
+  - name: no role, and function calling off
+    input:
+      contents:
+        - parts:
+            - text: a
+      toolConfig:
+        functionCallingConfig:
+          mode: NONE
+    expected:
+      messages:
+        - role: user
+          content: a
+      tool_choice: none
