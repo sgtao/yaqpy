@@ -1,0 +1,19 @@
+# Anthropic Messages request body -> Gemini generateContent request body.
+# Style rules: see openai-to-gemini.yaqpy.
+. as $raw
+| ($raw | (.system | select(tag == "!!str")) |= [{"type": "text", "text": .}] | (.messages[]? | select(.content | tag == "!!str") | .content) |= [{"type": "text", "text": .}]) as $in
+| {}
+| (select([$in.system[]? | select(.type == "text")] | length > 0) | .systemInstruction) = {"parts": [$in.system[] | select(.type == "text") | {"text": .text}]}
+| .contents = [$in.messages[]? | select(.role == "user" or .role == "assistant") | {"role": .role, "parts": [.content[]? | select(.type == "text") | {"text": .text}]} | select(.parts | length > 0)]
+| (.contents[] | select(.role == "assistant") | .role) = "model"
+| (select($in.max_tokens != null) | .generationConfig.maxOutputTokens) = $in.max_tokens
+| (select($in.temperature != null) | .generationConfig.temperature) = $in.temperature
+| (select($in.top_p != null) | .generationConfig.topP) = $in.top_p
+| (select($in.top_k != null) | .generationConfig.topK) = $in.top_k
+| (select($in.stop_sequences | length > 0) | .generationConfig.stopSequences) = $in.stop_sequences
+| (select([$in.tools[]? | select(has("input_schema"))] | length > 0) | .tools) = [{"functionDeclarations": [$in.tools[] | select(has("input_schema")) | (pick(["name", "description"]) + (pick(["input_schema"]) | with_entries(.key = "parametersJsonSchema")))]}]
+| (select($in.tool_choice.type == "auto") | .toolConfig.functionCallingConfig.mode) = "AUTO"
+| (select($in.tool_choice.type == "none") | .toolConfig.functionCallingConfig.mode) = "NONE"
+| (select($in.tool_choice.type == "any") | .toolConfig.functionCallingConfig.mode) = "ANY"
+| (select($in.tool_choice.type == "tool") | .toolConfig.functionCallingConfig.mode) = "ANY"
+| (select($in.tool_choice.type == "tool") | .toolConfig.functionCallingConfig.allowedFunctionNames) = [$in.tool_choice.name]
