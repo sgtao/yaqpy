@@ -1,0 +1,22 @@
+# Gemini generateContent request body -> Anthropic Messages request body.
+# Style rules: see openai-to-gemini.yaqpy.
+. as $raw
+# Gemini's parameters uses the OpenAPI schema (type names in capitals); JSON Schema wants lower case.
+| ($raw | (.tools[]?.functionDeclarations[]?.parameters | .. | select(kind == "map" and has("type")) | .type | select(tag == "!!str")) |= downcase) as $in
+| {}
+| (select([$in.systemInstruction.parts[]? | select(has("text"))] | length > 0) | .system) = [$in.systemInstruction.parts[] | select(has("text")) | {"type": "text", "text": .text}]
+| .messages = [$in.contents[]? | ({"role": "user"} + pick(["role"]) + {"content": [.parts[]? | select(has("text")) | {"type": "text", "text": .text}]}) | select(.content | length > 0)]
+| (.messages[] | select(.role == "model") | .role) = "assistant"
+# max_tokens is required by Anthropic; 4096 is used when the input gives none (reported as an added item)
+| .max_tokens = 4096
+| (select($in.generationConfig.maxOutputTokens != null) | .max_tokens) = $in.generationConfig.maxOutputTokens
+| (select($in.generationConfig.temperature != null) | .temperature) = $in.generationConfig.temperature
+| (select($in.generationConfig.topP != null) | .top_p) = $in.generationConfig.topP
+| (select($in.generationConfig.topK != null) | .top_k) = $in.generationConfig.topK
+| (select($in.generationConfig.stopSequences | length > 0) | .stop_sequences) = $in.generationConfig.stopSequences
+| (select([$in.tools[]?.functionDeclarations[]?] | length > 0) | .tools) = [$in.tools[]?.functionDeclarations[]? | (pick(["name", "description"]) + {"input_schema": {"type": "object", "properties": {}}} + (pick(["parametersJsonSchema"]) | with_entries(.key = "input_schema")) + (pick(["parameters"]) | with_entries(.key = "input_schema")))]
+| (select($in.toolConfig.functionCallingConfig.mode == "AUTO") | .tool_choice.type) = "auto"
+| (select($in.toolConfig.functionCallingConfig.mode == "NONE") | .tool_choice.type) = "none"
+| (select($in.toolConfig.functionCallingConfig.mode == "ANY") | .tool_choice.type) = "any"
+| (select($in.toolConfig.functionCallingConfig.mode == "ANY" and ($in.toolConfig.functionCallingConfig.allowedFunctionNames | length) == 1) | .tool_choice.type) = "tool"
+| (select($in.toolConfig.functionCallingConfig.mode == "ANY" and ($in.toolConfig.functionCallingConfig.allowedFunctionNames | length) == 1) | .tool_choice.name) = $in.toolConfig.functionCallingConfig.allowedFunctionNames[0]

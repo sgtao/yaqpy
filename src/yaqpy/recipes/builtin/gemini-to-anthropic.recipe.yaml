@@ -1,0 +1,243 @@
+name: gemini-to-anthropic
+version: 1
+title: Gemini generateContent request -> Anthropic Messages request
+description: |
+  Converts the body of a Gemini generateContent request into the body of an Anthropic Messages
+  request. Text contents, the sampling parameters, function declarations and toolConfig are
+  converted; everything else is reported as dropped.
+input: {format: json, api: gemini-generate-content}
+output: {format: json, api: anthropic-messages}
+target_schema: anthropic-messages-request.schema.json
+carries:
+  - .contents
+  - .systemInstruction
+  - .generationConfig.temperature
+  - .generationConfig.topP
+  - .generationConfig.topK
+  - .generationConfig.maxOutputTokens
+  - .generationConfig.stopSequences
+  - .tools
+  - .toolConfig
+drops:
+  - {path: .model, reason: "model names do not carry over between vendors; name the model where you send the request"}
+  - {path: .generationConfig.candidateCount, reason: "the Messages API has no such option"}
+  - {path: .generationConfig.seed, reason: "the Messages API has no such option"}
+  - {path: .generationConfig.frequencyPenalty, reason: "the Messages API has no such option"}
+  - {path: .generationConfig.presencePenalty, reason: "the Messages API has no such option"}
+  - {path: .generationConfig.responseMimeType, reason: "not converted"}
+  - {path: .generationConfig.responseJsonSchema, reason: "not converted"}
+  - {path: .safetySettings, reason: "the Messages API has no counterpart"}
+  - {path: .cachedContent, reason: "the Messages API has no counterpart"}
+  - {path: ".contents[].parts[].inlineData", reason: "only text parts are converted; media is dropped"}
+  - {path: ".contents[].parts[].fileData", reason: "only text parts are converted; media is dropped"}
+  - {path: ".contents[].parts[].functionCall", reason: "function calls in the history are not converted (text only)"}
+  - {path: ".contents[].parts[].functionResponse", reason: "function results in the history are not converted (text only)"}
+  - {path: ".systemInstruction.parts[].inlineData", reason: "only text parts are converted"}
+  - {path: ".systemInstruction.parts[].fileData", reason: "only text parts are converted"}
+  - {path: ".tools[].googleSearch", reason: "only function declarations are converted"}
+  - {path: ".tools[].googleSearchRetrieval", reason: "only function declarations are converted"}
+  - {path: ".tools[].codeExecution", reason: "only function declarations are converted"}
+  - {path: ".tools[].urlContext", reason: "only function declarations are converted"}
+  - {path: ".tools[].googleMaps", reason: "only function declarations are converted"}
+  - {path: ".tools[].fileSearch", reason: "only function declarations are converted"}
+  - {path: ".tools[].computerUse", reason: "only function declarations are converted"}
+  - {path: ".tools[].mcpServers", reason: "only function declarations are converted"}
+adds:
+  - {path: .max_tokens, unless: [.generationConfig.maxOutputTokens], reason: "the Messages API requires max_tokens; 4096 is the recipe's default, not a value from the input"}
+notes:
+  - "systemInstruction becomes the system parameter (a list of text blocks). A content without a role is read as a user message; the role model becomes assistant."
+  - "A function without parameters gets an empty object schema, because input_schema is required."
+  - "allowedFunctionNames with several names is not converted to a tool_choice (only one name becomes tool_choice tool)."
+  - "The Anthropic documentation marks temperature as deprecated for newer models (only 1.0 accepted); check the model you use."
+tests:
+  - name: minimal
+    input:
+      contents:
+        - role: user
+          parts:
+            - text: Hello
+    expected:
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: Hello
+      max_tokens: 4096
+  - name: every supported field
+    input:
+      systemInstruction:
+        parts:
+          - text: You are helpful.
+      contents:
+        - role: user
+          parts:
+            - text: Hello
+        - role: model
+          parts:
+            - text: Hi!
+        - role: user
+          parts:
+            - text: Weather in
+            - text: Oslo?
+      generationConfig:
+        temperature: 0.7
+        topP: 0.9
+        topK: 40
+        maxOutputTokens: 1024
+        candidateCount: 2
+        seed: 7
+        frequencyPenalty: 0.5
+        presencePenalty: -0.5
+        stopSequences:
+          - END
+          - STOP
+        responseMimeType: application/json
+        responseJsonSchema:
+          type: object
+      tools:
+        - functionDeclarations:
+            - name: get_weather
+              description: Get the weather of a city
+              parametersJsonSchema:
+                type: object
+                properties:
+                  city:
+                    type: string
+                  unit:
+                    type: string
+                    default: null
+                required:
+                  - city
+      toolConfig:
+        functionCallingConfig:
+          mode: ANY
+          allowedFunctionNames:
+            - get_weather
+      safetySettings:
+        - category: HARM_CATEGORY_HARASSMENT
+          threshold: BLOCK_NONE
+    expected:
+      system:
+        - type: text
+          text: You are helpful.
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: Hello
+        - role: assistant
+          content:
+            - type: text
+              text: Hi!
+        - role: user
+          content:
+            - type: text
+              text: Weather in
+            - type: text
+              text: Oslo?
+      max_tokens: 1024
+      temperature: 0.7
+      top_p: 0.9
+      top_k: 40
+      stop_sequences:
+        - END
+        - STOP
+      tools:
+        - name: get_weather
+          description: Get the weather of a city
+          input_schema:
+            type: object
+            properties:
+              city:
+                type: string
+              unit:
+                type: string
+                default: null
+            required:
+              - city
+      tool_choice:
+        type: tool
+        name: get_weather
+  - name: a system instruction of two parts
+    input:
+      systemInstruction:
+        parts:
+          - text: S1
+          - text: S2
+      contents:
+        - role: user
+          parts:
+            - text: Q
+    expected:
+      system:
+        - type: text
+          text: S1
+        - type: text
+          text: S2
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: Q
+      max_tokens: 4096
+  - name: tools declared with the OpenAPI schema
+    input:
+      contents:
+        - role: user
+          parts:
+            - text: Go
+      tools:
+        - functionDeclarations:
+            - name: get_weather
+              description: Get the weather of a city
+              parameters:
+                type: OBJECT
+                properties:
+                  city:
+                    type: STRING
+                required:
+                  - city
+            - name: ping
+      toolConfig:
+        functionCallingConfig:
+          mode: AUTO
+    expected:
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: Go
+      max_tokens: 4096
+      tools:
+        - name: get_weather
+          description: Get the weather of a city
+          input_schema:
+            type: object
+            properties:
+              city:
+                type: string
+            required:
+              - city
+        - name: ping
+          input_schema:
+            type: object
+            properties: {}
+      tool_choice:
+        type: auto
+  - name: no role, and function calling off
+    input:
+      contents:
+        - parts:
+            - text: a
+      toolConfig:
+        functionCallingConfig:
+          mode: NONE
+    expected:
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: a
+      max_tokens: 4096
+      tool_choice:
+        type: none
