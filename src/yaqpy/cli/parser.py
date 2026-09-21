@@ -84,7 +84,12 @@ def build_parser() -> _Parser:
   yaqpy '.stuff' < myfile.yml
   yaqpy -i '.stuff = "foo"' myfile.yml
   yaqpy -P -oy sample.json
-  yaqpy eval-all 'select(fi == 0) * select(fi == 1)' f1.yml f2.yml""",
+  yaqpy eval-all 'select(fi == 0) * select(fi == 1)' f1.yml f2.yml
+  yaqpy -o json schema data.yaml                       # the JSON Schema of the data
+  yaqpy --list-recipes                                 # named conversions
+  yaqpy --recipe openai-to-gemini request.json         # convert an API request body
+  yaqpy --recipe openai-to-gemini --report request.json
+  yaqpy --print-spec | --example | --guide-prompt | --skill-md   # yaqpy describes itself""",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         add_help=True,
     )
@@ -177,6 +182,16 @@ def build_parser() -> _Parser:
                          "input) and print a table of the results")
     rc.add_argument("--out-dir", default="", metavar="DIR",
                     help="with --apply: the directory the converted files go to")
+    d = parser.add_argument_group("describe yaqpy itself (yaqpy extension; print and exit, no files read)")
+    d.add_argument("--print-spec", action="store_true",
+                   help="print the expression syntax, the operators that work and those that do not "
+                        "(from the registries), the formats and the recipes (Markdown)")
+    d.add_argument("--example", "--sample", dest="example", action="store_true",
+                   help="print worked examples; each result is produced by running the example")
+    d.add_argument("--guide-prompt", "--prompts", dest="guide_prompt", action="store_true",
+                   help="print a prompt that lets an AI write yaqpy expressions correctly")
+    d.add_argument("--skill-md", action="store_true",
+                   help="print a SKILL.md (Claude Code skill) that covers every feature of yaqpy")
     i = parser.add_argument_group("input")
     i.add_argument("-i", "--inplace", action="store_true",
                    help="update the file in place of first file given.")

@@ -13,6 +13,7 @@ from yaqpy.app.local import LocalEnvironment, LocalFileSystem
 from yaqpy.app.printer import InPlaceSink, StreamSink
 from yaqpy.app.service import YqService
 from yaqpy.cli.args import InvocationError, resolve_invocation
+from yaqpy.cli.describe_cli import run_describe_mode, wants_describe_mode
 from yaqpy.cli.parser import ArgumentError, parse_args, print_help
 from yaqpy.cli.recipe_cli import run_recipe_mode, wants_recipe_mode
 from yaqpy.errors import YqError
@@ -71,6 +72,8 @@ def main(argv: list[str] | None = None, *, stdout: TextIO | None = None,
         return EXIT_OK
     if ns.gui:
         return _launch_gui(ns, err)
+    if wants_describe_mode(ns):
+        return run_describe_mode(ns, out=out, err=err)
     if wants_recipe_mode(ns):
         return run_recipe_mode(ns, out=out, err=err, stdin_is_pipe=_stdin_is_pipe())
     logging.basicConfig(level=logging.DEBUG if ns.verbose else logging.WARNING,
