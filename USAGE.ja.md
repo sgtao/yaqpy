@@ -39,8 +39,8 @@ uv run yaqpy -P -N -e '.items[] | select(.price > 500) | .name' examples/sample.
 
 Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops` など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。yaqpy 独自のフラグは `--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}` です。
 
-- 出力形式は `-o`（`yaml` / `json` / `props` / `toon`）で指定します。**`-p`（入力形式）だけを指定した場合、出力は Go 版との互換のため YAML のまま**です（警告が出ます）
-- 入力形式は、ファイルの拡張子（`.yaml` `.yml` `.json` `.toon`）から自動判定します。拡張子が不明なとき、および標準入力は YAML として扱います
+- 出力形式は `-o`（`yaml` / `json` / `props` / `toon` / `xml`）で指定します。**`-p`（入力形式）だけを指定した場合、出力は Go 版との互換のため YAML のまま**です（警告が出ます）
+- 入力形式は、ファイルの拡張子（`.yaml` `.yml` `.json` `.toon` `.xml`）から自動判定します。拡張子が不明なとき、および標準入力は YAML として扱います
 
 ---
 [toTop](#toreadme)
@@ -92,6 +92,74 @@ items[2]{name,price}:
 - 複数の結果・複数ドキュメントは空行で区切って出力します（TOON には文書区切りがないため）。TOON 入力は常に 1 ドキュメントです
 - デコーダは既定で strict（件数・セル数の不一致、字下げ、重複キーをエラー）です。`ToonOptions(strict=False)` で緩和できます。旧仕様の `key[0]:`・`[N,]{...}`・`[#N]` も読めます
 - ライブラリでは `Options(output_format="toon", toon=ToonOptions(delimiter="\t", indent=2))` で指定します
+
+---
+[toTop](#toreadme)
+## XML 入出力
+
+Go 版 yq と同じ変換規則で、XML を読み書きします（`.xml` は拡張子で自動判定、`-p xml` / `-o xml`、別名 `x`）。標準ライブラリだけで実装しています。
+
+```bash
+# XML → YAML（コメント・属性・処理命令もそのまま出ます）
+uv run yaqpy -o yaml '.' examples/sample.xml
+
+# 値を取り出す（スカラーは YAML 出力にすると 1 行ずつ出ます）
+uv run yaqpy -o yaml '.shop.item[].name' examples/sample.xml
+
+# XML のまま更新（宣言・コメント・並び順は保たれます）
+uv run yaqpy '.shop.item[0].price = "150"' examples/sample.xml
+
+# XML → JSON、YAML → XML
+uv run yaqpy -o json -I 0 '.shop.item' examples/sample.xml
+uv run yaqpy -o xml '.' examples/sample.yaml
+```
+
+```yaml
+# 商品一覧
++p_xml: version="1.0" encoding="UTF-8"
+shop:
+  +@name: stationery
+  item:
+    - +@id: "1"
+      name: pen
+      price: "120"
+    - +@id: "2"
+      name: book
+      price: "980"
+```
+
+### 変換の規則
+
+| XML | YAML / JSON での形 |
+|---|---|
+| 要素 `<a>…</a>` | マップのキー `a` |
+| 同じ名前の兄弟要素 | 配列（1 つだけなら配列にならない） |
+| 属性 `<a x="1">` | `+@x` というキー（接頭辞は `--xml-attribute-prefix`） |
+| 属性や子要素と並ぶ本文 | `+content` というキー（名前は `--xml-content-name`）。本文が子要素で分かれると配列 |
+| 空の要素 `<a/>` `<a></a>` | `null` |
+| 処理命令 `<?xml version="1.0"?>` | `+p_xml` というキー（接頭辞は `--xml-proc-inst-prefix`） |
+| `<!DOCTYPE …>` などの指令 | `+directive` というキー（名前は `--xml-directive-name`）。原文のまま保持 |
+| コメント `<!-- … -->` | YAML のコメント（先頭・行末・末尾）。XML へ書き戻すと元の位置に戻る |
+| 本文の値 | **すべて文字列**（`"4"`、`"true"`）。数値にするには `.shop.item[].price tag = "!!int"` のようにタグを付け替えます（Go 版の `from_yaml` による変換は未実装） |
+| CDATA | 中身がそのまま文字列になる |
+
+### XML のフラグ
+
+Go 版と同じ名前・既定値です：`--xml-attribute-prefix`（`+@`）、`--xml-content-name`（`+content`）、`--xml-proc-inst-prefix`（`+p_`）、`--xml-directive-name`（`+directive`）、`--xml-keep-namespace`（既定 true）、`--xml-raw-token`（既定 true。false にすると名前空間 URL に置き換える）、`--xml-strict-mode`（厳密な構文検査）、`--xml-skip-proc-inst`、`--xml-skip-directives`。字下げ幅は `-I`（既定 2）。ライブラリでは `Options(xml=XmlOptions(...))` で渡します。
+
+### 読み方と安全性
+
+- **寛容に読みます**（Go 版の `encoding/xml` と同じ）：閉じタグの不一致や、閉じていない要素があってもエラーにしません。ファイルの先頭に要素の外の文字があるとエラーです
+- **実体は展開しません**：`<!ENTITY …>` で宣言された実体（`&name;`）は文字列のまま残り、出力では `&amp;name;` になります。外部実体（`SYSTEM`）やパラメータ実体を読みに行くこともなく、ネットワークやファイルへのアクセスは起きません。実体を膨らませて資源を使い切る攻撃（Billion laughs）も成立しません。使えるのは `&lt;` `&gt;` `&amp;` `&apos;` `&quot;` と数値参照（`&#65;`）だけです
+- 要素の入れ子は **200 段まで**（`Limits.max_depth` がそれより小さければそちら）、入力は `Limits.max_input_bytes` までです。超えるとエラーになります
+- 出力は要素名・属性名に空白や `<` `>` `=` `/` などが含まれると、壊れた XML を出す代わりにエラーにします（Go 版は出力してしまいます）
+
+### Go 版との違い・注意
+
+- スカラー 1 つだけを XML で出力すると、Go 版と同じく**末尾の改行が付きません**（`-o yaml` で取り出すと 1 行ずつ出ます）
+- XML の入力は UTF-8 として読みます。`encoding="ISO-8859-1"` などの宣言があっても文字コードの変換はしません（Go 版は変換します）
+- 出力できるのは**マップ**（と、その中の配列・スカラー）だけです。トップが配列だと `cannot encode !!seq to XML - only maps can be encoded` になります
+- 互換テスト：Go 版の XML シナリオ 52 件のうち、実行できる 51 件がすべて合格です（残り 1 件は `from_yaml` 演算子が未実装のため）。ネストした配列を `-I 4` で YAML にしたときの字下げなど、**書式だけが異なる**（値は同じ）ものが 2 件あります
 
 ---
 [toTop](#toreadme)
@@ -147,9 +215,9 @@ yaqpy は Go 版 yq（v4.53.6）の**独立した再実装**です。
 
 | 分類 | 内容 |
 |---|---|
-| 追加した機能 | TOON 形式の入出力、Python ライブラリ API、デスクトップ GUI |
+| 追加した機能 | TOON 形式の入出力、Python ライブラリ API、デスクトップ GUI（XML は Go 版にもあり、同じ規則で実装） |
 | **未実装の演算子** | `join` `split` `sub` `match` `capture` `trim` `upcase` `downcase` `to_string` `to_number` `unique` `unique_by` `group_by` `reverse` `shuffle` `sort_keys` `flatten` `first` `pick` `omit` `with` `reduce` `pivot` `contains` `filter` `eval` `error` `envsubst` `encode` / `decode`（`@base64` など）`load` `load_str` `split_doc` `system` と、日時の `now` `tz` `from_unix` `to_unix` `format_datetime` `with_dtf`。式としては解釈されますが、実行すると `Error: unknown operator ...` で終了します |
-| 未対応のフォーマット | CSV / TSV / XML / TOML など、Go 版にあるその他の形式。properties は入力不可 |
+| 未対応のフォーマット | CSV / TSV / TOML など、Go 版にあるその他の形式。properties は入力不可 |
 | 未対応のオプション | `-s`（`--split-exp`）、`-f`（`--front-matter`）、`-C`（色付き出力）。文字列補間 `\(...)` |
 | その他 | 日時は RFC3339 形式のみ。Python 3.13 以上が必要 |
 
