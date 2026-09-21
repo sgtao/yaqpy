@@ -95,5 +95,70 @@ class FilterTests(unittest.TestCase):
         self.assertEqual(run("filter(. > 9)", "[1, 2]"), [])
 
 
+class UniqueTests(unittest.TestCase):
+    def test_keeps_the_first_of_each_and_the_order(self) -> None:
+        self.assertEqual(run("unique", "[3, 1, 3, 2, 1]"), [3, 1, 2])
+
+    def test_containers_are_compared_by_content(self) -> None:
+        self.assertEqual(run("unique", "[{a: 1}, {a: 2}, {a: 1}]"), [{"a": 1}, {"a": 2}])
+
+    def test_unique_by_an_expression(self) -> None:
+        text = "[{n: a, v: 1}, {n: b, v: 2}, {n: a, v: 3}]"
+        self.assertEqual(run("unique_by(.n)", text), [{"n": "a", "v": 1}, {"n": "b", "v": 2}])
+
+    def test_missing_key_counts_as_null(self) -> None:
+        self.assertEqual(run("unique_by(.x)", "[{a: 1}, {a: 2}]"), [{"a": 1}])
+
+    def test_only_arrays(self) -> None:
+        with self.assertRaises(EvaluationError) as raised:
+            run("unique", "a: 1")
+        self.assertEqual(str(raised.exception), "only arrays are supported for unique")
+
+
+class GroupByTests(unittest.TestCase):
+    def test_groups_keep_first_appearance_order(self) -> None:
+        text = "[{k: b, v: 1}, {k: a, v: 2}, {k: b, v: 3}]"
+        self.assertEqual(run("group_by(.k)", text),
+                         [[{"k": "b", "v": 1}, {"k": "b", "v": 3}], [{"k": "a", "v": 2}]])
+
+    def test_only_arrays(self) -> None:
+        with self.assertRaises(EvaluationError):
+            run("group_by(.a)", "a: 1")
+
+
+class FlattenTests(unittest.TestCase):
+    def test_flattens_all_levels(self) -> None:
+        self.assertEqual(run("flatten", "[1, [2, [3, [4]]]]"), [1, 2, 3, 4])
+
+    def test_flattens_to_a_depth(self) -> None:
+        self.assertEqual(run("flatten(1)", "[1, [2, [3]]]"), [1, 2, [3]])
+        self.assertEqual(run("flatten(0)", "[1, [2]]"), [1, [2]])
+
+    def test_only_arrays(self) -> None:
+        with self.assertRaises(EvaluationError) as raised:
+            run("flatten", "a: 1")
+        self.assertEqual(str(raised.exception), "only arrays are supported for flatten")
+
+
+class PivotTests(unittest.TestCase):
+    def test_rows_of_different_length_are_padded_with_null(self) -> None:
+        self.assertEqual(run("pivot", "[[1, 2, 3], [4]]"), [[1, 4], [2, None], [3, None]])
+
+    def test_maps_become_columns(self) -> None:
+        self.assertEqual(run("pivot", "[{a: 1, b: 2}, {b: 3, c: 4}]"),
+                         {"a": [1, None], "b": [2, 3], "c": [None, 4]})
+
+    def test_mixed_elements_are_refused(self) -> None:
+        with self.assertRaises(EvaluationError) as raised:
+            run("pivot", "[[1], {a: 1}]")
+        self.assertEqual(str(raised.exception),
+                         "sequence contains elements of !!seq and !!map types")
+
+    def test_scalars_are_refused(self) -> None:
+        with self.assertRaises(EvaluationError) as raised:
+            run("pivot", "[1, 2]")
+        self.assertIn("can only pivot elements of !!seq or !!map types", str(raised.exception))
+
+
 if __name__ == "__main__":
     unittest.main()
