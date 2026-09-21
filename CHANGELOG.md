@@ -3,6 +3,61 @@
 
 ---
 [toTop](#toreadme)
+## [0.3.0] - 未リリース
+
+**演算子の拡充の版です。** v0.2.0 までは、`join` や `unique` など多くの演算子を実行すると `unknown operator` になりました。この版で、**ファイル・環境変数・外部コマンドに触れるもの（`load` `load_str` `eval` `envsubst` `system`）と `error` を除く、Go 版 yq のすべての演算子**が使えます。本体は引き続き Python の標準ライブラリだけで動きます。各演算子の使い方は [USAGE.ja.md](USAGE.ja.md#演算子) にあります。
+
+### 新しくできること
+
+| 分類 | 演算子・機能 |
+|---|---|
+| 文字列 | `join` `split` `sub` `match` `capture` `test` `trim` `upcase` `downcase` `to_string` `to_number`、**文字列補間** `"…\(式)…"`（`--string-interpolation=false` で無効に） |
+| 配列・マップ | `reverse` `shuffle` `first` `filter` `unique` `unique_by` `group_by` `flatten` `pivot` `pick` `omit` `sort_keys` `with` `reduce` `array_to_map` `contains` |
+| encode / decode | `to_json` `to_yaml` `to_xml` `to_props` `to_csv` `to_tsv`、対応する `from_*`、`@json` `@yaml` `@xml` `@props` `@csv` `@tsv`（と `…d`）、`@base64` `@base64d` `@uri` `@urid` `@sh` |
+| 日時 | `now` `tz` `from_unix` `to_unix` `format_datetime` `with_dtf`。Go の**時間の書式**（`Monday, 02-Jan-06 at 3:04PM MST` など）を読み書きし、`+=` `-=` `<` `sort_by` も `with_dtf` の書式で動きます |
+| 文書の分割 | `split_doc`、**`-s` / `--split-exp` / `--split-exp-file`**（結果ごとに、式で名付けた別のファイルへ書く。`$index` が使えます） |
+
+- **正規表現は Go（RE2）に近づけています**：`$` は文字列の終わりだけに一致（YAML の複数行文字列の末尾の改行に一致しません）、`(?<名前>…)`、`[[:alpha:]]`、置換の `$1` `${名前}`、`match` の `offset` は UTF-8 のバイト数。`\pL` などの Unicode クラスと `(?U)` は、エラーで知らせます
+- `tz("Asia/Tokyo")` のような IANA 名には、**OS の時間帯データ**が要ります。Windows では `pip install tzdata` を実行してください（`UTC` と `Local` は不要）。実行時の依存が増えるわけではありません
+- `-s` は安全のため、**名前に `..` を含むものを書きません**（Go 版にない制限。名前はデータから決まるため）。`--security-disable-file-ops` を付けると使えず、ライブラリの既定（`SecurityPolicy.strict()`）でも拒否されます
+- 空の文字列を `from_yaml` などで読むと `null` になります（Go 版は形式によって `EOF` エラー）
+- `from_yaml | … | to_yaml` の往復で、元の文字列に末尾の改行がなければ付けません（Go 版と同じ）
+- `first` は、Go 版と同じく、マップに使うと最初の**キー**を返します
+
+### ライブラリ・開発者向けの変更
+
+- `Yq(clock=...)`、`YqService(clock=...)`：`now` と `shuffle` が読む時計を差し替えられます（テスト用）
+- `Options.string_interpolation`、`EvaluateRequest.split_expression`
+- **`FileSystemPort` に `write_file(path, text)` が加わりました**（`-s` がファイルとディレクトリを作るため）。自作のポート実装は、このメソッドを足してください
+- 互換テストのハーネスは、Go のテストと同じく時計を固定して `now` の結果を比べます。形式に依存するシナリオ（`requiresFormat`）も実行します
+- `tzdata` を開発用の依存グループ（`dev`）に加えました（IANA 名のテスト用）
+
+### 修正
+
+- `test` 演算子が、`test(正規表現; "g")` のように 2 つ目の引数を受け取れなかったのを修正
+
+### 互換性の見える化
+
+| | v0.2.0 | v0.3.0 |
+|---|---:|---:|
+| 演算子シナリオ（1,091 件）で一致 | 837 | **1,047** |
+| 　未実装の演算子に当たるもの | 228 | **28**（`load` `envsubst` `eval`） |
+| 　既知の差異 | 4（文字列補間） | 4（`shuffle` の並び） |
+| 　環境や外部コマンドに依存して比べられない | 22 | 12 |
+| 形式シナリオ（154 件）で一致 | 146 | **149**（不一致 5 件は TOML のコメント保持） |
+
+- `shuffle` の並びが Go 版と違うのは、Go の乱数列（`math/rand`）を再現しないためです（並べ替えとしては正しい）
+- 演算子シナリオの合格率は 99.6%（比べられる 1,051 件のうち 1,047 件）、XML・CSV/TSV・properties の形式シナリオは全件が一致します
+
+### 既知の制限（この版で変わったもの）
+
+- **使えない演算子**：`load` `load_str` `eval` `envsubst` `system` `error`（実行すると `Error: unknown operator ...`）。安全性の設計をしてから入れる予定です
+- **未対応のオプション**：`-f`（`--front-matter`）、`-C`（色付き出力）
+- 時刻の精度はマイクロ秒（Go はナノ秒）、年は 1〜9999 です
+- v0.2.0 までの制限（TOML のコメントは保持されない、CSV の文字コードは UTF-8 のみ、など）は変わりません
+
+---
+[toTop](#toreadme)
 ## [0.2.0] - 2026-09-21
 
 **形式の拡充とスキーマ出力の版です。** XML・CSV / TSV・TOML を読み書きでき、properties も読めるようになりました。あわせて、データから JSON Schema を作る `schema` を加えました。本体は引き続き Python の標準ライブラリだけで動きます。
