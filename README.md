@@ -29,7 +29,7 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 
 - **スキーマの出力**（Go 版にない拡張）：`yaqpy --schema data.yaml` で、データを表す JSON Schema（Draft 2020-12）を JSON でも YAML でも出せます
 
-- **Go 版 yq との互換性**：Go 版のテストシナリオ 1,091 件を互換テストにしています（実装済みの機能に当たる 841 件のうち 837 件が一致）。**未実装の演算子・形式があります**（`join` `split` `unique` `pick` など）。実行すると `Error: unknown operator ...` で終了します。一覧は [Go 版 yq との違い](USAGE.ja.md#go-版-yq-との違い) を参照してください
+- **Go 版 yq との互換性**：Go 版のテストシナリオ 1,091 件を互換テストにしています（結果を比べられる 1,051 件のうち 1,047 件が一致）。文字列・配列・`@base64` などの encode/decode・日時・`-s`（分割出力）を含め、**`load` `eval` `envsubst` `system` `error` を除く演算子が使えます**（これらは実行すると `Error: unknown operator ...` で終了します）。一覧は [Go 版 yq との違い](USAGE.ja.md#go-版-yq-との違い) を参照してください
 - **安全側の既定**：ライブラリとして使うときは、ファイル読み込み・環境変数・外部コマンドの演算子が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込みが有効です（外部コマンドは無効）
 
 ## インストール
@@ -37,23 +37,23 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 Python 3.13 以上が必要です。yaqpy は PyPI には公開していないので、**GitHub のリリース**から入れます。
 
 1. [Releases](https://github.com/sgtao/yaqpy/releases) で、入れたい版を選びます（最新版が一番上です）
-2. 次のコマンドの **`0.2.0`（と `v0.2.0`）を、選んだ版の番号に読み替えて**実行します
+2. 次のコマンドの **`0.3.0`（と `v0.3.0`）を、選んだ版の番号に読み替えて**実行します
 
 ```bash
 # ビルド済みの wheel から入れる（Git は不要）
-pip install https://github.com/sgtao/yaqpy/releases/download/v0.2.0/yaqpy-0.2.0-py3-none-any.whl
+pip install https://github.com/sgtao/yaqpy/releases/download/v0.3.0/yaqpy-0.3.0-py3-none-any.whl
 
 # GUI も使う場合（Flet が追加されます）
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.2.0/yaqpy-0.2.0-py3-none-any.whl"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.3.0/yaqpy-0.3.0-py3-none-any.whl"
 
 # コマンドとして入れる場合（uv）
-uv tool install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.2.0/yaqpy-0.2.0-py3-none-any.whl"
+uv tool install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.3.0/yaqpy-0.3.0-py3-none-any.whl"
 ```
 
 Git がある場合は、タグを指定して入れることもできます。
 
 ```bash
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.2.0"
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.3.0"
 ```
 
 新しい版に更新するときは、新しい版の番号で同じコマンドを実行します。ソースを見たい・改造したい場合は [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。

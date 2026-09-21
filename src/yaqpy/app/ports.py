@@ -12,6 +12,7 @@ class FileSystemPort(Protocol):
     def read_text(self, path: str) -> str: ...
     def read_stdin(self) -> str: ...
     def atomic_write(self, path: str, text: str) -> None: ...
+    def write_file(self, path: str, text: str) -> None: ...
     def exists_file(self, path: str) -> bool: ...
 
 
@@ -29,6 +30,9 @@ class SandboxFileSystem:
         raise SecurityError("stdin is not available", capability="file")
 
     def atomic_write(self, path: str, text: str) -> None:
+        raise SecurityError(f"file access is not allowed: {path}", capability="file")
+
+    def write_file(self, path: str, text: str) -> None:
         raise SecurityError(f"file access is not allowed: {path}", capability="file")
 
     def exists_file(self, path: str) -> bool:
@@ -55,6 +59,9 @@ class InMemoryFileSystem:
     def atomic_write(self, path: str, text: str) -> None:
         self.files[path] = text
         self.written[path] = text
+
+    def write_file(self, path: str, text: str) -> None:
+        self.atomic_write(path, text)
 
     def exists_file(self, path: str) -> bool:
         return path in self.files

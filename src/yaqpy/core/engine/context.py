@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass, field
+from datetime import datetime
 from typing import Any
 
 from yaqpy.core.engine.limits import StepBudget
@@ -38,6 +39,9 @@ class Context:
     def writable_clone(self) -> Context:
         return Context(self.nodes, self.variables, False, self.datetime_layout)
 
+    def with_datetime_layout(self, layout: str) -> Context:
+        return Context(self.nodes, self.variables, self.read_only, layout)
+
     def deep_clone(self) -> Context:
         return self.child(n.copy() for n in self.nodes)
 
@@ -49,6 +53,12 @@ class Context:
     def get_variable(self, name: str) -> tuple[Node, ...] | None:
         return self.variables.get(name)
 
+    def remember(self, name: str, value: tuple[Node, ...]) -> None:
+        """Go's ``SetVariable``: write into the variable table in place. The table is shared with
+        every Context derived from this one, which is how ``from_yaml`` tells the later ``to_yaml``
+        what the original string looked like."""
+        self.variables[name] = value                 # type: ignore[index]
+
     def get_datetime_layout(self) -> str:
         return self.datetime_layout or "2006-01-02T15:04:05Z07:00"
 
@@ -57,6 +67,11 @@ class Context:
 
     def evaluate_all_together(self) -> bool:
         return all(n.evaluate_together for n in self.nodes)
+
+
+def system_clock() -> datetime:
+    """The current time in the local zone (Go's ``time.Now``)."""
+    return datetime.now().astimezone()
 
 
 @dataclass(frozen=True, slots=True)
@@ -72,3 +87,4 @@ class EvalEnv:
     options: Options = field(default_factory=Options)
     formats: Any = None                 # FormatRegistry (injected by app layer)
     yaml_snippet_decoder: Callable[[str], Node] | None = None
+    clock: Callable[[], datetime] = system_clock       # ``now`` and ``shuffle`` read this

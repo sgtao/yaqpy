@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable, Iterator, Mapping, Sequence
+from collections.abc import Callable, Iterable, Iterator, Mapping, Sequence
+from datetime import datetime
 from typing import Any
 
 from yaqpy.app.dto import EvalMode, EvaluateRequest, InputSource
@@ -27,6 +28,7 @@ class Yq:
         operators: OperatorRegistry | None = None,
         formats: FormatRegistry | None = None,
         environ: Mapping[str, str] | None = None,
+        clock: Callable[[], datetime] | None = None,
     ) -> None:
         self.options = options or Options()
         if environ is None:
@@ -36,6 +38,7 @@ class Yq:
         self._service = YqService(
             SandboxFileSystem(), StaticEnvironment(environ),
             operators=operators or builtin_registry(), formats=formats or builtin_formats(),
+            clock=clock,
         )
 
     # ------------------------------------------------------------------ compile

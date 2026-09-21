@@ -40,6 +40,13 @@ class LocalFileSystem:
                 pass
             raise
 
+    def write_file(self, path: str, text: str) -> None:
+        """Create (or replace) a file, making its directories first (Go's ``MkdirAll`` + ``Create``)."""
+        parent = Path(path).parent
+        if str(parent) not in ("", "."):
+            parent.mkdir(mode=0o750, parents=True, exist_ok=True)
+        self.atomic_write(path, text)
+
     def exists_file(self, path: str) -> bool:
         p = Path(path)
         return p.exists() and not p.is_dir()

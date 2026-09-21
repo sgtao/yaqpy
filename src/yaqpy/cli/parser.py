@@ -40,7 +40,7 @@ _OPTIONAL_VALUE_FLAGS = {
     "-r", "--unwrapScalar", "--unwrap-scalar", "--header-preprocess",
     "--yaml-fix-merge-anchor-to-spec",
     "--xml-strict-mode", "--xml-keep-namespace", "--xml-raw-token", "--xml-skip-proc-inst",
-    "--xml-skip-directives", "--csv-auto-parse", "--tsv-auto-parse",
+    "--xml-skip-directives", "--csv-auto-parse", "--tsv-auto-parse", "--string-interpolation",
 }
 
 _SEPARATOR_ESCAPES = (("\\n", "\n"), ("\\t", "\t"), ("\\r", "\r"), ("\\f", "\f"), ("\\v", "\v"))
@@ -167,7 +167,11 @@ def build_parser() -> _Parser:
                    help="Slurp any header comments and separators before processing expression.")
     i.add_argument("--yaml-fix-merge-anchor-to-spec", nargs="?", const=True, default=False,
                    type=parse_bool, help="Fix merge anchor to match YAML spec.")
-    i.add_argument("-s", "--split-exp", default="", help="(phase 2) print each result into a file named (exp)")
+    i.add_argument("-s", "--split-exp", default="",
+                   help="print each result (or doc) into a file named (exp). [exp] argument must return "
+                        "a string. You can use $index in the expression as the result counter. "
+                        "The necessary directories will be created.")
+    i.add_argument("--split-exp-file", default="", help="Use a file to specify the split-exp expression.")
     i.add_argument("-f", "--front-matter", default="", help="(phase 2) (extract|process) first input as yaml front-matter")
     s = parser.add_argument_group("security")
     s.add_argument("--security-disable-env-ops", action="store_true", help="Disable env related operations.")
@@ -176,6 +180,8 @@ def build_parser() -> _Parser:
     s.add_argument("--security-enable-system-operator", action="store_true",
                    help="Enable system operator to allow execution of external commands.")
     m = parser.add_argument_group("misc")
+    m.add_argument("--string-interpolation", nargs="?", const=True, default=True, type=parse_bool,
+                   help="Toggles strings interpolation of \\(exp)")
     m.add_argument("-e", "--exit-status", action="store_true",
                    help="set exit status if there are no matches or null or false is returned")
     m.add_argument("-v", "--verbose", action="store_true", help="verbose mode")

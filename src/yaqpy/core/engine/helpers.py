@@ -19,6 +19,12 @@ def truthy(node: Node | None) -> bool:
     return node is not None and node.is_truthy()
 
 
+def yaml_string(nav: Navigator, node: Node) -> str:
+    """The node as YAML text without the trailing newline (Go's ``encodeToYamlString``)."""
+    encoder = nav.env.formats.encoder_for("yaml", nav.env.options, False)
+    return encoder.encode_to_string(node).rstrip("\n")
+
+
 def create_boolean(owner: Node, value: bool) -> Node:
     node = owner.create_replacement(Kind.SCALAR, "!!bool", "true" if value else "false")
     if owner.is_map_key:

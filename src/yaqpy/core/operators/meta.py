@@ -5,7 +5,6 @@ from __future__ import annotations
 import re
 
 from yaqpy.core.engine.context import Context
-from yaqpy.core.engine.helpers import create_boolean
 from yaqpy.core.engine.navigator import Navigator
 from yaqpy.core.lang.ast import ExprNode
 from yaqpy.core.lang.prefs import CommentPrefs, EnvPrefs, ParentPrefs
@@ -219,42 +218,3 @@ def env_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
             raise EvaluationError("env(): no YAML decoder available")
         node = nav.env.yaml_snippet_decoder(raw)
     return ctx.single_child(node)
-
-
-# ----------------------------------------------------------------------------- test (regex)
-
-def _extract_regex(nav: Navigator, ctx: Context, expr: ExprNode) -> re.Pattern[str]:
-    if expr.rhs is None:
-        raise EvaluationError("test requires a regular expression argument")
-    regex_ctx = nav.evaluate(ctx.readonly_clone(), expr.rhs)
-    if not regex_ctx.nodes:
-        raise EvaluationError("test requires a regular expression argument")
-    pattern = regex_ctx.nodes[0].value
-    flags = 0
-    m = re.match(r"^\(\?([a-zA-Z]+)\)", pattern)
-    if m:
-        letters = m.group(1)
-        pattern = pattern[m.end():]
-        if "i" in letters:
-            flags |= re.IGNORECASE
-        if "m" in letters:
-            flags |= re.MULTILINE
-        if "s" in letters:
-            flags |= re.DOTALL
-    try:
-        return re.compile(pattern, flags)
-    except re.error as e:
-        raise EvaluationError(f"invalid regular expression {pattern!r}: {e}") from None
-
-
-@operator("TEST")
-def test_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
-    regex = _extract_regex(nav, ctx, expr)
-    results: list[Node] = []
-    for node in ctx.nodes:
-        if node.guess_tag() != "!!str":
-            raise EvaluationError(
-                f"cannot match with {node.tag}, can only match strings. Hint: Most often you'll "
-                "want to use '|=' over '=' for this operation")
-        results.append(create_boolean(node, regex.search(node.value) is not None))
-    return ctx.child(results)

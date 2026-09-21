@@ -141,6 +141,7 @@ class Options:
     null_input: bool = False
     nul_separated_output: bool = False
     pretty_print: bool = False
+    string_interpolation: bool = True     # "\(expression)" inside double-quoted strings
     yaml: YamlOptions = field(default_factory=YamlOptions)
     json: JsonOptions = field(default_factory=JsonOptions)
     props: PropertiesOptions = field(default_factory=PropertiesOptions)

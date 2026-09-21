@@ -27,10 +27,10 @@ uv run yaqpy '.server.port' examples/sample.yaml
 ## テスト
 
 ```bash
-# ユニットテスト（507 件。各形式・schema・GUI の Presenter などを含む。実際にウィンドウは開きません）
+# ユニットテスト（749 件。各形式・schema・演算子（性質テストを含む）・GUI の Presenter など。実際にウィンドウは開きません）
 uv run python -m unittest discover -s tests/unit -t .
 
-# CLI 受け入れテスト（49 件。Go 版 acceptance_tests/*.sh から移植＋`--gui` の入口）
+# CLI 受け入れテスト（63 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口）
 uv run python -m unittest tests.acceptance.test_cli
 
 # Go 版シナリオのゴールデンテスト（1,091 件）
@@ -51,7 +51,9 @@ uv run python tools/extract_go_scenarios.py <yq のソース>/pkg/yqlib tests/go
 uv build
 ```
 
-Go 版の演算子のテストシナリオ 1,091 件の内訳は、一致 837 件（完全一致 808 ＋ 意味的に一致 29）、既知の差異 4 件、未実装の機能に当たるもの 228 件、そのほか（未解決 12 件・スキップ 10 件）です。形式のシナリオ 154 件（XML 52・CSV/TSV 18・TOML 62・properties 22）は、実行できる 151 件のうち 146 件が一致します（不一致 5 件は TOML のコメント保持）。不一致の記録は `tests/golden/formats_manifest.json` にあり、形式ごとの最低合格率は `tests/golden/test_formats.py` の `MIN_PASS_RATE` で守っています。
+Go 版の演算子のテストシナリオ 1,091 件の内訳は、一致 1,047 件（完全一致 1,016 ＋ 意味的に一致 31）、既知の差異 4 件（`shuffle` の並び。理由は `tests/support/golden.py` の `KNOWN_DIFFERENCES`）、未実装の演算子に当たるもの 28 件（`load` `envsubst` `eval`）、そのほか（環境や外部コマンドに依存して比べられない 12 件）です。形式のシナリオ 154 件（XML 52・CSV/TSV 18・TOML 62・properties 22）は、149 件が一致します（不一致 5 件は TOML のコメント保持）。`now` を含むシナリオは、Go のテストと同じく時計を固定して（`GO_TEST_NOW`）実行します。
+
+IANA の時間帯名を使うテスト（`tz("Australia/Sydney")` など）には、OS の時間帯データが要ります。Windows では、`uv sync` が入れる dev グループの `tzdata` が担います（実行時の依存ではありません。なければそのテストだけスキップされます）。不一致の記録は `tests/golden/formats_manifest.json` にあり、形式ごとの最低合格率は `tests/golden/test_formats.py` の `MIN_PASS_RATE` で守っています。
 
 ---
 [toTop](#toreadme)
@@ -61,16 +63,16 @@ Go 版の演算子のテストシナリオ 1,091 件の内訳は、一致 837 �
 src/yaqpy/
 ├── errors.py options.py api.py     … 例外・設定・公開 API
 ├── core/
-│   ├── model/                      … Node（値は文字列＋タグで保持）、タグ解決、Python 変換、日時
+│   ├── model/                      … Node（値は文字列＋タグで保持）、タグ解決、Python 変換、日時（Go の時間レイアウトの読み書き）
 │   ├── lang/                       … 字句解析（Go 版と同じルール表）→ 操車場法 → AST
 │   ├── engine/                     … Context / Navigator / ステップ上限
-│   └── operators/                  … 演算子（@operator で登録。schema もここ）
+│   └── operators/                  … 演算子（@operator で登録）。sequences・structure（配列・マップ）、strings・regex（文字列と Go 互換の正規表現）、codecs（encode/decode）、datetime_ops、documents（split_doc）、schema ほか
 ├── formats/
 │   ├── yaml/                       … 自前 YAML（parser / emitter / codec）
 │   ├── json_codec.py props_codec.py toon_codec.py registry.py
 │   ├── xml_tokens.py xml_codec.py  … XML（Go の encoding/xml と同じ寛容な字句解析。実体は展開しない）
 │   └── csv_codec.py toml_codec.py  … CSV/TSV、TOML（自前の TOML 1.0 パーサ）
-├── app/                            … YqService、DTO、ポート（FileSystem/Environment）、printer
+├── app/                            … YqService、DTO、ポート（FileSystem/Environment）、printer（-s の SplitWriter を含む）
 ├── cli/                            … argparse、引数解釈（純粋関数）、main
 └── gui/                            … Flet の GUI（任意依存。presenter は Flet 非依存）
 tests/

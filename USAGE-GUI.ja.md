@@ -29,10 +29,10 @@ YAML / JSON のファイルを開いて、**必要な部分だけを取り出し
 [toTop](#toreadme)
 ## 1. 起動する
 
-**GitHub のリリースから入れた場合**（詳しくは [README のインストール](README.md#インストール)）。`0.2.0` は入れた版の番号に読み替えます。
+**GitHub のリリースから入れた場合**（詳しくは [README のインストール](README.md#インストール)）。`0.3.0` は入れた版の番号に読み替えます。
 
 ```bash
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.2.0/yaqpy-0.2.0-py3-none-any.whl"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.3.0/yaqpy-0.3.0-py3-none-any.whl"
 yaqpy-gui                 # 専用コマンドで起動
 yaqpy --gui               # こちらでも同じ画面が開きます
 ```
@@ -271,21 +271,19 @@ price: 980
 
 ### 4-10. まだ使えないもの
 
-jq の解説記事によく出てくる次の機能は、**yaqpy では今のところ使えません**
+jq の解説記事によく出てくる機能のうち、**`add` と `load(...)` は、yaqpy では今のところ使えません**（yaqpy は yq という別のツールを手本にしていて、実装している演算子が少し違います）。`unique` `reverse` `join` `reduce` と、文字列の中に式を埋める `"\(.a)"` は、v0.3.0 から使えます。
 
-（yaqpy は yq という別のツールを手本にしていて、実装している演算子が少し違います）。
-
-| 記事にある機能 | yaqpy | 代わりの書き方 |
+| 記事にある機能 | yaqpy | 書き方 |
 |---|---|---|
-| `add`（全部足す） | ✕ 式の解析でエラー | `.[0] + .[1]` のように足す |
-| `unique`（重複を消す） | ✕ `評価エラー：unknown operator UNIQUE` | （なし） |
-| `reverse`（逆順） | ✕ `unknown operator REVERSE` | `sort_by(...)` で並べ替える |
-| `join(",")`（文字をつなぐ） | ✕ `unknown operator JOIN` | `+` でつなぐ |
-| `reduce`（畳み込み） | ✕ | `map` と `+` の組み合わせ |
-| 文字列の中に式を埋める `"\(.a)"` | ✕ | `.a + "文字"` |
+| `add`（全部足す） | ✕ 式の解析でエラー | `.[] as $x ireduce (0; . + $x)`、または `.[0] + .[1]` のように足す |
+| `unique`（重複を消す） | ○（v0.3.0〜） | `unique`、キーで判定するなら `unique_by(.name)` |
+| `reverse`（逆順） | ○（v0.3.0〜） | `reverse` |
+| `join(",")`（文字をつなぐ） | ○（v0.3.0〜） | `join(",")` |
+| `reduce`（畳み込み） | ○（v0.3.0〜） | `.[] as $x ireduce (0; . + $x)` |
+| 文字列の中に式を埋める | ○（v0.3.0〜） | `"名前は \(.name)"` |
 | `load(...)`（他のファイルを読む） | ✕ `unknown operator LOAD` | （なし） |
 
-使える演算子の一覧は [USAGE.ja.md](./USAGE.ja.md#実装済みの演算子phase-1--38-種) にあります。
+使える演算子の一覧は [USAGE.ja.md](./USAGE.ja.md#演算子) にあります。
 
 ### 4-11. コメントと型を調べる
 

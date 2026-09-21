@@ -6,6 +6,7 @@ import io
 import json
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,12 @@ MVP_FILES = {
     "operator_comments", "operator_document_index", "operator_file", "operator_parent",
     "operator_slice",
 }
+
+# operators_test.go's TestMain pins ``Now`` to this instant (the 4 is nanoseconds).
+GO_TEST_NOW = datetime(2021, 5, 19, 1, 2, 3, 0, tzinfo=timezone.utc)
+
+# Go builds some formats out with build tags; scenarios that need one are skipped when it is missing.
+AVAILABLE_FORMATS = {"json", "xml"}
 
 _RESULT_RE = re.compile(r"^D(?P<doc>\d+), P\[(?P<path>[^\]]*)\], \((?P<tag>[^)]*)\)::(?P<body>.*)$", re.DOTALL)
 
@@ -77,12 +84,31 @@ def result_to_string(node: Node, options: Options) -> str:
     return f"D{node.document()}, P{format_path(node.path())}, ({tag})::{buf.getvalue()}"
 
 
+# Scenarios that cannot match Go's output for a reason that is not a bug. They stay "fail" (so the
+# pass rate is honest); the reason goes into the outcome and the manifest.
+_SHUFFLE = ("shuffle: the expected order comes from Go's math/rand seeded with the pinned clock; "
+            "Python's random module gives another (valid) order")
+KNOWN_DIFFERENCES: dict[str, str] = {
+    "operator_shuffle#0": _SHUFFLE,
+    "operator_shuffle#1": _SHUFFLE,
+    "operator_shuffle#2": _SHUFFLE,
+    "operator_delete#19": _SHUFFLE,
+}
+
+
 def run_scenario(scenario: dict[str, Any]) -> Outcome:
+    outcome = _run_scenario(scenario)
+    if outcome.status in ("fail", "error") and outcome.id in KNOWN_DIFFERENCES:
+        outcome.detail = KNOWN_DIFFERENCES[outcome.id]
+    return outcome
+
+
+def _run_scenario(scenario: dict[str, Any]) -> Outcome:
     sid = scenario["id"]
     source = scenario["source"]
     if scenario.get("unresolved"):
         return Outcome(sid, source, "unresolved", "; ".join(scenario["unresolved"]))
-    if scenario.get("requires_format"):
+    if scenario.get("requires_format") and scenario["requires_format"] not in AVAILABLE_FORMATS:
         return Outcome(sid, source, "skipped", f"requires format {scenario['requires_format']}")
     fix_merge = (scenario["description"].startswith("FIXED:")
                  or scenario.get("group", "").startswith("fixed"))
@@ -93,7 +119,8 @@ def run_scenario(scenario: dict[str, Any]) -> Outcome:
         security=SecurityPolicy(allow_env=not env_disabled, allow_file=True),
         yaml=YamlOptions(indent=4, fix_merge_anchor_to_spec=fix_merge),
     )
-    service = YqService(InMemoryFileSystem(), StaticEnvironment(scenario.get("environment") or {}))
+    service = YqService(InMemoryFileSystem(), StaticEnvironment(scenario.get("environment") or {}),
+                        clock=lambda: GO_TEST_NOW)
     inputs: list[Node] = []
     try:
         if scenario["document"] != "":

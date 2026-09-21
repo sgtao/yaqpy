@@ -20,9 +20,9 @@ MANIFEST = Path(__file__).resolve().parent / "formats_manifest.json"
 
 # 形式を実装したフェーズで引き上げる（合格率 = 完全一致＋意味的に一致 ÷ 実行できたシナリオ）。
 MIN_PASS_RATE: dict[str, float] = {
-    "xml": 0.85,        # F1（v0.2.0）の完了条件
-    "csv": 0.90,        # F2 の完了条件（CSV/TSV）
-    "properties": 0.90,  # F2（入力を追加。出力の不一致 5 件も解消）
+    "xml": 1.0,         # v0.2.0 の完了条件は 0.85。v0.3.0 で from_yaml が入り、実行できる 52 件が全部合う
+    "csv": 1.0,         # v0.2.0 の完了条件は 0.90
+    "properties": 1.0,  # v0.2.0 の完了条件は 0.90。array_to_map が入り、22 件が全部合う
     "toml": 0.85,       # F3a の完了条件（コメントを保つシナリオ 5 件は F3b の範囲）
 }
 

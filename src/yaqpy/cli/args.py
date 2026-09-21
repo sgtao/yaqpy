@@ -68,8 +68,11 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         raise InvocationError("write in place flag only applicable when giving an expression and at least one file")
     if ns.front_matter:
         raise InvocationError("front matter is not supported yet (phase 2)")
-    if ns.split_exp:
-        raise InvocationError("split expressions are not supported yet (phase 2)")
+    split_expression = ns.split_exp
+    if ns.split_exp_file:
+        split_expression = read_file(ns.split_exp_file)
+    if split_expression and ns.inplace:
+        raise InvocationError("write in place cannot be used with split file")
     if ns.null_input and files:
         raise InvocationError("cannot pass files in when using null-input flag")
     if ns.indent < 0:
@@ -120,6 +123,7 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         null_input=ns.null_input,
         nul_separated_output=ns.nul_output,
         pretty_print=ns.pretty_print,
+        string_interpolation=ns.string_interpolation,
         yaml=YamlOptions(
             indent=ns.indent,
             compact_sequence_indent=ns.yaml_compact_seq_indent,
@@ -170,5 +174,6 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         input_format=input_spec.name,
         output_format=output_spec.name,
         unwrap_scalar=unwrap,
+        split_expression=split_expression,
     )
     return Invocation(request, tuple(warnings), show_usage)

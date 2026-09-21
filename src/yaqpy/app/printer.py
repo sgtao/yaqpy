@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import io
+import re
 from collections.abc import Sequence
 from typing import Any, TextIO
 
+from yaqpy.app.ports import FileSystemPort
+from yaqpy.core.engine import Context, Navigator
 from yaqpy.core.model.leading import DOC_SEPARATOR_MARKER
 from yaqpy.core.model.node import Node
 from yaqpy.core.operators.anchors import explode_node
@@ -43,11 +46,59 @@ class InPlaceSink(MemorySink):
         self.path = path
 
 
+_HAS_EXTENSION = re.compile(r"\.[a-zA-Z0-9]+\Z")
+# Go's default is .yml for every format except these
+_SPLIT_EXTENSIONS = {"yaml": "yml", "props": "properties"}
+
+
+class _SplitFile(MemorySink):
+    """The text of one result; ``close`` writes it to its file."""
+
+    def __init__(self, fs: FileSystemPort, path: str) -> None:
+        super().__init__()
+        self.fs = fs
+        self.path = path
+
+    def close(self) -> None:
+        self.fs.write_file(self.path, self.buffer.getvalue())
+
+
+class SplitWriter:
+    """Go's ``multiPrintWriter`` (``-s``): every printed result goes to a file of its own.
+
+    The file name is the value of ``expression`` evaluated against the result, with ``$index``
+    counting the results. Directories are created. A name without an extension gets one that
+    fits the output format. A name with a ``..`` part is refused: the name comes from the data,
+    and a document must not be able to write outside the tree the expression names.
+    """
+
+    def __init__(self, fs: FileSystemPort, navigator: Navigator, expression: Any,
+                 output_format: str) -> None:
+        self.fs = fs
+        self.navigator = navigator
+        self.expression = expression
+        self.extension = _SPLIT_EXTENSIONS.get(output_format, output_format)
+        self.index = 0
+
+    def open(self, node: Node) -> _SplitFile:
+        context = Context((node,), {"index": (Node.integer(self.index),)})
+        result = self.navigator.evaluate(context, self.expression.root)
+        name = result.nodes[0].value if result.nodes else ""
+        if "\0" in name or ".." in re.split(r"[\\/]", name):
+            raise FormatError(f"refusing to write to [{name}]: split file names must not contain '..'")
+        if not _HAS_EXTENSION.search(name):
+            name = f"{name}.{self.extension}"
+        self.index += 1
+        return _SplitFile(self.fs, name)
+
+
 class ResultPrinter:
     def __init__(self, encoder: Any, sink: Any, *, nul_separated: bool = False,
-                 max_depth: int = 1000, fix_merge: bool = False) -> None:
+                 max_depth: int = 1000, fix_merge: bool = False,
+                 split: SplitWriter | None = None) -> None:
         self.encoder = encoder
         self.sink = sink
+        self.split = split
         self.nul_separated = nul_separated
         self.max_depth = max_depth
         self.fix_merge = fix_merge
@@ -67,12 +118,13 @@ class ResultPrinter:
             self.previous_file = nodes[0].get_file_index()
             self.first_time = False
         for node in nodes:
+            sink = self.sink if self.split is None else self.split.open(node)
             starts_with_separator = node.leading_content.startswith(DOC_SEPARATOR_MARKER)
             if (self.previous_doc != node.document() or self.previous_file != node.get_file_index()) \
                     and not starts_with_separator:
                 buf = io.StringIO()
                 self.encoder.print_document_separator(buf)
-                self.sink.write(buf.getvalue())
+                sink.write(buf.getvalue())
             buf = io.StringIO()
             self.encoder.print_leading_content(buf, node.leading_content)
             self._print_node(node, buf)
@@ -84,7 +136,9 @@ class ResultPrinter:
                         "can't serialise value because it contains NUL char and you are using "
                         "NUL separated output")
                 text += "\0"
-            self.sink.write(text)
+            sink.write(text)
+            if self.split is not None:
+                sink.close()
             self.previous_doc = node.document()
             self.previous_file = node.get_file_index()
 
