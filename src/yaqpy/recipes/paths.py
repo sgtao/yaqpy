@@ -91,13 +91,14 @@ def _segment_matches(seg: Segment, kind: str, token: Any, value: Any) -> bool:
     return actual is _MISSING or scalar_text(actual) != seg.value
 
 
-def find_matches(data: Any, pattern: Pattern) -> list[str]:
-    """The concrete paths (``.messages[1].content[0].image_url``) that the pattern matches."""
-    found: list[str] = []
+def find_values(data: Any, pattern: Pattern) -> list[tuple[str, Any]]:
+    """``(concrete path, value)`` for everything the pattern matches, e.g.
+    ``(".messages[1].content[0].image_url", {...})``."""
+    found: list[tuple[str, Any]] = []
 
     def walk(node: Any, depth: int, path: str) -> None:
         if depth == len(pattern):
-            found.append(path or ".")
+            found.append((path or ".", node))
             return
         seg = pattern[depth]
         if isinstance(node, dict):
@@ -110,6 +111,11 @@ def find_matches(data: Any, pattern: Pattern) -> list[str]:
 
     walk(data, 0, "")
     return found
+
+
+def find_matches(data: Any, pattern: Pattern) -> list[str]:
+    """The concrete paths (``.messages[1].content[0].image_url``) that the pattern matches."""
+    return [path for path, _ in find_values(data, pattern)]
 
 
 def find_unlisted(data: Any, patterns: list[Pattern]) -> list[str]:
