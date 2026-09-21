@@ -2,14 +2,13 @@
  "summary": {
   "all": {
    "counts": {
-    "exact": 959,
-    "unsupported": 75,
+    "exact": 999,
+    "unsupported": 45,
     "semantic": 31,
     "fail": 4,
-    "skipped": 10,
     "unresolved": 12
    },
-   "pass_rate": 0.9959758551307847,
+   "pass_rate": 0.9961315280464217,
    "total": 1091
   },
   "mvp": {
@@ -1430,152 +1429,152 @@
    "detail": ""
   },
   "operator_encoder_decoder#0": {
-   "status": "skipped",
-   "detail": "requires format json"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#1": {
-   "status": "skipped",
-   "detail": "requires format json"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#2": {
-   "status": "skipped",
-   "detail": "requires format json"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#3": {
-   "status": "skipped",
-   "detail": "requires format json"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#4": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#5": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#6": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#7": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#8": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#9": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#10": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#11": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#12": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#13": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#14": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#15": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#16": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#17": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#18": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#19": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#20": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#21": {
-   "status": "skipped",
-   "detail": "requires format xml"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#22": {
-   "status": "skipped",
-   "detail": "requires format xml"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#23": {
-   "status": "skipped",
-   "detail": "requires format xml"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#24": {
-   "status": "skipped",
-   "detail": "requires format xml"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#25": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#26": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#27": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#28": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#29": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#30": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#31": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#32": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#33": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#34": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#35": {
-   "status": "unsupported",
-   "detail": "unknown operator ENCODE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_encoder_decoder#36": {
-   "status": "skipped",
-   "detail": "requires format xml"
+   "status": "exact",
+   "detail": ""
   },
   "operator_entries#0": {
    "status": "exact",
@@ -2178,8 +2177,8 @@
    "detail": "unknown operator LOAD_STRING"
   },
   "operator_load#10": {
-   "status": "skipped",
-   "detail": "requires format xml"
+   "status": "unsupported",
+   "detail": "unknown operator LOAD"
   },
   "operator_load#11": {
    "status": "unsupported",
@@ -3218,16 +3217,16 @@
    "detail": ""
   },
   "operator_split_document#0": {
-   "status": "unsupported",
-   "detail": "unknown operator SPLIT_DOC"
+   "status": "exact",
+   "detail": ""
   },
   "operator_split_document#1": {
-   "status": "unsupported",
-   "detail": "unknown operator SPLIT_DOC"
+   "status": "exact",
+   "detail": ""
   },
   "operator_split_document#2": {
-   "status": "unsupported",
-   "detail": "unknown operator SPLIT_DOC"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#0": {
    "status": "exact",

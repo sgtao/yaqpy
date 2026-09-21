@@ -50,6 +50,12 @@ class Context:
     def get_variable(self, name: str) -> tuple[Node, ...] | None:
         return self.variables.get(name)
 
+    def remember(self, name: str, value: tuple[Node, ...]) -> None:
+        """Go's ``SetVariable``: write into the variable table in place. The table is shared with
+        every Context derived from this one, which is how ``from_yaml`` tells the later ``to_yaml``
+        what the original string looked like."""
+        self.variables[name] = value                 # type: ignore[index]
+
     def get_datetime_layout(self) -> str:
         return self.datetime_layout or "2006-01-02T15:04:05Z07:00"
 

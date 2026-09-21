@@ -38,6 +38,9 @@ MVP_FILES = {
 # operators_test.go's TestMain pins ``Now`` to this instant (the 4 is nanoseconds).
 GO_TEST_NOW = datetime(2021, 5, 19, 1, 2, 3, 0, tzinfo=timezone.utc)
 
+# Go builds some formats out with build tags; scenarios that need one are skipped when it is missing.
+AVAILABLE_FORMATS = {"json", "xml"}
+
 _RESULT_RE = re.compile(r"^D(?P<doc>\d+), P\[(?P<path>[^\]]*)\], \((?P<tag>[^)]*)\)::(?P<body>.*)$", re.DOTALL)
 
 
@@ -105,7 +108,7 @@ def _run_scenario(scenario: dict[str, Any]) -> Outcome:
     source = scenario["source"]
     if scenario.get("unresolved"):
         return Outcome(sid, source, "unresolved", "; ".join(scenario["unresolved"]))
-    if scenario.get("requires_format"):
+    if scenario.get("requires_format") and scenario["requires_format"] not in AVAILABLE_FORMATS:
         return Outcome(sid, source, "skipped", f"requires format {scenario['requires_format']}")
     fix_merge = (scenario["description"].startswith("FIXED:")
                  or scenario.get("group", "").startswith("fixed"))
