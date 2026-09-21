@@ -12,12 +12,20 @@ SRC = Path(__file__).resolve().parents[2] / "src" / "yaqpy"
 # module prefix -> prefixes it must not import
 FORBIDDEN: dict[str, tuple[str, ...]] = {
     "yaqpy.core.model": ("yaqpy.core.lang", "yaqpy.core.engine", "yaqpy.core.operators",
-                        "yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
-    "yaqpy.core.lang": ("yaqpy.core.engine", "yaqpy.core.operators", "yaqpy.formats", "yaqpy.app",
-                       "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
-    "yaqpy.core.engine": ("yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
-    "yaqpy.core.operators": ("yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
-    "yaqpy.formats": ("yaqpy.core.engine", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
+                        "yaqpy.formats", "yaqpy.recipes", "yaqpy.app", "yaqpy.cli", "yaqpy.gui",
+                        "yaqpy.api"),
+    "yaqpy.core.lang": ("yaqpy.core.engine", "yaqpy.core.operators", "yaqpy.formats", "yaqpy.recipes",
+                       "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
+    "yaqpy.core.engine": ("yaqpy.formats", "yaqpy.recipes", "yaqpy.app", "yaqpy.cli", "yaqpy.gui",
+                         "yaqpy.api"),
+    "yaqpy.core.operators": ("yaqpy.formats", "yaqpy.recipes", "yaqpy.app", "yaqpy.cli", "yaqpy.gui",
+                            "yaqpy.api"),
+    "yaqpy.formats": ("yaqpy.core.engine", "yaqpy.recipes", "yaqpy.app", "yaqpy.cli", "yaqpy.gui",
+                     "yaqpy.api"),
+    # recipes: data + checks on plain Python values. It reads formats (the YAML metadata), never the
+    # engine, and knows nothing of the application layer that runs a recipe.
+    "yaqpy.recipes": ("yaqpy.core.engine", "yaqpy.core.operators", "yaqpy.core.lang", "yaqpy.app",
+                     "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
     "yaqpy.app": ("yaqpy.cli", "yaqpy.gui", "yaqpy.web", "yaqpy.api"),
     "yaqpy.api": ("yaqpy.cli", "yaqpy.gui", "yaqpy.web"),
     "yaqpy.cli": ("yaqpy.gui", "yaqpy.web"),
