@@ -15,9 +15,8 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-from yaqpy.app.dto import EvalMode, EvaluateRequest, InputSource
 from yaqpy.app.ports import InMemoryFileSystem, StaticEnvironment
-from yaqpy.app.printer import MemorySink
+from yaqpy.app.printer import MemorySink, ResultPrinter
 from yaqpy.app.service import YqService
 from yaqpy.core.model.convert import to_python
 from yaqpy.errors import EvaluationError, ExpressionSyntaxError, UnknownFormatError, YqError
@@ -121,18 +120,8 @@ def run_format_scenario(scenario: dict[str, Any]) -> Outcome:
     if case is None:
         return Outcome(sid, source, "unresolved", f"unknown scenario type {scenario['scenario_type']!r}")
     options = case.options
-    service = YqService(InMemoryFileSystem(), StaticEnvironment({}))
-    request = EvaluateRequest(
-        expression=scenario["expression"] or ".",
-        inputs=(InputSource("sample.yml", scenario["input"]),),
-        mode=EvalMode.STREAM,
-        options=options,
-        input_format=case.input_format,
-        output_format=case.output_format,
-        unwrap_scalar=case.unwrap_scalar,
-    )
     try:
-        actual = service.evaluate(request, MemorySink()).output or ""
+        actual = _process(scenario, case)
     except UnknownFormatError as e:
         return Outcome(sid, source, "unsupported", str(e))
     except (ExpressionSyntaxError, EvaluationError) as e:
@@ -154,6 +143,25 @@ def run_format_scenario(scenario: dict[str, Any]) -> Outcome:
                                                              options):
         return Outcome(sid, source, "semantic", "", [expected], [actual])
     return Outcome(sid, source, "fail", "", [expected], [actual])
+
+
+def _process(scenario: dict[str, Any], case: Case) -> str:
+    """Go's ``processFormatScenario``: decode every document, evaluate the expression over all of
+    them together, print the results with the output encoder."""
+    options = case.options
+    service = YqService(InMemoryFileSystem(), StaticEnvironment({}))
+    formats = service.formats
+    decoder = formats.decoder_for(case.input_format, options)
+    documents = list(decoder.decode_documents(scenario["input"], filename="sample.yml", file_index=0))
+    for document in documents:
+        document.evaluate_together = True            # Go's readDocuments
+    results = service.evaluate_nodes(scenario["expression"] or ".", documents, options)
+    unwrap = case.unwrap_scalar
+    if unwrap is None:
+        unwrap = formats.get(case.output_format).unwrap_scalar_default
+    sink = MemorySink()
+    ResultPrinter(formats.encoder_for(case.output_format, options, unwrap), sink).print_results(results)
+    return sink.finish() or ""
 
 
 def _failed(sid: str, source: str, scenario: dict[str, Any], case: Case, error: YqError) -> Outcome:

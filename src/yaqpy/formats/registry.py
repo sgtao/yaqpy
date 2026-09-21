@@ -121,6 +121,7 @@ _builtin: FormatRegistry | None = None
 def builtin_formats() -> FormatRegistry:
     global _builtin
     if _builtin is None:
+        from yaqpy.formats.csv_codec import CsvDecoder, CsvEncoder
         from yaqpy.formats.json_codec import JsonDecoder, JsonEncoder
         from yaqpy.formats.props_codec import PropertiesEncoder
         from yaqpy.formats.toon_codec import ToonDecoder, ToonEncoder
@@ -156,6 +157,18 @@ def builtin_formats() -> FormatRegistry:
             "xml", ("x",), (".xml",),
             decoder_factory=lambda o: XmlDecoder(o),
             encoder_factory=lambda o, u: XmlEncoder(o, unwrap_scalar=u),
+            unwrap_scalar_default=False,
+        ))
+        reg.register(FormatSpec(
+            "csv", ("c",), (".csv",),
+            decoder_factory=lambda o: CsvDecoder(o),
+            encoder_factory=lambda o, u: CsvEncoder(o, unwrap_scalar=u),
+            unwrap_scalar_default=False,
+        ))
+        reg.register(FormatSpec(
+            "tsv", ("t",), (".tsv",),
+            decoder_factory=lambda o: CsvDecoder(o, tsv=True),
+            encoder_factory=lambda o, u: CsvEncoder(o, tsv=True, unwrap_scalar=u),
             unwrap_scalar_default=False,
         ))
         _builtin = reg.freeze()
