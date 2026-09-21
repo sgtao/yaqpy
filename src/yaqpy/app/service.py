@@ -37,6 +37,18 @@ def process_expression(expression: str, pretty_print: bool) -> str:
     return expression
 
 
+def with_prune(expression: str, *, nulls: bool = False, empties: bool = False) -> str:
+    """Append ``prune_null`` / ``prune_empty`` (yaqpy extensions) to an expression.
+
+    The parentheses keep a trailing ``# comment`` line of the expression from swallowing the pipe.
+    An empty expression means ``.``.
+    """
+    steps = [name for wanted, name in ((nulls, "prune_null"), (empties, "prune_empty")) if wanted]
+    if not steps:
+        return expression
+    return "(\n" + (expression.rstrip("\n") or ".") + "\n)\n| " + " | ".join(steps)
+
+
 class YqService:
     def __init__(self, fs: FileSystemPort, env: EnvironmentPort, *,
                  operators: OperatorRegistry | None = None,

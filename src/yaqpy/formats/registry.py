@@ -62,8 +62,8 @@ class FormatRegistry:
                     names.append(spec.aliases[0])
         return "|".join(names)
 
-    def from_filename(self, filename: str) -> FormatSpec:
-        """Guess from the extension; unknown extensions default to yaml (Go behaviour)."""
+    def guess_from_filename(self, filename: str) -> FormatSpec | None:
+        """The format the extension names, or None when there is no extension or it is unknown."""
         if filename:
             ext = os.path.splitext(filename)[1]
             if len(ext) >= 2 and ext.startswith("."):
@@ -71,7 +71,11 @@ class FormatRegistry:
                 for spec in self._specs:
                     if spec.matches(name) or name in [e.lstrip(".") for e in spec.extensions]:
                         return spec
-        return self.get("yaml")
+        return None
+
+    def from_filename(self, filename: str) -> FormatSpec:
+        """Guess from the extension; unknown extensions default to yaml (Go behaviour)."""
+        return self.guess_from_filename(filename) or self.get("yaml")
 
     def input_formats(self) -> list[str]:
         return [s.name for s in self._specs if s.decoder_factory is not None]

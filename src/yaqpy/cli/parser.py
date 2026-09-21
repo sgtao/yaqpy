@@ -153,6 +153,30 @@ def build_parser() -> _Parser:
                     help="a string that takes at most N different values (and repeats) becomes an enum")
     sc.add_argument("--schema-per-doc", action="store_true",
                     help="one schema per document (or node) instead of one merged schema")
+    tidy = parser.add_argument_group("tidy the result (yaqpy extension)")
+    tidy.add_argument("--prune-null", action="store_true",
+                      help="remove every mapping entry whose value is null (like '| prune_null'; "
+                           "list items stay)")
+    tidy.add_argument("--prune-empty", action="store_true",
+                      help="remove every mapping entry whose value is an empty map or list, inside "
+                           "out (like '| prune_empty')")
+    rc = parser.add_argument_group("recipes (yaqpy extension)")
+    rc.add_argument("--recipe", default="", metavar="NAME|FILE",
+                    help="convert with a recipe: a bundled one by name (see --list-recipes) or your own "
+                         "file (./my.yaqpy). The arguments are then input files, not an expression. "
+                         "Prints the converted result; what was dropped or does not fit the target "
+                         "goes to stderr. Never reads files or environment variables.")
+    rc.add_argument("--list-recipes", action="store_true", help="list the bundled recipes and exit")
+    rc.add_argument("--recipe-test", action="store_true",
+                    help="run the test cases of the recipe (given with --recipe) and exit")
+    rc.add_argument("--report", action="store_true",
+                    help="with --recipe: print a full report (dropped items, changes, target schema "
+                         "check) instead of the converted result")
+    rc.add_argument("--apply", action="store_true",
+                    help="with --recipe: write the converted files (to --out-dir; never over the "
+                         "input) and print a table of the results")
+    rc.add_argument("--out-dir", default="", metavar="DIR",
+                    help="with --apply: the directory the converted files go to")
     i = parser.add_argument_group("input")
     i.add_argument("-i", "--inplace", action="store_true",
                    help="update the file in place of first file given.")

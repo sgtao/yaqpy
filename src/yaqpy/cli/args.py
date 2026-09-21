@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from yaqpy.app.dto import EvalMode, EvaluateRequest, InputSource
+from yaqpy.app.service import with_prune
 from yaqpy.formats.registry import FormatRegistry, builtin_formats
 from yaqpy.options import (
     CsvOptions, Limits, Options, PropertiesOptions, SchemaOptions, SecurityPolicy, TomlOptions,
@@ -81,6 +82,8 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         raise InvocationError("--schema-enum-max must not be negative")
     if ns.schema:
         expression = f"{expression} | schema" if expression else "schema"
+    if ns.prune_null or ns.prune_empty:
+        expression = with_prune(expression, nulls=ns.prune_null, empties=ns.prune_empty)
 
     # formats (Go's configureInputFormat / configureOutputFormat)
     input_filename = files[0] if files else ""
