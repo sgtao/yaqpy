@@ -15,7 +15,7 @@ from collections.abc import Callable
 import flet as ft
 
 from yaqpy.gui import texts
-from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
+from yaqpy.gui._di import extension_for, input_format_choices, open_extensions, output_format_choices
 from yaqpy.gui.errors_ja import caret_line
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
 from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
@@ -26,8 +26,6 @@ PASTE_DEBOUNCE_SECONDS = 0.3
 PASTE_MIN_LINES = 10             # 未読込のあいだの貼り付け欄の高さ
 PANE_HEADER_HEIGHT = 44         # 右見出しの保存ボタンに高さを合わせ、左右の枠の上端を揃える
 MONO = ft.TextStyle(font_family="Consolas", size=12)
-# props は出力専用（デコーダが無い）なので、開くダイアログには出さない。
-OPEN_EXTENSIONS = ["yaml", "yml", "json", "toon"]
 
 
 def _options(names: list[str]) -> list[ft.DropdownOption]:
@@ -192,7 +190,7 @@ class MainPage:
         files = await self._picker.pick_files(
             dialog_title=texts.BTN_OPEN,
             allow_multiple=False,
-            allowed_extensions=OPEN_EXTENSIONS,
+            allowed_extensions=open_extensions(),
         )
         if files:
             await self._load(files[0].path)

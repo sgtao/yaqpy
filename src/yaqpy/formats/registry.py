@@ -79,6 +79,22 @@ class FormatRegistry:
     def output_formats(self) -> list[str]:
         return [s.name for s in self._specs if s.encoder_factory is not None]
 
+    def input_extensions(self) -> list[str]:
+        """File extensions (without the dot) of every format that can be read.
+
+        The GUI's "open" dialog uses this, so a newly registered input format shows up there
+        without a second table.
+        """
+        out: list[str] = []
+        for spec in self._specs:
+            if spec.decoder_factory is None:
+                continue
+            for ext in spec.extensions:
+                name = ext.lstrip(".")
+                if name not in out:
+                    out.append(name)
+        return out
+
     def all_names(self) -> list[str]:
         names: list[str] = []
         for spec in self._specs:

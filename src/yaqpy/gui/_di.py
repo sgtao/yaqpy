@@ -31,6 +31,11 @@ def output_format_choices() -> list[str]:
     return [AUTO, *make_service().list_formats().output_formats]
 
 
+def open_extensions() -> list[str]:
+    """「開く」ダイアログに出す拡張子。読める形式の登録から導く（props は出力専用なので出ない）。"""
+    return make_service().formats.input_extensions()
+
+
 def extension_for(format_name: str) -> str:
     """出力形式 → 既定の拡張子（GUI 側に対応表を持たない）。"""
     spec = make_service().formats.get(format_name)
