@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import io
 import os
+import re
 import tempfile
 import unittest
 
@@ -11,7 +12,7 @@ import yaqpy
 from yaqpy.app.examples import EXAMPLES, run_example
 from yaqpy.app.ports import InMemoryFileSystem, StaticEnvironment
 from yaqpy.app.selfdoc import (
-    RULES, operator_table, render_examples, render_guide_prompt, render_skill_md, render_spec,
+    RULES, operator_table, render_guide_prompt, render_skill_md, render_spec,
 )
 from yaqpy.app.service import YqService
 from yaqpy.cli.main import main
@@ -287,6 +288,51 @@ class CliTests(unittest.TestCase):
         for text in ("--recipe openai-to-gemini", "--list-recipes", "-o json schema data.yaml",
                      "--print-spec | --example | --guide-prompt | --skill-md"):
             self.assertIn(text, out.getvalue())
+
+
+class DocumentationTests(unittest.TestCase):
+    """What the guides say must be what the command says (the plan asks for exactly this check)."""
+
+    ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+    def read(self, name: str) -> str:
+        with open(os.path.join(self.ROOT, name), encoding="utf-8") as handle:
+            return handle.read()
+
+    def test_usage_lists_exactly_the_operators_that_are_not_implemented(self) -> None:
+        text = self.read("USAGE.ja.md")
+        begin = text.index("<!-- yaqpy:unimplemented-operators:begin")
+        end = text.index("<!-- yaqpy:unimplemented-operators:end -->")
+        block = text[text.index("-->", begin) + 3:end]
+        documented = set(re.findall(r"`([^`]+)`", block))
+        self.assertEqual(documented, {i.name for i in TABLE if not i.implemented})
+
+    def test_usage_describes_every_bundled_recipe_and_every_new_flag(self) -> None:
+        text = self.read("USAGE.ja.md")
+        for name in builtin_recipes():
+            self.assertIn(f"`{name}`", text)
+        for flag in ("--recipe", "--list-recipes", "--recipe-test", "--report", "--apply", "--out-dir",
+                     "--prune-null", "--prune-empty", "--print-spec", "--example", "--guide-prompt",
+                     "--skill-md", "apply_recipe"):
+            with self.subTest(flag=flag):
+                self.assertIn(flag, text)
+
+    def test_the_readme_mentions_the_new_features(self) -> None:
+        text = self.read("README.md")
+        for feature in ("--recipe", "--print-spec", "--skill-md", "--apply --out-dir"):
+            self.assertIn(feature, text)
+
+    def test_every_flag_the_parser_has_for_these_features_is_in_the_guide(self) -> None:
+        from yaqpy.cli.parser import build_parser
+
+        text = self.read("USAGE.ja.md")
+        ours = {"--recipe", "--list-recipes", "--recipe-test", "--report", "--apply", "--out-dir",
+                "--prune-null", "--prune-empty", "--print-spec", "--example", "--guide-prompt",
+                "--skill-md", "--sample", "--prompts"}
+        known = {option for action in build_parser()._actions for option in action.option_strings}  # noqa: SLF001
+        self.assertTrue(ours <= known)
+        for flag in ours:
+            self.assertIn(flag, text)
 
 
 if __name__ == "__main__":
