@@ -42,6 +42,8 @@ _SPEC_ROWS: tuple[tuple[str, int, int, bool], ...] = (
     ("SHORT_PIPE", 2, 45, False),
     ("LENGTH", 0, 50, False),
     ("SCHEMA", 0, 50, False),
+    ("PRUNE_NULL", 0, 50, False),
+    ("PRUNE_EMPTY", 0, 50, False),
     ("LINE", 0, 50, False),
     ("COLUMN", 0, 50, False),
     ("EXP", 0, 50, False),

@@ -6,7 +6,7 @@ import threading
 
 from yaqpy.core.operators import (  # noqa: F401  (imported for the @operator side effects)
     anchors, arithmetic, assign, basic, codecs, collections, datetime_ops, documents, logic, meta,
-    multiply, schema, sequences, strings, structure, traverse,
+    multiply, prune, schema, sequences, strings, structure, traverse,
 )
 from yaqpy.core.operators.registry import _BUILTIN_HANDLERS, OperatorRegistry, make_spec, operator
 

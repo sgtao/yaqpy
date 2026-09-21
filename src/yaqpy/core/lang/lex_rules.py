@@ -288,6 +288,8 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     LexRule("CreateMap", r":\s*", _op("CREATE_MAP")),
     _simple("length", "LENGTH"),
     _simple("schema", "SCHEMA"),
+    _simple("prune_?null", "PRUNE_NULL"),
+    _simple("prune_?empty", "PRUNE_EMPTY"),
     _simple("line", "LINE"),
     _simple("column", "COLUMN"),
     _simple("eval", "EVAL"),
