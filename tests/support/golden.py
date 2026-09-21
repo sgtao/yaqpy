@@ -6,6 +6,7 @@ import io
 import json
 import re
 from dataclasses import dataclass
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,9 @@ MVP_FILES = {
     "operator_comments", "operator_document_index", "operator_file", "operator_parent",
     "operator_slice",
 }
+
+# operators_test.go's TestMain pins ``Now`` to this instant (the 4 is nanoseconds).
+GO_TEST_NOW = datetime(2021, 5, 19, 1, 2, 3, 0, tzinfo=timezone.utc)
 
 _RESULT_RE = re.compile(r"^D(?P<doc>\d+), P\[(?P<path>[^\]]*)\], \((?P<tag>[^)]*)\)::(?P<body>.*)$", re.DOTALL)
 
@@ -93,7 +97,8 @@ def run_scenario(scenario: dict[str, Any]) -> Outcome:
         security=SecurityPolicy(allow_env=not env_disabled, allow_file=True),
         yaml=YamlOptions(indent=4, fix_merge_anchor_to_spec=fix_merge),
     )
-    service = YqService(InMemoryFileSystem(), StaticEnvironment(scenario.get("environment") or {}))
+    service = YqService(InMemoryFileSystem(), StaticEnvironment(scenario.get("environment") or {}),
+                        clock=lambda: GO_TEST_NOW)
     inputs: list[Node] = []
     try:
         if scenario["document"] != "":
