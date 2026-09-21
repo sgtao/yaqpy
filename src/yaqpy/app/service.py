@@ -123,6 +123,11 @@ class YqService:
         expression_text = process_expression(request.expression, options.pretty_print)
         expression = self.compile(expression_text)
         input_format, output_format, unwrap = self._resolve_formats(request)
+        if request.in_place and input_format == "toml" and not options.toml.allow_lossy:
+            raise FormatError(
+                "refusing to update a TOML file in place: its comments are not kept, so the file "
+                "would lose them. Write to another file (redirect the output), or pass "
+                "--toml-allow-lossy to accept that.")
         decoder = self.formats.decoder_for(input_format, options)
         encoder = self.formats.encoder_for(output_format, options, unwrap)
         printer = ResultPrinter(encoder, sink, nul_separated=options.nul_separated_output,
