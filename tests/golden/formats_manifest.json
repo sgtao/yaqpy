@@ -3,18 +3,16 @@
   "all": {
    "total": 154,
    "counts": {
-    "exact": 143,
-    "unsupported": 3,
+    "exact": 146,
     "semantic": 3,
     "fail": 5
    },
-   "pass_rate": 0.9668874172185431
+   "pass_rate": 0.9675324675324676
   },
   "xml": {
    "total": 52,
    "counts": {
-    "exact": 49,
-    "unsupported": 1,
+    "exact": 50,
     "semantic": 2
    },
    "pass_rate": 1.0
@@ -38,8 +36,7 @@
   "properties": {
    "total": 22,
    "counts": {
-    "exact": 20,
-    "unsupported": 2
+    "exact": 22
    },
    "pass_rate": 1.0
   }
@@ -102,8 +99,8 @@
    "detail": ""
   },
   "xml#14": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "xml#15": {
    "status": "exact",
@@ -622,12 +619,12 @@
    "detail": ""
   },
   "properties#12": {
-   "status": "unsupported",
-   "detail": "unknown operator DECODE"
+   "status": "exact",
+   "detail": ""
   },
   "properties#13": {
-   "status": "unsupported",
-   "detail": "unknown operator REDUCE"
+   "status": "exact",
+   "detail": ""
   },
   "properties#14": {
    "status": "exact",
