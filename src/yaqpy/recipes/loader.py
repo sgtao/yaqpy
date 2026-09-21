@@ -89,7 +89,9 @@ def build_recipe(*, name: str, expression: str | None, metadata: str | None, ori
     """Assemble a recipe. ``read_related`` reads a file that sits next to the recipe (a target
     schema, or the expression of a metadata-only recipe); it is given the name written in the metadata.
     """
-    normalise = (lambda text: text.replace("\r\n", "\n"))
+    def normalise(text: str) -> str:
+        return text.replace("\r\n", "\n")
+
     if metadata is None:
         if expression is None:
             raise RecipeError(f"{origin}: no expression")

@@ -6,7 +6,6 @@ import argparse
 import os
 from typing import TextIO
 
-from yaqpy.app.dto import InputSource
 from yaqpy.app.local import LocalEnvironment, LocalFileSystem
 from yaqpy.app.recipe_service import RecipeRun, RecipeService
 from yaqpy.app.recipe_text import render_report, render_table, summary_lines
