@@ -5,7 +5,7 @@ from __future__ import annotations
 import random
 
 from yaqpy.core.engine.context import Context
-from yaqpy.core.engine.helpers import truthy
+from yaqpy.core.engine.helpers import truthy, yaml_string
 from yaqpy.core.engine.navigator import Navigator
 from yaqpy.core.lang.ast import ExprNode, Operation
 from yaqpy.core.lang.prefs import FlattenPrefs, TraversePrefs
@@ -89,17 +89,12 @@ def filter_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
 
 # ----------------------------------------------------------------------------- unique / group_by
 
-def _yaml_string(nav: Navigator, node: Node) -> str:
-    """The node as YAML text (Go's ``encodeToString`` with the YAML format)."""
-    return nav.env.formats.encoder_for("yaml", nav.env.options, False).encode_to_string(node)
-
-
 def _group_key(nav: Navigator, matched: Context, *, encode_containers: bool) -> str:
     if not matched.nodes:
         return "null"
     first = matched.nodes[0]
     if encode_containers and first.kind is not Kind.SCALAR:
-        return _yaml_string(nav, first)
+        return yaml_string(nav, first)
     return first.value
 
 

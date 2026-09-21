@@ -120,6 +120,7 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         null_input=ns.null_input,
         nul_separated_output=ns.nul_output,
         pretty_print=ns.pretty_print,
+        string_interpolation=ns.string_interpolation,
         yaml=YamlOptions(
             indent=ns.indent,
             compact_sequence_indent=ns.yaml_compact_seq_indent,

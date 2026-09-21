@@ -2,24 +2,25 @@
  "summary": {
   "all": {
    "counts": {
-    "exact": 808,
-    "unsupported": 228,
-    "semantic": 29,
+    "exact": 959,
+    "unsupported": 75,
+    "semantic": 31,
+    "fail": 4,
     "skipped": 10,
-    "unresolved": 12,
-    "fail": 4
+    "unresolved": 12
    },
-   "pass_rate": 0.995243757431629,
+   "pass_rate": 0.9959758551307847,
    "total": 1091
   },
   "mvp": {
    "counts": {
-    "exact": 734,
-    "unsupported": 27,
+    "exact": 744,
+    "unsupported": 16,
     "semantic": 14,
+    "fail": 1,
     "unresolved": 5
    },
-   "pass_rate": 1.0,
+   "pass_rate": 0.9986824769433466,
    "total": 780
   }
  },
@@ -365,12 +366,12 @@
    "detail": ""
   },
   "operator_anchors_aliases#6": {
-   "status": "unsupported",
-   "detail": "unknown operator SORT_KEYS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_anchors_aliases#7": {
-   "status": "unsupported",
-   "detail": "unknown operator SORT_KEYS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_anchors_aliases#8": {
    "status": "exact",
@@ -433,8 +434,8 @@
    "detail": ""
   },
   "operator_anchors_aliases#23": {
-   "status": "unsupported",
-   "detail": "unknown operator REDUCE"
+   "status": "semantic",
+   "detail": ""
   },
   "operator_anchors_aliases#24": {
    "status": "exact",
@@ -533,8 +534,8 @@
    "detail": ""
   },
   "operator_anchors_aliases#48": {
-   "status": "unsupported",
-   "detail": "unknown operator SORT_KEYS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_anchors_aliases#49": {
    "status": "exact",
@@ -545,8 +546,8 @@
    "detail": ""
   },
   "operator_array_to_map#0": {
-   "status": "unsupported",
-   "detail": "unknown operator REDUCE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_assign#0": {
    "status": "exact",
@@ -989,16 +990,16 @@
    "detail": ""
   },
   "operator_comments#6": {
-   "status": "unsupported",
-   "detail": "unknown operator JOIN"
+   "status": "exact",
+   "detail": ""
   },
   "operator_comments#7": {
    "status": "exact",
    "detail": ""
   },
   "operator_comments#8": {
-   "status": "unsupported",
-   "detail": "unknown operator JOIN"
+   "status": "exact",
+   "detail": ""
   },
   "operator_comments#9": {
    "status": "exact",
@@ -1077,48 +1078,48 @@
    "detail": ""
   },
   "operator_contains#0": {
-   "status": "unsupported",
-   "detail": "unknown operator CONTAINS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_contains#1": {
-   "status": "unsupported",
-   "detail": "unknown operator CONTAINS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_contains#2": {
-   "status": "unsupported",
-   "detail": "unknown operator CONTAINS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_contains#3": {
-   "status": "unsupported",
-   "detail": "unknown operator CONTAINS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_contains#4": {
    "status": "exact",
    "detail": ""
   },
   "operator_contains#5": {
-   "status": "unsupported",
-   "detail": "unknown operator CONTAINS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_contains#6": {
-   "status": "unsupported",
-   "detail": "unknown operator CONTAINS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_contains#7": {
-   "status": "unsupported",
-   "detail": "unknown operator CONTAINS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_contains#8": {
-   "status": "unsupported",
-   "detail": "unknown operator CONTAINS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_contains#9": {
-   "status": "unsupported",
-   "detail": "unknown operator CONTAINS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_contains#10": {
-   "status": "unsupported",
-   "detail": "unknown operator CONTAINS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_create_map#0": {
    "status": "exact",
@@ -1301,20 +1302,20 @@
    "detail": ""
   },
   "operator_delete#18": {
-   "status": "unsupported",
-   "detail": "unknown operator REVERSE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_delete#19": {
-   "status": "unsupported",
-   "detail": "unknown operator SHUFFLE"
+   "status": "fail",
+   "detail": "shuffle: the expected order comes from Go's math/rand seeded with the pinned clock; Python's random module gives another (valid) order"
   },
   "operator_delete#20": {
    "status": "exact",
    "detail": ""
   },
   "operator_delete#21": {
-   "status": "unsupported",
-   "detail": "unknown operator FLATTEN_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_delete#22": {
    "status": "exact",
@@ -1617,8 +1618,8 @@
    "detail": ""
   },
   "operator_entries#10": {
-   "status": "unsupported",
-   "detail": "unknown operator REVERSE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_entries#11": {
    "status": "exact",
@@ -1865,152 +1866,152 @@
    "detail": ""
   },
   "operator_filter#0": {
-   "status": "unsupported",
-   "detail": "unknown operator FILTER"
+   "status": "exact",
+   "detail": ""
   },
   "operator_filter#1": {
-   "status": "unsupported",
-   "detail": "unknown operator FILTER"
+   "status": "exact",
+   "detail": ""
   },
   "operator_filter#2": {
-   "status": "unsupported",
-   "detail": "unknown operator FILTER"
+   "status": "exact",
+   "detail": ""
   },
   "operator_filter#3": {
-   "status": "unsupported",
-   "detail": "unknown operator FILTER"
+   "status": "exact",
+   "detail": ""
   },
   "operator_filter#4": {
-   "status": "unsupported",
-   "detail": "unknown operator FILTER"
+   "status": "exact",
+   "detail": ""
   },
   "operator_filter#5": {
-   "status": "unsupported",
-   "detail": "unknown operator FILTER"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#0": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#1": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#2": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#3": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#4": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#5": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#6": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#7": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#8": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#9": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#10": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#11": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#12": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#13": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#14": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#15": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#16": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#17": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#18": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#19": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#20": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_first#21": {
-   "status": "unsupported",
-   "detail": "unknown operator FIRST"
+   "status": "exact",
+   "detail": ""
   },
   "operator_flatten#0": {
-   "status": "unsupported",
-   "detail": "unknown operator FLATTEN_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_flatten#1": {
-   "status": "unsupported",
-   "detail": "unknown operator FLATTEN_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_flatten#2": {
-   "status": "unsupported",
-   "detail": "unknown operator FLATTEN_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_flatten#3": {
-   "status": "unsupported",
-   "detail": "unknown operator FLATTEN_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_flatten#4": {
-   "status": "unsupported",
-   "detail": "unknown operator FLATTEN_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_flatten#5": {
-   "status": "unsupported",
-   "detail": "unknown operator FLATTEN_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_group_by#0": {
-   "status": "unsupported",
-   "detail": "unknown operator GROUP_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_group_by#1": {
-   "status": "unsupported",
-   "detail": "unknown operator GROUP_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_group_by#2": {
-   "status": "unsupported",
-   "detail": "unknown operator GROUP_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_has#0": {
    "status": "exact",
@@ -2081,8 +2082,8 @@
    "detail": ""
   },
   "operator_keys#10": {
-   "status": "unsupported",
-   "detail": "unknown operator JOIN"
+   "status": "exact",
+   "detail": ""
   },
   "operator_kind#0": {
    "status": "exact",
@@ -2514,7 +2515,7 @@
   },
   "operator_multiply#49": {
    "status": "unsupported",
-   "detail": "unknown operator REDUCE"
+   "detail": "unknown operator EVAL"
   },
   "operator_multiply#50": {
    "status": "exact",
@@ -2613,28 +2614,28 @@
    "detail": "expression: unsupported value starting with 'fmt'; expectedError: unsupported value starting with 'fmt'"
   },
   "operator_omit#0": {
-   "status": "unsupported",
-   "detail": "unknown operator OMIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_omit#1": {
-   "status": "unsupported",
-   "detail": "unknown operator OMIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_omit#2": {
-   "status": "unsupported",
-   "detail": "unknown operator OMIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_omit#3": {
-   "status": "unsupported",
-   "detail": "unknown operator OMIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_omit#4": {
-   "status": "unsupported",
-   "detail": "unknown operator OMIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_omit#5": {
-   "status": "unsupported",
-   "detail": "unknown operator OMIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_parent#0": {
    "status": "exact",
@@ -2729,8 +2730,8 @@
    "detail": ""
   },
   "operator_path#9": {
-   "status": "unsupported",
-   "detail": "unknown operator REDUCE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_path#10": {
    "status": "exact",
@@ -2757,32 +2758,32 @@
    "detail": "expected error 'DELPATHS: expected entry [0] to be a sequence, but its a !!str. Note that delpaths takes an array of path arrays, e.g. [[\"a\", \"b\"]]', got 'DELPATHS: expected entry [0] to be a sequence, but its a !!str. Note that delpaths takes an array of path arrays, e.g. [[\"a\", \"b\"]]'"
   },
   "operator_pick#0": {
-   "status": "unsupported",
-   "detail": "unknown operator PICK"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pick#1": {
-   "status": "unsupported",
-   "detail": "unknown operator PICK"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pick#2": {
-   "status": "unsupported",
-   "detail": "unknown operator PICK"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pick#3": {
-   "status": "unsupported",
-   "detail": "unknown operator PICK"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pick#4": {
-   "status": "unsupported",
-   "detail": "unknown operator PICK"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pick#5": {
-   "status": "unsupported",
-   "detail": "unknown operator PICK"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pick#6": {
-   "status": "unsupported",
-   "detail": "unknown operator PICK"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pipe#0": {
    "status": "exact",
@@ -2797,24 +2798,24 @@
    "detail": ""
   },
   "operator_pivot#0": {
-   "status": "unsupported",
-   "detail": "unknown operator PIVOT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pivot#1": {
-   "status": "unsupported",
-   "detail": "unknown operator PIVOT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pivot#2": {
-   "status": "unsupported",
-   "detail": "unknown operator PIVOT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pivot#3": {
-   "status": "unsupported",
-   "detail": "unknown operator PIVOT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_pivot#4": {
-   "status": "unsupported",
-   "detail": "unknown operator PIVOT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_recursive_descent#0": {
    "status": "exact",
@@ -2905,44 +2906,44 @@
    "detail": ""
   },
   "operator_reduce#0": {
-   "status": "unsupported",
-   "detail": "unknown operator REDUCE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_reduce#1": {
-   "status": "unsupported",
-   "detail": "unknown operator REDUCE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_reduce#2": {
-   "status": "unsupported",
-   "detail": "unknown operator REDUCE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_reverse#0": {
-   "status": "unsupported",
-   "detail": "unknown operator REVERSE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_reverse#1": {
-   "status": "unsupported",
-   "detail": "unknown operator REVERSE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_reverse#2": {
-   "status": "unsupported",
-   "detail": "unknown operator REVERSE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_reverse#3": {
-   "status": "unsupported",
-   "detail": "unknown operator REVERSE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_reverse#4": {
-   "status": "unsupported",
-   "detail": "unknown operator REVERSE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_reverse#5": {
-   "status": "unsupported",
-   "detail": "unknown operator REVERSE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_reverse#6": {
-   "status": "unsupported",
-   "detail": "unknown operator REVERSE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_select#0": {
    "status": "exact",
@@ -3017,16 +3018,16 @@
    "detail": ""
   },
   "operator_shuffle#0": {
-   "status": "unsupported",
-   "detail": "unknown operator SHUFFLE"
+   "status": "fail",
+   "detail": "shuffle: the expected order comes from Go's math/rand seeded with the pinned clock; Python's random module gives another (valid) order"
   },
   "operator_shuffle#1": {
-   "status": "unsupported",
-   "detail": "unknown operator SHUFFLE"
+   "status": "fail",
+   "detail": "shuffle: the expected order comes from Go's math/rand seeded with the pinned clock; Python's random module gives another (valid) order"
   },
   "operator_shuffle#2": {
-   "status": "unsupported",
-   "detail": "unknown operator SHUFFLE"
+   "status": "fail",
+   "detail": "shuffle: the expected order comes from Go's math/rand seeded with the pinned clock; Python's random module gives another (valid) order"
   },
   "operator_slice#0": {
    "status": "exact",
@@ -3145,8 +3146,8 @@
    "detail": ""
   },
   "operator_sort#6": {
-   "status": "unsupported",
-   "detail": "unknown operator REVERSE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_sort#7": {
    "status": "exact",
@@ -3161,8 +3162,8 @@
    "detail": ""
   },
   "operator_sort#10": {
-   "status": "unsupported",
-   "detail": "unknown operator CHANGE_CASE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_sort#11": {
    "status": "exact",
@@ -3201,20 +3202,20 @@
    "detail": ""
   },
   "operator_sort_keys#0": {
-   "status": "unsupported",
-   "detail": "unknown operator SORT_KEYS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_sort_keys#1": {
-   "status": "unsupported",
-   "detail": "unknown operator SORT_KEYS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_sort_keys#2": {
-   "status": "unsupported",
-   "detail": "unknown operator SORT_KEYS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_sort_keys#3": {
-   "status": "unsupported",
-   "detail": "unknown operator SORT_KEYS"
+   "status": "exact",
+   "detail": ""
   },
   "operator_split_document#0": {
    "status": "unsupported",
@@ -3229,11 +3230,11 @@
    "detail": "unknown operator SPLIT_DOC"
   },
   "operator_strings#0": {
-   "status": "fail",
+   "status": "exact",
    "detail": ""
   },
   "operator_strings#1": {
-   "status": "fail",
+   "status": "exact",
    "detail": ""
   },
   "operator_strings#2": {
@@ -3241,7 +3242,7 @@
    "detail": ""
   },
   "operator_strings#3": {
-   "status": "fail",
+   "status": "exact",
    "detail": ""
   },
   "operator_strings#4": {
@@ -3249,7 +3250,7 @@
    "detail": ""
   },
   "operator_strings#5": {
-   "status": "fail",
+   "status": "exact",
    "detail": ""
   },
   "operator_strings#6": {
@@ -3265,88 +3266,88 @@
    "detail": ""
   },
   "operator_strings#9": {
-   "status": "unsupported",
-   "detail": "unknown operator CHANGE_CASE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#10": {
-   "status": "unsupported",
-   "detail": "unknown operator CHANGE_CASE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#11": {
-   "status": "unsupported",
-   "detail": "unknown operator CHANGE_CASE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#12": {
-   "status": "unsupported",
-   "detail": "unknown operator CHANGE_CASE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#13": {
-   "status": "unsupported",
-   "detail": "unknown operator JOIN"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#14": {
-   "status": "unsupported",
-   "detail": "unknown operator TRIM"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#15": {
-   "status": "unsupported",
-   "detail": "unknown operator JOIN"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#16": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#17": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#18": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#19": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "semantic",
+   "detail": ""
   },
   "operator_strings#20": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "semantic",
+   "detail": ""
   },
   "operator_strings#21": {
-   "status": "unsupported",
-   "detail": "unknown operator CAPTURE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#22": {
-   "status": "unsupported",
-   "detail": "unknown operator CAPTURE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#23": {
-   "status": "unsupported",
-   "detail": "unknown operator CAPTURE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#24": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#25": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#26": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#27": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#28": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#29": {
-   "status": "unsupported",
-   "detail": "unknown operator MATCH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#30": {
    "status": "exact",
@@ -3361,52 +3362,52 @@
    "detail": ""
   },
   "operator_strings#33": {
-   "status": "unsupported",
-   "detail": "unknown operator SUBSTR"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#34": {
-   "status": "unsupported",
-   "detail": "unknown operator SUBSTR"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#35": {
-   "status": "unsupported",
-   "detail": "unknown operator SUBSTR"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#36": {
-   "status": "unsupported",
-   "detail": "unknown operator SPLIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#37": {
-   "status": "unsupported",
-   "detail": "unknown operator SPLIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#38": {
-   "status": "unsupported",
-   "detail": "unknown operator SPLIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#39": {
-   "status": "unsupported",
-   "detail": "unknown operator SPLIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#40": {
-   "status": "unsupported",
-   "detail": "unknown operator SPLIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#41": {
-   "status": "unsupported",
-   "detail": "unknown operator SPLIT"
+   "status": "exact",
+   "detail": ""
   },
   "operator_strings#42": {
-   "status": "unsupported",
-   "detail": "unknown operator TO_STRING"
+   "status": "exact",
+   "detail": ""
   },
   "operator_style#0": {
    "status": "exact",
    "detail": ""
   },
   "operator_style#1": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_style#2": {
    "status": "exact",
@@ -3601,20 +3602,20 @@
    "detail": ""
   },
   "operator_to_number#0": {
-   "status": "unsupported",
-   "detail": "unknown operator TO_NUMBER"
+   "status": "exact",
+   "detail": ""
   },
   "operator_to_number#1": {
-   "status": "unsupported",
-   "detail": "unknown operator TO_NUMBER"
+   "status": "exact",
+   "detail": ""
   },
   "operator_to_number#2": {
-   "status": "unsupported",
-   "detail": "unknown operator TO_NUMBER"
+   "status": "exact",
+   "detail": ""
   },
   "operator_to_number#3": {
-   "status": "semantic",
-   "detail": "expected error 'cannot convert node value [null] at path a.b of tag !!null to number', got 'unknown operator TO_NUMBER'"
+   "status": "exact",
+   "detail": "expected error 'cannot convert node value [null] at path a.b of tag !!null to number', got 'cannot convert node value [null] at path a.b of tag !!null to number'"
   },
   "operator_traverse_path#0": {
    "status": "exact",
@@ -3933,48 +3934,48 @@
    "detail": ""
   },
   "operator_unique#0": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_unique#1": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_unique#2": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_unique#3": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_unique#4": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_unique#5": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_unique#6": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE"
+   "status": "exact",
+   "detail": ""
   },
   "operator_unique#7": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_unique#8": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_unique#9": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_unique#10": {
-   "status": "unsupported",
-   "detail": "unknown operator UNIQUE_BY"
+   "status": "exact",
+   "detail": ""
   },
   "operator_value#0": {
    "status": "exact",
@@ -4121,24 +4122,24 @@
    "detail": ""
   },
   "operator_with#0": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_with#1": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_with#2": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_with#3": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH"
+   "status": "exact",
+   "detail": ""
   },
   "operator_with#4": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH"
+   "status": "exact",
+   "detail": ""
   },
   "operators_compare#0": {
    "status": "exact",
@@ -4349,28 +4350,28 @@
    "detail": ""
   },
   "recipes#2": {
-   "status": "unsupported",
-   "detail": "unknown operator REDUCE"
+   "status": "exact",
+   "detail": ""
   },
   "recipes#3": {
-   "status": "unsupported",
-   "detail": "unknown operator WITH"
+   "status": "exact",
+   "detail": ""
   },
   "recipes#4": {
    "status": "exact",
    "detail": ""
   },
   "recipes#5": {
-   "status": "unsupported",
-   "detail": "unknown operator FLATTEN_BY"
+   "status": "exact",
+   "detail": ""
   },
   "recipes#6": {
-   "status": "unsupported",
-   "detail": "unknown operator JOIN"
+   "status": "exact",
+   "detail": ""
   },
   "recipes#7": {
-   "status": "unsupported",
-   "detail": "unknown operator JOIN"
+   "status": "exact",
+   "detail": ""
   },
   "yaml#0": {
    "status": "exact",

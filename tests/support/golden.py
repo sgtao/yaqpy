@@ -81,7 +81,26 @@ def result_to_string(node: Node, options: Options) -> str:
     return f"D{node.document()}, P{format_path(node.path())}, ({tag})::{buf.getvalue()}"
 
 
+# Scenarios that cannot match Go's output for a reason that is not a bug. They stay "fail" (so the
+# pass rate is honest); the reason goes into the outcome and the manifest.
+_SHUFFLE = ("shuffle: the expected order comes from Go's math/rand seeded with the pinned clock; "
+            "Python's random module gives another (valid) order")
+KNOWN_DIFFERENCES: dict[str, str] = {
+    "operator_shuffle#0": _SHUFFLE,
+    "operator_shuffle#1": _SHUFFLE,
+    "operator_shuffle#2": _SHUFFLE,
+    "operator_delete#19": _SHUFFLE,
+}
+
+
 def run_scenario(scenario: dict[str, Any]) -> Outcome:
+    outcome = _run_scenario(scenario)
+    if outcome.status in ("fail", "error") and outcome.id in KNOWN_DIFFERENCES:
+        outcome.detail = KNOWN_DIFFERENCES[outcome.id]
+    return outcome
+
+
+def _run_scenario(scenario: dict[str, Any]) -> Outcome:
     sid = scenario["id"]
     source = scenario["source"]
     if scenario.get("unresolved"):

@@ -40,7 +40,7 @@ _OPTIONAL_VALUE_FLAGS = {
     "-r", "--unwrapScalar", "--unwrap-scalar", "--header-preprocess",
     "--yaml-fix-merge-anchor-to-spec",
     "--xml-strict-mode", "--xml-keep-namespace", "--xml-raw-token", "--xml-skip-proc-inst",
-    "--xml-skip-directives", "--csv-auto-parse", "--tsv-auto-parse",
+    "--xml-skip-directives", "--csv-auto-parse", "--tsv-auto-parse", "--string-interpolation",
 }
 
 _SEPARATOR_ESCAPES = (("\\n", "\n"), ("\\t", "\t"), ("\\r", "\r"), ("\\f", "\f"), ("\\v", "\v"))
@@ -176,6 +176,8 @@ def build_parser() -> _Parser:
     s.add_argument("--security-enable-system-operator", action="store_true",
                    help="Enable system operator to allow execution of external commands.")
     m = parser.add_argument_group("misc")
+    m.add_argument("--string-interpolation", nargs="?", const=True, default=True, type=parse_bool,
+                   help="Toggles strings interpolation of \\(exp)")
     m.add_argument("-e", "--exit-status", action="store_true",
                    help="set exit status if there are no matches or null or false is returned")
     m.add_argument("-v", "--verbose", action="store_true", help="verbose mode")
