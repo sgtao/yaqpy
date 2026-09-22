@@ -16,6 +16,7 @@ from typing import TextIO
 from yaqpy.core.model import tags
 from yaqpy.core.model.node import Kind, Node, Style
 from yaqpy.errors import FormatError
+from yaqpy.formats.base import DecodeBudget
 from yaqpy.options import Options
 
 DELIMITERS = {",": "", "\t": "\t", "|": "|"}          # delimiter -> header symbol
@@ -364,14 +365,17 @@ class ToonDecoder:
         self.indent = self.options.toon.indent
         self.strict = self.options.toon.strict
         self.filename = ""
+        self._budget: DecodeBudget | None = None
 
     def decode_documents(self, text: str, *, filename: str = "", file_index: int = 0,
-                         process_leading: bool = True) -> Iterator[Node]:
+                         process_leading: bool = True,
+                         budget: DecodeBudget | None = None) -> Iterator[Node]:
         if text.startswith("﻿"):
             text = text[1:]
         if len(text.encode("utf-8", "surrogatepass")) > self.options.limits.max_input_bytes:
             raise FormatError("input exceeds max_input_bytes", format="toon", filename=filename)
         self.filename = filename
+        self._budget = budget
         lines = self._scan(text)
         if not lines:
             if text.strip(" \t\r\n") == "" and not any(
@@ -394,6 +398,11 @@ class ToonDecoder:
 
     def _error(self, message: str, line: int = 0) -> ToonError:
         return ToonError(message, line=line, filename=self.filename)
+
+    def _tick(self) -> None:
+        """巨大な文書のデコード中でも中止・タイムアウトが効くように、行を消費するたびに呼ぶ（U1）。"""
+        if self._budget is not None:
+            self._budget.tick()
 
     def _scan(self, text: str) -> list[_Line]:
         out: list[_Line] = []
@@ -442,6 +451,7 @@ class ToonDecoder:
         i = start
         seen: set[str] = set()
         while i < len(lines):
+            self._tick()
             ln = lines[i]
             if ln.depth < depth:
                 break
@@ -526,6 +536,7 @@ class ToonDecoder:
         j = i + 1
         while j < len(lines) and lines[j].depth == ln.depth + 1 and lines[j].text.startswith("-") \
                 and (lines[j].text == "-" or lines[j].text[1] == " "):
+            self._tick()
             item, j = self._decode_list_item(lines, j, ln.depth + 1)
             node.add_child(item)
         if j < len(lines) and lines[j].depth > ln.depth:
@@ -640,6 +651,7 @@ class ToonDecoder:
         j = i
         while j < len(lines) and lines[j].depth == depth and self._match_header(lines[j].text) is None \
                 and not lines[j].text.startswith("- ") and lines[j].text != "-":
+            self._tick()
             ln = lines[j]
             if self._looks_like_field(ln.text):
                 break
@@ -670,6 +682,7 @@ class ToonDecoder:
         width = self._leaf_count(fields)
         j = i
         while j < len(lines) and lines[j].depth == depth:
+            self._tick()
             ln = lines[j]
             split = self._split_key_value(ln.text, ln.number)
             if split is None:

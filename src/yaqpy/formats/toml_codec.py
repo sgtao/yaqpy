@@ -28,6 +28,7 @@ from typing import TextIO
 from yaqpy.core.model.depth import node_depth
 from yaqpy.core.model.node import Kind, Node
 from yaqpy.errors import FormatError
+from yaqpy.formats.base import DecodeBudget
 from yaqpy.options import Options
 
 MAX_DEPTH = 200
@@ -53,7 +54,7 @@ _ESCAPES = {"b": "\b", "t": "\t", "n": "\n", "f": "\f", "r": "\r", '"': '"', "\\
 class _Parser:
     """A recursive-descent parser for TOML 1.0 that builds ``Node`` trees (comments are skipped)."""
 
-    def __init__(self, text: str) -> None:
+    def __init__(self, text: str, *, budget: DecodeBudget | None = None) -> None:
         self.s = text
         self.n = len(text)
         self.i = 0
@@ -62,6 +63,7 @@ class _Parser:
         # how a table came to exist: "table" (a header), "implicit" (a header of a child),
         # "dotted" (dotted keys), "inline", or "aot" for an array of tables
         self.kinds: dict[int, str] = {id(self.root): "table"}
+        self._budget = budget
 
     # ------------------------------------------------------------------ helpers
 
@@ -441,6 +443,8 @@ class _Parser:
 
     def parse(self) -> Node:
         while True:
+            if self._budget is not None:
+                self._budget.tick()
             self._skip_space_lines_comments()
             if self.i >= self.n:
                 return self.root
@@ -500,13 +504,14 @@ class TomlDecoder:
         self.options = options or Options()
 
     def decode_documents(self, text: str, *, filename: str = "", file_index: int = 0,
-                         process_leading: bool = True) -> Iterator[Node]:
+                         process_leading: bool = True,
+                         budget: DecodeBudget | None = None) -> Iterator[Node]:
         if text.startswith("﻿"):
             text = text[1:]
         if len(text.encode("utf-8", "surrogatepass")) > self.options.limits.max_input_bytes:
             raise FormatError("input exceeds max_input_bytes", format="toml", filename=filename)
         try:
-            root = _Parser(text).parse()
+            root = _Parser(text, budget=budget).parse()
         except RecursionError:
             raise FormatError("TOML nesting too deep", format="toml", filename=filename) from None
         except FormatError as e:

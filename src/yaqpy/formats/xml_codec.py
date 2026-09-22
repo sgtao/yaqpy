@@ -29,6 +29,7 @@ from yaqpy.core.model.depth import node_depth
 from yaqpy.core.model.node import Kind, Node
 from yaqpy.errors import FormatError
 from yaqpy.formats import xml_tokens as xt
+from yaqpy.formats.base import DecodeBudget
 from yaqpy.options import Options
 
 MAX_DEPTH = 200
@@ -207,13 +208,15 @@ class XmlDecoder:
 
     # ------------------------------------------------------------------ tokens -> tree
 
-    def _read(self, text: str, root: _XmlNode) -> None:
+    def _read(self, text: str, root: _XmlNode, budget: DecodeBudget | None = None) -> None:
         prefs = self.prefs
         max_depth = min(self.options.limits.max_depth, MAX_DEPTH)
         elem: _Element | None = _Element(None, root)
         started = False
         depth = 0
         for token in xt.tokens(text, strict=prefs.strict_mode, raw=prefs.raw_token):
+            if budget is not None:
+                budget.tick()
             if isinstance(token, xt.StartElement):
                 if elem is None:
                     elem = _Element(None, _XmlNode())     # a start tag after a stray end tag
@@ -262,14 +265,15 @@ class XmlDecoder:
             started = True
 
     def decode_documents(self, text: str, *, filename: str = "", file_index: int = 0,
-                         process_leading: bool = True) -> Iterator[Node]:
+                         process_leading: bool = True,
+                         budget: DecodeBudget | None = None) -> Iterator[Node]:
         if text.startswith("﻿"):
             text = text[1:]
         if len(text.encode("utf-8", "surrogatepass")) > self.options.limits.max_input_bytes:
             raise FormatError("input exceeds max_input_bytes", format="xml", filename=filename)
         root = _XmlNode()
         try:
-            self._read(text, root)
+            self._read(text, root, budget)
             node = self._convert(root)
         except RecursionError:
             raise FormatError("XML nesting too deep", format="xml", filename=filename) from None
