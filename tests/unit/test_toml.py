@@ -6,10 +6,10 @@ import io
 import json
 import math
 import tomllib
-import unittest
 from pathlib import Path
 from typing import Any
 
+import pytest
 import yaqpy
 from yaqpy import FormatError, Limits, Options, TomlOptions
 from yaqpy.cli.main import main
@@ -80,27 +80,26 @@ def run_cli(*argv: str) -> tuple[int, str, str]:
     return code, out.getvalue(), err.getvalue()
 
 
-class ScalarTests(unittest.TestCase):
+class ScalarTests:
     def test_numbers_keep_their_text(self) -> None:
         node = load("a = 0xDEADBEEF\nb = 1_000\nc = +5\nd = 6.626e-34\ne = 0o17\nf = 0b101\ng = inf\n")
         values = {k.value: (v.tag, v.value) for k, v in node.map_items()}
-        self.assertEqual(values, {
-            "a": ("!!int", "0xDEADBEEF"), "b": ("!!int", "1_000"), "c": ("!!int", "+5"),
-            "d": ("!!float", "6.626e-34"), "e": ("!!int", "0o17"), "f": ("!!int", "0b101"),
-            "g": ("!!float", "inf")})
+        assert values == {
+        "a": ("!!int", "0xDEADBEEF"), "b": ("!!int", "1_000"), "c": ("!!int", "+5"),
+        "d": ("!!float", "6.626e-34"), "e": ("!!int", "0o17"), "f": ("!!int", "0b101"),
+        "g": ("!!float", "inf")}
 
     def test_arithmetic_keeps_the_base(self) -> None:
         options = Options(input_format="toml", output_format="toml")
-        self.assertEqual(yaqpy.evaluate(".A += 1", "A = 0xDEADBEEF\n", options=options),
-                         "A = 0xDEADBEF0\n")
+        assert yaqpy.evaluate(".A += 1", "A = 0xDEADBEEF\n", options=options) == "A = 0xDEADBEF0\n"
 
     def test_booleans_and_dates(self) -> None:
         node = load("t = true\nf = false\nd = 1979-05-27T07:32:00-08:00\nl = 1979-05-27\n"
                     "m = 1979-05-27 07:32:00Z\nn = 07:32:00\n")
-        self.assertEqual({k.value: (v.tag, v.value) for k, v in node.map_items()}, {
-            "t": ("!!bool", "true"), "f": ("!!bool", "false"),
-            "d": ("!!timestamp", "1979-05-27T07:32:00-08:00"), "l": ("!!timestamp", "1979-05-27"),
-            "m": ("!!timestamp", "1979-05-27 07:32:00Z"), "n": ("!!str", "07:32:00")})
+        assert {k.value: (v.tag, v.value) for k, v in node.map_items()} == {
+        "t": ("!!bool", "true"), "f": ("!!bool", "false"),
+        "d": ("!!timestamp", "1979-05-27T07:32:00-08:00"), "l": ("!!timestamp", "1979-05-27"),
+        "m": ("!!timestamp", "1979-05-27 07:32:00Z"), "n": ("!!str", "07:32:00")}
 
     def test_strings(self) -> None:
         text = ('a = "tab\\there \\u00e9 \\U0001F600 \\"q\\" \\\\"\n'
@@ -108,63 +107,60 @@ class ScalarTests(unittest.TestCase):
                 'c = """\nfirst\n  second \\\n   joined"""\n'
                 "d = '''\nraw \\n\nlines'''\n"
                 'e = """quotes""""\n')
-        self.assertEqual(read(text), {
-            "a": 'tab\there é 😀 "q" \\', "b": "C:\\path\\n", "c": "first\n  second joined",
-            "d": "raw \\n\nlines", "e": 'quotes"'})
+        assert read(text) == {
+        "a": 'tab\there é 😀 "q" \\', "b": "C:\\path\\n", "c": "first\n  second joined",
+        "d": "raw \\n\nlines", "e": 'quotes"'}
 
     def test_keys(self) -> None:
-        self.assertEqual(read('"a b" = 1\n\'c.d\' = 2\nx . y = 3\n"" = 4\n'),
-                         {"a b": 1, "c.d": 2, "x": {"y": 3}, "": 4})
+        assert read('"a b" = 1\n\'c.d\' = 2\nx . y = 3\n"" = 4\n') == {"a b": 1, "c.d": 2, "x": {"y": 3}, "": 4}
 
 
-class StructureTests(unittest.TestCase):
+class StructureTests:
     def test_tables_and_arrays_of_tables(self) -> None:
         text = ("var = 1\n[owner.contact]\nname = 'Tom'\n[[owner.addresses]]\nstreet = 'a'\n"
                 "[[owner.addresses]]\nstreet = 'b'\n[[owner.addresses.tags]]\nt = 1\n")
-        self.assertEqual(read(text), {"var": 1, "owner": {
-            "contact": {"name": "Tom"},
-            "addresses": [{"street": "a"}, {"street": "b", "tags": [{"t": 1}]}]}})
+        assert read(text) == {"var": 1, "owner": {
+        "contact": {"name": "Tom"},
+        "addresses": [{"street": "a"}, {"street": "b", "tags": [{"t": 1}]}]}}
 
     def test_a_table_may_come_after_a_table_it_contains(self) -> None:
-        self.assertEqual(read("[a.b]\nx = 1\n[a]\ny = 2\n"), {"a": {"b": {"x": 1}, "y": 2}})
+        assert read("[a.b]\nx = 1\n[a]\ny = 2\n") == {"a": {"b": {"x": 1}, "y": 2}}
 
     def test_dotted_keys(self) -> None:
-        self.assertEqual(read("a.b.c = 1\na.b.d = 2\na.e = 3\n"),
-                         {"a": {"b": {"c": 1, "d": 2}, "e": 3}})
+        assert read("a.b.c = 1\na.b.d = 2\na.e = 3\n") == {"a": {"b": {"c": 1, "d": 2}, "e": 3}}
 
     def test_arrays_may_be_mixed_span_lines_and_hold_comments(self) -> None:
         text = 'a = [\n  1, # one\n  "two",\n  [3, 4],\n  { five = 5 },\n]\nb = []\n'
-        self.assertEqual(read(text), {"a": [1, "two", [3, 4], {"five": 5}], "b": []})
+        assert read(text) == {"a": [1, "two", [3, 4], {"five": 5}], "b": []}
 
     def test_inline_tables(self) -> None:
-        self.assertEqual(read("t = { a = 1, b.c = 2, d = { e = 3 } }\ne = {}\n"),
-                         {"t": {"a": 1, "b": {"c": 2}, "d": {"e": 3}}, "e": {}})
+        assert read("t = { a = 1, b.c = 2, d = { e = 3 } }\ne = {}\n") == {"t": {"a": 1, "b": {"c": 2}, "d": {"e": 3}}, "e": {}}
 
     def test_table_kinds_are_marked_for_the_encoder(self) -> None:
         node = load("i = { a = 1 }\n[t]\nx = 1\n[[l]]\ny = 2\n")
         hints = {k.value: v.encode_hint for k, v in node.map_items()}
-        self.assertEqual(hints, {"i": "inline", "t": "block", "l": ""})
-        self.assertEqual(node.get_map_value("l").content[0].encode_hint, "block")
+        assert hints == {"i": "inline", "t": "block", "l": ""}
+        assert node.get_map_value("l").content[0].encode_hint == "block"
 
     def test_empty_tables_are_empty_maps(self) -> None:
-        self.assertEqual(read("[a]\n[b]\nk = 1\n[c]\n"), {"a": {}, "b": {"k": 1}, "c": {}})
+        assert read("[a]\n[b]\nk = 1\n[c]\n") == {"a": {}, "b": {"k": 1}, "c": {}}
 
     def test_empty_document_has_no_output(self) -> None:
-        self.assertEqual(list(TomlDecoder().decode_documents("")), [])
-        self.assertEqual(list(TomlDecoder().decode_documents("# only a comment\n\n")), [])
+        assert list(TomlDecoder().decode_documents("")) == []
+        assert list(TomlDecoder().decode_documents("# only a comment\n\n")) == []
 
     def test_comments_are_skipped(self) -> None:
-        self.assertEqual(read("# c\na = 1 # d\n[t] # e\nb = 2\n"), {"a": 1, "t": {"b": 2}})
+        assert read("# c\na = 1 # d\n[t] # e\nb = 2\n") == {"a": 1, "t": {"b": 2}}
 
     def test_bom_and_crlf(self) -> None:
-        self.assertEqual(read("﻿a = 1\r\n[t]\r\nb = \"x\"\r\n"), {"a": 1, "t": {"b": "x"}})
+        assert read("﻿a = 1\r\n[t]\r\nb = \"x\"\r\n") == {"a": 1, "t": {"b": "x"}}
 
 
-class ErrorTests(unittest.TestCase):
+class ErrorTests:
     def check(self, text: str, message: str = "") -> None:
-        with self.assertRaises(FormatError) as ctx:
+        with pytest.raises(FormatError) as ctx:
             read(text)
-        self.assertIn(message, str(ctx.exception))
+        assert message in str(ctx.value)
 
     def test_unterminated_string_names_the_line(self) -> None:
         self.check('A = "hello', "unterminated basic string (line 1, column 5)")
@@ -175,7 +171,7 @@ class ErrorTests(unittest.TestCase):
         for text in ("a = 1\na = 2\n", "[a]\n[a]\n", "a = 1\n[a]\n", "a.b = 1\n[a]\n",
                      "[a.b]\n[a]\n[a]\n", "a = {x = 1}\n[a]\ny = 2\n", "a = {x = 1}\na.y = 2\n",
                      "[[a]]\n[a]\n", "a = [1]\n[[a]]\n"):
-            with self.subTest(text=text), self.assertRaises(FormatError):
+            with pytest.raises(FormatError):
                 read(text)
 
     def test_invalid_values(self) -> None:
@@ -183,48 +179,47 @@ class ErrorTests(unittest.TestCase):
                      "a = 1 2\n", "a = [1 2]\n", "a = {b = 1,}\n", "a = {b = 1\n}\n", 'a = "\\q"\n',
                      'a = "\\uD800"\n', 'a = "x\ny"\n', "a = 'x\ty\x01'\n", "a = 2024-13-45x\n",
                      "= 1\n", "a b = 1\n", "[a\n", "[[a]\n", "a = 1 b = 2\n"):
-            with self.subTest(text=text), self.assertRaises(FormatError):
+            with pytest.raises(FormatError):
                 read(text)
 
     def test_dates_and_times_must_be_in_range(self) -> None:
         for text in ("a = 2000-02-30\n", "a = 2001-02-29\n", "a = 2000-13-01\n", "a = 2000-00-10\n",
                      "a = 2000-01-01T24:00:00Z\n", "a = 07:60:00\n", "a = 2000-01-01T00:00:61Z\n",
                      "a = 2000-01-01T00:00:00+24:00\n", "a = 2000-01-01T00:00:00+01:60\n"):
-            with self.subTest(text=text), self.assertRaises(FormatError):
+            with pytest.raises(FormatError):
                 read(text)
         for text in ("a = 2000-02-29\n", "a = 23:59:59\n", "a = 2000-01-01T23:59:60Z\n",
                      "a = 2000-12-31 23:59:59+23:59\n"):
-            with self.subTest(text=text):
-                read(text)
+            read(text)
 
     def test_comments_may_not_hold_control_characters(self) -> None:
-        with self.assertRaises(FormatError):
+        with pytest.raises(FormatError):
             read("a = 1 # bad \x01 comment\n")
-        with self.assertRaises(FormatError):
+        with pytest.raises(FormatError):
             read("# bad \x7f\na = 1\n")
-        self.assertEqual(read("a = 1 # tab\there\r\n# ok\r\nb = 2\r\n"), {"a": 1, "b": 2})
+        assert read("a = 1 # tab\there\r\n# ok\r\nb = 2\r\n") == {"a": 1, "b": 2}
 
     def test_error_names_the_file(self) -> None:
-        with self.assertRaises(FormatError) as ctx:
+        with pytest.raises(FormatError) as ctx:
             list(TomlDecoder().decode_documents("a =\n", filename="x.toml"))
-        self.assertTrue(str(ctx.exception).startswith("bad file 'x.toml': "))
+        assert str(ctx.value).startswith("bad file 'x.toml': ")
 
     def test_nesting_limits(self) -> None:
-        with self.assertRaises(FormatError):
+        with pytest.raises(FormatError):
             read("a = " + "[" * (MAX_DEPTH + 1) + "]" * (MAX_DEPTH + 1) + "\n")
-        with self.assertRaises(FormatError):
+        with pytest.raises(FormatError):
             read("[" + ".".join(["a"] * (MAX_DEPTH + 1)) + "]\n")
-        with self.assertRaises(FormatError):
+        with pytest.raises(FormatError):
             read("a = " + "[" * 100_000 + "\n")
-        self.assertIsNotNone(read("a = " + "[" * MAX_DEPTH + "]" * MAX_DEPTH + "\n"))
+        assert read("a = " + "[" * MAX_DEPTH + "]" * MAX_DEPTH + "\n") is not None
 
     def test_input_size_limit(self) -> None:
         options = Options(input_format="toml", limits=Limits(max_input_bytes=5))
-        with self.assertRaises(FormatError):
+        with pytest.raises(FormatError):
             yaqpy.evaluate(".", "a = 1234567\n", options=options)
 
 
-class AgreesWithTomlibTests(unittest.TestCase):
+class AgreesWithTomlibTests:
     """The parser and Python's tomllib must read the same data."""
 
     def corpus(self) -> list[str]:
@@ -249,12 +244,10 @@ class AgreesWithTomlibTests(unittest.TestCase):
                 expected = tomllib.loads(text)
             except tomllib.TOMLDecodeError:
                 continue                      # the Go tests hold a few documents Python rejects
-            with self.subTest(text=text[:60]):
-                actual = to_python(load(text))
-                self.assertEqual(flatten_dates(normalise_floats(actual)),
-                                 flatten_dates(normalise_floats(normalise(expected))))
+            actual = to_python(load(text))
+            assert flatten_dates(normalise_floats(actual)) == flatten_dates(normalise_floats(normalise(expected)))
             checked += 1
-        self.assertGreater(checked, 30)
+        assert checked > 30
 
 
 def normalise_floats(value: Any) -> Any:
@@ -267,72 +260,68 @@ def normalise_floats(value: Any) -> Any:
     return value
 
 
-class WriteTests(unittest.TestCase):
+class WriteTests:
     def test_root_values_come_before_tables(self) -> None:
-        self.assertEqual(write("t:\n  x: 1\na: 2\nb: [1, 2]\n"), 'a = 2\nb = [1, 2]\n\n[t]\nx = 1\n')
+        assert write("t:\n  x: 1\na: 2\nb: [1, 2]\n") == 'a = 2\nb = [1, 2]\n\n[t]\nx = 1\n'
 
     def test_nested_tables(self) -> None:
-        self.assertEqual(write("a:\n  b:\n    c: val\n"), '[a.b]\nc = "val"\n')
-        self.assertEqual(write("a:\n  hello: foo\n  nested:\n    key: val\n"),
-                         '[a]\nhello = "foo"\n\n[a.nested]\nkey = "val"\n')
+        assert write("a:\n  b:\n    c: val\n") == '[a.b]\nc = "val"\n'
+        assert write("a:\n  hello: foo\n  nested:\n    key: val\n") == '[a]\nhello = "foo"\n\n[a.nested]\nkey = "val"\n'
 
     def test_arrays_of_tables(self) -> None:
         text = "fruits:\n  - name: apple\n    varieties:\n      - name: red\n  - name: banana\n"
-        self.assertEqual(write(text), '[[fruits]]\nname = "apple"\n[[fruits.varieties]]\nname = "red"\n'
-                                      '[[fruits]]\nname = "banana"\n')
+        assert write(text) == ('[[fruits]]\nname = "apple"\n[[fruits.varieties]]\nname = "red"\n'
+                            '[[fruits]]\nname = "banana"\n')
 
     def test_arrays_and_scalars_in_arrays(self) -> None:
-        self.assertEqual(write("a: [x, 1, true, [1, 2], {k: v}]\n"),
-                         'a = ["x", 1, true, [1, 2], { k = "v" }]\n')
+        assert write("a: [x, 1, true, [1, 2], {k: v}]\n") == 'a = ["x", 1, true, [1, 2], { k = "v" }]\n'
 
     def test_strings_are_quoted_and_valid_toml(self) -> None:
         data = {"s": "tab\there \"q\" \\ line\nbreak \x07 é 日本 \U0001F600 \u2028"}
         text = convert(json.dumps(data), "json", "toml")
-        self.assertEqual(tomllib.loads(text), data)
+        assert tomllib.loads(text) == data
 
     def test_keys_are_quoted_when_needed(self) -> None:
         text = write('"a b": 1\n"c.d": 2\nplain-key_1: 3\n"日本": 4\n')
-        self.assertEqual(text, '"a b" = 1\n"c.d" = 2\nplain-key_1 = 3\n"日本" = 4\n')
-        self.assertEqual(_key_text("é"), '"é"')
-        self.assertEqual(_quote("a\x00b"), '"a\\u0000b"')
+        assert text == '"a b" = 1\n"c.d" = 2\nplain-key_1 = 3\n"日本" = 4\n'
+        assert _key_text("é") == '"é"'
+        assert _quote("a\x00b") == '"a\\u0000b"'
 
     def test_null_is_skipped_at_the_top_and_written_empty_in_arrays(self) -> None:
-        self.assertEqual(write("a: 1\nb: null\nc: [x, null]\n"), 'a = 1\nc = ["x", ""]\n')
+        assert write("a: 1\nb: null\nc: [x, null]\n") == 'a = 1\nc = ["x", ""]\n'
 
     def test_yaml_flow_maps_become_tables_not_inline_tables(self) -> None:
-        self.assertEqual(write("arg: {hello: foo}\n"), '[arg]\nhello = "foo"\n')
+        assert write("arg: {hello: foo}\n") == '[arg]\nhello = "foo"\n'
 
     def test_timestamps_are_not_quoted(self) -> None:
-        self.assertEqual(write("d: 1979-05-27T07:32:00Z\n"), "d = 1979-05-27T07:32:00Z\n")
+        assert write("d: 1979-05-27T07:32:00Z\n") == "d = 1979-05-27T07:32:00Z\n"
 
     def test_comments_from_yaml_are_written(self) -> None:
-        self.assertEqual(write("# top\na: 1 # one\n# about t\nt:\n  b: 2\n"),
-                         "# top\na = 1  # one\n\n# about t\n[t]\nb = 2\n")
+        assert write("# top\na: 1 # one\n# about t\nt:\n  b: 2\n") == "# top\na = 1  # one\n\n# about t\n[t]\nb = 2\n"
 
     def test_top_level_scalar_and_non_mapping(self) -> None:
-        self.assertEqual(write("hello\n"), "hello\n")
-        with self.assertRaises(FormatError):
+        assert write("hello\n") == "hello\n"
+        with pytest.raises(FormatError):
             write("[1, 2]\n")
 
-    def test_output_is_always_valid_toml(self) -> None:
-        for text in ("a: {b: {c: [1, {d: 2}]}}\ne: [[1], [2, 3]]\nf:\n  - x: 1\n  - x: 2\n",
-                     "x: 1\ny:\n  z:\n    - a: 1\n      b: {c: 2}\n"):
-            with self.subTest(text=text):
-                self.assertEqual(normalise(tomllib.loads(write(text))), read_yaml(text))
+    @pytest.mark.parametrize("text", ("a: {b: {c: [1, {d: 2}]}}\ne: [[1], [2, 3]]\nf:\n  - x: 1\n  - x: 2\n",
+                 "x: 1\ny:\n  z:\n    - a: 1\n      b: {c: 2}\n"))
+    def test_output_is_always_valid_toml(self, text) -> None:
+        assert normalise(tomllib.loads(write(text))) == read_yaml(text)
 
     def test_deep_data_is_refused(self) -> None:
         depth = MAX_DEPTH + 5
         text = '{"a":' * depth + "1" + "}" * depth
-        with self.assertRaises(FormatError) as ctx:
+        with pytest.raises(FormatError) as ctx:
             convert(text, "json", "toml")
-        self.assertIn("too deep", str(ctx.exception))
+        assert "too deep" in str(ctx.value)
 
 
 def read_yaml(text: str) -> Any:
     return json.loads(yaqpy.evaluate(".", text, options=Options(output_format="json")))
 
 
-class RoundTripTests(unittest.TestCase):
+class RoundTripTests:
     SAMPLES = (
         'A = "hello"\nB = 12\n',
         'name = { first = "Tom", last = "Preston-Werner" }\n',
@@ -352,25 +341,23 @@ class RoundTripTests(unittest.TestCase):
 
     def test_toml_comes_back_unchanged(self) -> None:
         for text in self.SAMPLES:
-            with self.subTest(text=text):
-                self.assertEqual(convert(text, "toml", "toml"), text)
+            assert convert(text, "toml", "toml") == text
 
     def test_an_edit_changes_only_that_value(self) -> None:
         options = Options(input_format="toml", output_format="toml")
         text = '[project]\nname = "p"\nversion = "0.5.1"\nlicense = { file = "LICENSE" }\n'
-        self.assertEqual(yaqpy.evaluate('.project.version = "0.5.2"', text, options=options),
-                         text.replace("0.5.1", "0.5.2"))
+        assert yaqpy.evaluate('.project.version = "0.5.2"', text, options=options) == text.replace("0.5.1", "0.5.2")
 
 
-class CliTests(unittest.TestCase):
+class CliTests:
     def test_extension_and_registry(self) -> None:
         from yaqpy.formats.registry import builtin_formats
 
         formats = builtin_formats()
-        self.assertEqual(formats.from_filename("pyproject.toml").name, "toml")
-        self.assertIn("toml", formats.input_formats())
-        self.assertIn("toml", formats.output_formats())
-        self.assertIn("toml", formats.input_extensions())
+        assert formats.from_filename("pyproject.toml").name == "toml"
+        assert "toml" in formats.input_formats()
+        assert "toml" in formats.output_formats()
+        assert "toml" in formats.input_extensions()
 
     def test_cli_reads_and_writes(self) -> None:
         import os
@@ -381,11 +368,11 @@ class CliTests(unittest.TestCase):
             with open(path, "w", encoding="utf-8", newline="\n") as f:
                 f.write('# c\n[project]\nname = "p"\nversion = "1"\n')
             code, out, err = run_cli(".project.name", path)
-            self.assertEqual((code, out, err), (0, "p\n", ""))
+            assert (code, out, err) == (0, "p\n", "")
             code, out, _ = run_cli("-o", "yaml", ".", path)
-            self.assertEqual(out, "project:\n  name: p\n  version: \"1\"\n")
+            assert out == "project:\n  name: p\n  version: \"1\"\n"
             code, out, _ = run_cli('.project.version = "2"', path)
-            self.assertEqual(out, '[project]\nname = "p"\nversion = "2"\n')
+            assert out == '[project]\nname = "p"\nversion = "2"\n'
 
     def test_in_place_update_is_refused_unless_allowed(self) -> None:
         import os
@@ -397,14 +384,14 @@ class CliTests(unittest.TestCase):
             with open(path, "w", encoding="utf-8", newline="\n") as f:
                 f.write(original)
             code, out, err = run_cli("-i", '.project.version = "2"', path)
-            self.assertEqual(code, 1)
-            self.assertIn("--toml-allow-lossy", err)
+            assert code == 1
+            assert "--toml-allow-lossy" in err
             with open(path, encoding="utf-8", newline="") as f:
-                self.assertEqual(f.read(), original)              # untouched
+                assert f.read() == original              # untouched
             code, _, err = run_cli("-i", "--toml-allow-lossy", '.project.version = "2"', path)
-            self.assertEqual((code, err), (0, ""))
+            assert (code, err) == (0, "")
             with open(path, encoding="utf-8", newline="") as f:
-                self.assertEqual(f.read(), '[project]\nversion = "2"\n')
+                assert f.read() == '[project]\nversion = "2"\n'
 
     def test_in_place_update_of_other_formats_is_not_affected(self) -> None:
         import os
@@ -415,10 +402,6 @@ class CliTests(unittest.TestCase):
             with open(path, "w", encoding="utf-8", newline="\n") as f:
                 f.write("# c\na: 1\n")
             code, _, _ = run_cli("-i", ".a = 2", path)
-            self.assertEqual(code, 0)
+            assert code == 0
             with open(path, encoding="utf-8", newline="") as f:
-                self.assertEqual(f.read(), "# c\na: 2\n")
-
-
-if __name__ == "__main__":
-    unittest.main()
+                assert f.read() == "# c\na: 2\n"

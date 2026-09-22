@@ -3,7 +3,6 @@ Flet の部品を組み立てるだけで、窓は開かない（flet が無い�
 
 from __future__ import annotations
 
-import unittest
 from unittest import mock
 
 try:
@@ -11,6 +10,7 @@ try:
 except ImportError:                        # pragma: no cover - flet は任意の依存
     ft = None
 
+import pytest
 from yaqpy.app.ports import InMemoryFileSystem, StaticEnvironment
 from yaqpy.app.service import YqService
 from yaqpy.gui.presenter import MainPresenter, RunViewModel
@@ -35,15 +35,15 @@ def badge(page, side: str) -> tuple[bool, str]:
     return container.visible, getattr(page, f"_{side}_format").value
 
 
-@unittest.skipIf(ft is None, "flet is not installed")
-class LayoutTests(unittest.TestCase):
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class LayoutTests:
     def test_file_name_uses_the_button_font_size_and_bold(self) -> None:
         from yaqpy.gui.pages.main_page import BUTTON_TEXT_SIZE
 
         page, _, _ = make_page()
-        self.assertEqual(BUTTON_TEXT_SIZE, 14)                 # Flet の Button の文字と同じ大きさ
-        self.assertEqual(page._file_label.size, BUTTON_TEXT_SIZE)
-        self.assertEqual(page._file_label.weight, ft.FontWeight.BOLD)
+        assert BUTTON_TEXT_SIZE == 14                 # Flet の Button の文字と同じ大きさ
+        assert page._file_label.size == BUTTON_TEXT_SIZE
+        assert page._file_label.weight == ft.FontWeight.BOLD
 
     def test_the_property_row_and_the_expression_row_are_apart(self) -> None:
         from yaqpy.gui.pages.main_page import FILTER_ROW_SPACING
@@ -53,24 +53,24 @@ class LayoutTests(unittest.TestCase):
                           if isinstance(c, ft.Column) and any(
                               isinstance(r, ft.Row) and page._property_dd in r.controls
                               for r in c.controls))
-        self.assertGreaterEqual(FILTER_ROW_SPACING, 12)        # 以前は 2
-        self.assertEqual(filter_bar.spacing, FILTER_ROW_SPACING)
+        assert FILTER_ROW_SPACING >= 12        # 以前は 2
+        assert filter_bar.spacing == FILTER_ROW_SPACING
 
 
-@unittest.skipIf(ft is None, "flet is not installed")
-class FormatBadgeTests(unittest.IsolatedAsyncioTestCase):
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class FormatBadgeTests:
     async def test_hidden_before_a_document_is_opened(self) -> None:
         page, _, _ = make_page()
-        self.assertEqual(badge(page, "original"), (False, ""))
-        self.assertEqual(badge(page, "converted"), (False, ""))
+        assert badge(page, "original") == (False, "")
+        assert badge(page, "converted") == (False, "")
 
     async def test_shows_the_resolved_format_when_the_dropdowns_are_auto(self) -> None:
         page, presenter, state = make_page()
         await presenter.open_path("/w/shop.xml")
         page._after_open()
-        self.assertEqual(state.query.input_format, "auto")
-        self.assertEqual(badge(page, "original"), (True, "xml"))
-        self.assertEqual(badge(page, "converted"), (True, "xml"))
+        assert state.query.input_format == "auto"
+        assert badge(page, "original") == (True, "xml")
+        assert badge(page, "converted") == (True, "xml")
 
     async def test_follows_a_specified_format(self) -> None:
         page, presenter, state = make_page()
@@ -78,13 +78,13 @@ class FormatBadgeTests(unittest.IsolatedAsyncioTestCase):
         page._after_open()
         state.query.output_format = "toon"
         page._apply(await presenter.run())
-        self.assertEqual(badge(page, "original"), (True, "xml"))
-        self.assertEqual(badge(page, "converted"), (True, "toon"))
+        assert badge(page, "original") == (True, "xml")
+        assert badge(page, "converted") == (True, "toon")
         state.query.input_format = "yaml"
         state.query.output_format = "auto"
         page._apply(RunViewModel())
-        self.assertEqual(badge(page, "original"), (True, "yaml"))
-        self.assertEqual(badge(page, "converted"), (True, "yaml"))
+        assert badge(page, "original") == (True, "yaml")
+        assert badge(page, "converted") == (True, "yaml")
 
     async def test_stays_after_a_failed_run(self) -> None:
         page, presenter, state = make_page()
@@ -92,25 +92,21 @@ class FormatBadgeTests(unittest.IsolatedAsyncioTestCase):
         page._after_open()
         state.query.expression = ".db.("
         vm = await presenter.run()
-        self.assertFalse(vm.ok)
+        assert not vm.ok
         page._apply(vm)
-        self.assertEqual(badge(page, "original"), (True, "toml"))
-        self.assertEqual(badge(page, "converted"), (True, "toml"))
+        assert badge(page, "original") == (True, "toml")
+        assert badge(page, "converted") == (True, "toml")
 
     async def test_hidden_again_when_the_document_is_closed(self) -> None:
         page, presenter, _ = make_page()
         await presenter.open_path("/w/shop.xml")
         page._after_open()
         page._on_close(mock.MagicMock())
-        self.assertEqual(badge(page, "original"), (False, ""))
-        self.assertEqual(badge(page, "converted"), (False, ""))
+        assert badge(page, "original") == (False, "")
+        assert badge(page, "converted") == (False, "")
 
     async def test_pasted_text_is_yaml(self) -> None:
         page, presenter, _ = make_page()
         presenter.open_text("a: 1\n")
         page._after_open()
-        self.assertEqual(badge(page, "original"), (True, "yaml"))
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert badge(page, "original") == (True, "yaml")

@@ -3,21 +3,20 @@
 from __future__ import annotations
 
 import io
-import unittest
 from unittest import mock
 
 from yaqpy.gui import app
 
 
-class EntryGuardTests(unittest.TestCase):
+class EntryGuardTests:
     def test_missing_flet_gives_an_install_hint(self) -> None:
         err = io.StringIO()
         with mock.patch.object(app, "flet_available", return_value=False):
             code = app.main_entry(stderr=err)
-        self.assertEqual(code, 1)
-        self.assertIn('pip install "flet>=1.0,<2"', err.getvalue())
-        self.assertIn("uv sync --extra gui", err.getvalue())
-        self.assertIn("https://github.com/sgtao/yaqpy", err.getvalue())   # リリースからの導入案内
+        assert code == 1
+        assert 'pip install "flet>=1.0,<2"' in err.getvalue()
+        assert "uv sync --extra gui" in err.getvalue()
+        assert "https://github.com/sgtao/yaqpy" in err.getvalue()   # リリースからの導入案内
 
     def test_app_module_imports_without_flet(self) -> None:
         """app.py が import 時点で flet を要求しないこと。"""
@@ -32,8 +31,4 @@ class EntryGuardTests(unittest.TestCase):
                 top_level_imports += [a.name for a in node.names]
             elif isinstance(node, ast.ImportFrom) and node.module:
                 top_level_imports.append(node.module)
-        self.assertNotIn("flet", [m.split(".")[0] for m in top_level_imports])
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert "flet" not in [m.split(".")[0] for m in top_level_imports]

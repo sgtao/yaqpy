@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import concurrent.futures
-import unittest
 
+import pytest
 import yaqpy
 from yaqpy import Limits, Options, SecurityPolicy, Yq
 from yaqpy.app.dto import EvalMode, EvaluateRequest, InputSource
@@ -16,73 +16,72 @@ from yaqpy.errors import EvaluationLimitError, ExpressionSyntaxError, FormatErro
 SAMPLE = "# サーバー設定\nserver:\n  port: 8080   # 開発用\n  hosts: [a, b]\n"
 
 
-class FunctionApiTests(unittest.TestCase):
+class FunctionApiTests:
     def test_evaluate_preserves_comments(self) -> None:
         out = yaqpy.evaluate(".server.port = 9090", SAMPLE)
-        self.assertEqual(out, "# サーバー設定\nserver:\n  port: 9090 # 開発用\n  hosts: [a, b]\n")
+        assert out == "# サーバー設定\nserver:\n  port: 9090 # 開発用\n  hosts: [a, b]\n"
 
     def test_evaluate_scalar_unwrapped(self) -> None:
-        self.assertEqual(yaqpy.evaluate(".server.port", SAMPLE), "8080\n")
+        assert yaqpy.evaluate(".server.port", SAMPLE) == "8080\n"
 
     def test_query_and_update(self) -> None:
-        self.assertEqual(yaqpy.query(".server.hosts[]", {"server": {"hosts": ["a", "b"]}}), ["a", "b"])
+        assert yaqpy.query(".server.hosts[]", {"server": {"hosts": ["a", "b"]}}) == ["a", "b"]
         data = {"a": 1}
-        self.assertEqual(yaqpy.update(".b = .a + 1", data), {"a": 1, "b": 2})
-        self.assertEqual(data, {"a": 1}, "input must not be mutated")
+        assert yaqpy.update(".b = .a + 1", data) == {"a": 1, "b": 2}
+        assert data == {"a": 1}, "input must not be mutated"
 
     def test_json_output(self) -> None:
         yq = Yq(Options(output_format="json", indent=0))
         expr = yq.compile(".server")
-        self.assertEqual(yq.evaluate(expr, SAMPLE), '{"port":8080,"hosts":["a","b"]}\n')
+        assert yq.evaluate(expr, SAMPLE) == '{"port":8080,"hosts":["a","b"]}\n'
 
     def test_evaluate_all(self) -> None:
         out = yaqpy.evaluate_all("select(fi == 0) * select(fi == 1)", ["a: 1\n", "b: 2\n"])
-        self.assertEqual(out, "a: 1\nb: 2\n")
+        assert out == "a: 1\nb: 2\n"
 
     def test_null_input(self) -> None:
-        self.assertEqual(yaqpy.evaluate(".a.b = 1"), "a:\n  b: 1\n")
+        assert yaqpy.evaluate(".a.b = 1") == "a:\n  b: 1\n"
 
     def test_syntax_error(self) -> None:
-        with self.assertRaises(ExpressionSyntaxError):
+        with pytest.raises(ExpressionSyntaxError):
             yaqpy.compile(".a |")
 
     def test_format_error(self) -> None:
-        with self.assertRaises(FormatError):
+        with pytest.raises(FormatError):
             yaqpy.evaluate(".", "a: [1\n")
 
     def test_env_denied_by_default(self) -> None:
-        with self.assertRaises(SecurityError):
+        with pytest.raises(SecurityError):
             yaqpy.evaluate('env(HOME)')
 
     def test_env_allowed(self) -> None:
         yq = Yq(Options(security=SecurityPolicy(allow_env=True)), environ={"NAME": "x"})
-        self.assertEqual(yq.evaluate("strenv(NAME)"), "x\n")
+        assert yq.evaluate("strenv(NAME)") == "x\n"
 
     def test_step_limit(self) -> None:
         options = Options(limits=Limits(max_steps=5))
-        with self.assertRaises(EvaluationLimitError):
+        with pytest.raises(EvaluationLimitError):
             yaqpy.evaluate("[.[] | . + 1]", "[1, 2, 3, 4, 5]\n", options=options)
 
     def test_load_and_dump(self) -> None:
         docs = yaqpy.load("a: 1\n---\nb: 2\n")
-        self.assertEqual(len(docs), 2)
-        self.assertEqual(yaqpy.dump(docs), "a: 1\n---\nb: 2\n")
-        self.assertEqual(yaqpy.dump(docs, format="json", options=Options(indent=0)),
-                         '{"a":1}\n{"b":2}\n')
+        assert len(docs) == 2
+        assert yaqpy.dump(docs) == "a: 1\n---\nb: 2\n"
+        assert yaqpy.dump(docs, format="json", options=Options(indent=0)) == '{"a":1}\n{"b":2}\n'
 
 
-class ServiceTests(unittest.TestCase):
+class ServiceTests:
     def test_in_place_write(self) -> None:
         fs = InMemoryFileSystem({"f.yml": "a: 1\n"})
         service = YqService(fs, StaticEnvironment())
         request = EvaluateRequest(expression=".a = 2", inputs=(InputSource("f.yml"),), in_place=True)
         service.evaluate(request, InPlaceSink("f.yml"))
-        self.assertEqual(fs.files["f.yml"], "a: 2\n")
+        assert fs.files["f.yml"] == "a: 2\n"
 
     def test_missing_file(self) -> None:
         service = YqService(InMemoryFileSystem(), StaticEnvironment())
         request = EvaluateRequest(expression=".", inputs=(InputSource("nope.yml"),))
-        with self.assertRaises(FormatError):
+        with pytest.raises(FormatError):
             service.evaluate(request, MemorySink())
 
     def test_stream_vs_all(self) -> None:
@@ -91,29 +90,29 @@ class ServiceTests(unittest.TestCase):
         stream = service.evaluate(
             EvaluateRequest(expression="[.x]", inputs=(InputSource("a.yml"),)), MemorySink())
         # like Go: a collected node has no parent, so no document separator is printed
-        self.assertEqual(stream.output, "- 1\n- 2\n")
+        assert stream.output == "- 1\n- 2\n"
         scalars = service.evaluate(
             EvaluateRequest(expression=".x", inputs=(InputSource("a.yml"),)), MemorySink())
-        self.assertEqual(scalars.output, "1\n---\n2\n")
+        assert scalars.output == "1\n---\n2\n"
         together = service.evaluate(
             EvaluateRequest(expression="[.x]", inputs=(InputSource("a.yml"),), mode=EvalMode.ALL),
             MemorySink())
-        self.assertEqual(together.output, "- 1\n- 2\n")
+        assert together.output == "- 1\n- 2\n"
 
     def test_printed_anything(self) -> None:
         service = YqService(InMemoryFileSystem({"a.yml": "x: false\n"}), StaticEnvironment())
         result = service.evaluate(
             EvaluateRequest(expression=".x", inputs=(InputSource("a.yml"),)), MemorySink())
-        self.assertFalse(result.printed_anything)
+        assert not result.printed_anything
 
     def test_validate_expression(self) -> None:
         service = YqService(InMemoryFileSystem(), StaticEnvironment())
-        self.assertTrue(service.validate_expression(".a").valid)
+        assert service.validate_expression(".a").valid
         info = service.validate_expression("(.a")
-        self.assertFalse(info.valid)
+        assert not info.valid
 
 
-class ConcurrencyTests(unittest.TestCase):
+class ConcurrencyTests:
     def test_different_options_in_parallel(self) -> None:
         yaml_yq = Yq(Options(output_format="yaml"))
         json_yq = Yq(Options(output_format="json", indent=0))
@@ -125,11 +124,11 @@ class ConcurrencyTests(unittest.TestCase):
         with concurrent.futures.ThreadPoolExecutor(max_workers=8) as pool:
             results = list(pool.map(work, range(50)))
         for i, (y, j) in enumerate(results):
-            self.assertEqual(y, f"{i + 1}\n")
-            self.assertEqual(j, f'{{"a":{i}}}\n')
+            assert y == f"{i + 1}\n"
+            assert j == f'{{"a":{i}}}\n'
 
 
-class ServiceBudgetTests(unittest.TestCase):
+class ServiceBudgetTests:
     """改修 B / C: 外から渡した StepBudget と、解決済み形式の報告。"""
 
     def _service(self) -> YqService:
@@ -149,27 +148,23 @@ class ServiceBudgetTests(unittest.TestCase):
         options = Options()
         budget = service.new_budget(options)
         budget.cancel()                      # 走り出す前に中止しておく（決定的に再現できる）
-        with self.assertRaises(EvaluationLimitError) as ctx:
+        with pytest.raises(EvaluationLimitError) as ctx:
             service.evaluate(self._request(), MemorySink(), budget=budget)
-        self.assertEqual(ctx.exception.limit, "cancelled")
+        assert ctx.value.limit == "cancelled"
 
     def test_budget_is_optional(self) -> None:
         service = self._service()
         result = service.evaluate(self._request(), MemorySink())
-        self.assertEqual(result.output, "a: 1\n")
+        assert result.output == "a: 1\n"
 
     def test_result_reports_resolved_formats(self) -> None:
         service = self._service()
         result = service.evaluate(self._request(name="config.json", text='{"a":1}'),
                                   MemorySink())
-        self.assertEqual(result.input_format, "json")
-        self.assertEqual(result.output_format, "json")
+        assert result.input_format == "json"
+        assert result.output_format == "json"
 
     def test_auto_falls_back_to_yaml_for_unknown_extension(self) -> None:
         service = self._service()
         result = service.evaluate(self._request(name="config.conf"), MemorySink())
-        self.assertEqual(result.input_format, "yaml")
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert result.input_format == "yaml"

@@ -5,9 +5,9 @@ from __future__ import annotations
 
 import io
 import json
-import unittest
 from typing import Any
 
+import pytest
 import yaqpy
 from yaqpy import Options
 from yaqpy.app.dto import InputSource
@@ -36,81 +36,73 @@ def cases(api: str) -> list[Any]:
     raise AssertionError(api)
 
 
-class CatalogTests(unittest.TestCase):
+class CatalogTests:
     def test_the_six_recipes_are_there(self) -> None:
-        self.assertEqual(sorted(builtin_recipes()), NAMES)
+        assert sorted(builtin_recipes()) == NAMES
 
-    def test_each_recipe_is_described_and_carries_five_cases(self) -> None:
-        for name, recipe in builtin_recipes().items():
-            with self.subTest(recipe=name):
-                self.assertEqual(recipe.name, name)
-                self.assertTrue(recipe.title and recipe.description and recipe.notes)
-                self.assertEqual(name, recipe.input_api.split("-")[0] + "-to-" + recipe.output_api.split("-")[0])
-                self.assertEqual(len(recipe.tests), 5)
-                self.assertTrue(recipe.carries and recipe.drops)
-                self.assertIsNotNone(recipe.target_schema)
+    @pytest.mark.parametrize("name, recipe", builtin_recipes().items())
+    def test_each_recipe_is_described_and_carries_five_cases(self, name, recipe) -> None:
+        assert recipe.name == name
+        assert recipe.title and recipe.description and recipe.notes
+        assert name == recipe.input_api.split("-")[0] + "-to-" + recipe.output_api.split("-")[0]
+        assert len(recipe.tests) == 5
+        assert recipe.carries and recipe.drops
+        assert recipe.target_schema is not None
 
     def test_the_schemas_of_a_target_are_the_same_for_every_recipe_that_writes_it(self) -> None:
         by_target: dict[str, list[Any]] = {}
         for recipe in builtin_recipes().values():
             by_target.setdefault(recipe.output_api, []).append(recipe.target_schema)
         for api, schemas in by_target.items():
-            with self.subTest(api=api):
-                self.assertTrue(all(s == schemas[0] for s in schemas))
+            assert all(s == schemas[0] for s in schemas)
 
 
-class OwnCaseTests(unittest.TestCase):
+class OwnCaseTests:
     def test_every_case_of_every_recipe_passes(self) -> None:
         for name, recipe in builtin_recipes().items():
             for result in SERVICE.run_tests(recipe):
-                with self.subTest(recipe=name, case=result.name):
-                    self.assertTrue(result.passed, result.message)
+                assert result.passed, result.message
 
     def test_converting_does_not_change_the_input_and_gives_the_same_result_again(self) -> None:
         for name, recipe in builtin_recipes().items():
             for case in recipe.tests:
-                with self.subTest(recipe=name, case=case.name):
-                    original = json.dumps(case.input, sort_keys=True)
-                    first = convert(name, case.input)
-                    self.assertEqual(json.dumps(case.input, sort_keys=True), original)
-                    self.assertEqual(convert(name, case.input), first)
+                original = json.dumps(case.input, sort_keys=True)
+                first = convert(name, case.input)
+                assert json.dumps(case.input, sort_keys=True) == original
+                assert convert(name, case.input) == first
 
 
-class SchemaTests(unittest.TestCase):
+class SchemaTests:
     """The test inputs are what the source API accepts; the outputs are what the target accepts."""
 
     def test_the_inputs_follow_the_schema_of_the_api_they_are_written_for(self) -> None:
         schema_of = {r.output_api: r.target_schema for r in builtin_recipes().values()}
         for name, recipe in builtin_recipes().items():
             for case in recipe.tests:
-                with self.subTest(recipe=name, case=case.name):
-                    self.assertEqual(check(case.input, schema_of[recipe.input_api]), [])
+                assert check(case.input, schema_of[recipe.input_api]) == []
 
     def test_the_outputs_follow_the_target_schema_except_for_the_model_that_is_never_converted(self) -> None:
         for name, recipe in builtin_recipes().items():
             for case in recipe.tests:
-                with self.subTest(recipe=name, case=case.name):
-                    issues = [(i.path, i.kind) for i in check(convert(name, case.input), recipe.target_schema)]
-                    self.assertLessEqual(set(issues), {(".model", "missing")})
+                issues = [(i.path, i.kind) for i in check(convert(name, case.input), recipe.target_schema)]
+                assert set(issues) <= {(".model", "missing")}
 
     def test_a_result_that_does_not_fit_the_target_is_told(self) -> None:
         recipe = builtin_recipes()["openai-to-anthropic"]
         broken = {"model": "m", "messages": [{"role": "user", "content": "x"}], "max_tokens": "many",
                   "stop": ["a"]}
-        self.assertEqual({(i.path, i.kind) for i in check(broken, recipe.target_schema)},
-                         {(".max_tokens", "type"), (".stop", "extra")})
+        assert {(i.path, i.kind) for i in check(broken, recipe.target_schema)} == {(".max_tokens", "type"), (".stop", "extra")}
 
 
-class CompletenessTests(unittest.TestCase):
+class CompletenessTests:
     """Nothing in a test input is lost without the recipe saying so."""
 
     def test_every_key_of_every_test_input_is_carried_or_declared_dropped(self) -> None:
         for name, recipe in builtin_recipes().items():
             for case in recipe.tests:
-                with self.subTest(recipe=name, case=case.name):
-                    run = SERVICE.run(recipe, InputSource("<text>", json.dumps(case.input)), Options(),
-                                      input_format="json", output_format="json")
-                    self.assertEqual([d.path for d in run.report.not_handled], [])
+                run = SERVICE.run(recipe, InputSource("<text>", json.dumps(case.input)), Options(),
+                                  input_format="json", output_format="json")
+                assert [d.path for d in run.report.not_handled] == []
 
     def test_a_declared_drop_is_really_absent_from_the_output(self) -> None:
         doc = {"model": "m", "stream": True, "user": "u", "messages": [
@@ -118,8 +110,8 @@ class CompletenessTests(unittest.TestCase):
              "name": "bob"}]}
         text = json.dumps(convert("openai-to-gemini", doc))
         for leaked in ("gpt", "image", "bob", '"stream"', '"user": "u"'):
-            self.assertNotIn(leaked, text)
-        self.assertIn('"text": "hi"', text)
+            assert leaked not in text
+        assert '"text": "hi"' in text
 
     def test_the_default_max_tokens_is_reported_and_only_when_it_was_added(self) -> None:
         recipe = builtin_recipes()["openai-to-anthropic"]
@@ -130,9 +122,9 @@ class CompletenessTests(unittest.TestCase):
             return [a.path for a in run.report.added]
 
         messages = [{"role": "user", "content": "x"}]
-        self.assertEqual(added({"model": "m", "messages": messages}), [".max_tokens"])
-        self.assertEqual(added({"model": "m", "messages": messages, "max_tokens": 9}), [])
-        self.assertEqual(added({"model": "m", "messages": messages, "max_completion_tokens": 9}), [])
+        assert added({"model": "m", "messages": messages}) == [".max_tokens"]
+        assert added({"model": "m", "messages": messages, "max_tokens": 9}) == []
+        assert added({"model": "m", "messages": messages, "max_completion_tokens": 9}) == []
 
 
 # ----------------------------------------------------------------------------- round trips
@@ -208,7 +200,7 @@ SHARED = {frozenset(("openai", "gemini")): {"temperature", "top_p", "max_tokens"
           frozenset(("gemini", "anthropic")): {"temperature", "top_p", "top_k", "max_tokens", "stop"}}
 
 
-class RoundTripTests(unittest.TestCase):
+class RoundTripTests:
     def check_pair(self, a: str, b: str) -> None:
         shared = SHARED[frozenset((a, b))]
         api = {"openai": "openai-chat-completions", "gemini": "gemini-generate-content",
@@ -216,15 +208,13 @@ class RoundTripTests(unittest.TestCase):
         for index, doc in enumerate(cases(api)):
             if a == "gemini" and index == 3:
                 continue        # its parameters use the OpenAPI schema, which is rewritten on the way
-            with self.subTest(pair=f"{a}->{b}->{a}", case=index):
-                back = convert(f"{b}-to-{a}", convert(f"{a}-to-{b}", doc))
-                before, after = CANON[a](doc), CANON[a](back)
-                for part in ("system", "turns", "tools", "tool_choice"):
-                    self.assertEqual(before[part], after[part], part)
-                if "max_tokens" not in before["params"] and after["params"].get("max_tokens") == 4096:
-                    del after["params"]["max_tokens"]     # the default the Messages API needs (reported as added)
-                self.assertEqual({k: v for k, v in before["params"].items() if k in shared},
-                                 {k: v for k, v in after["params"].items() if k in shared})
+            back = convert(f"{b}-to-{a}", convert(f"{a}-to-{b}", doc))
+            before, after = CANON[a](doc), CANON[a](back)
+            for part in ("system", "turns", "tools", "tool_choice"):
+                assert before[part] == after[part], part
+            if "max_tokens" not in before["params"] and after["params"].get("max_tokens") == 4096:
+                del after["params"]["max_tokens"]     # the default the Messages API needs (reported as added)
+            assert {k: v for k, v in before["params"].items() if k in shared} == {k: v for k, v in after["params"].items() if k in shared}
 
     def test_openai_gemini_openai(self) -> None:
         self.check_pair("openai", "gemini")
@@ -244,17 +234,16 @@ class RoundTripTests(unittest.TestCase):
     def test_anthropic_gemini_anthropic(self) -> None:
         self.check_pair("anthropic", "gemini")
 
-    def test_a_chain_of_three_keeps_the_conversation(self) -> None:
-        for doc in cases("openai-chat-completions"):
-            with self.subTest(case=doc["messages"][0]["content"]):
-                once = convert("anthropic-to-openai", convert("gemini-to-anthropic",
-                                                              convert("openai-to-gemini", doc)))
-                before, after = canon_openai(doc), canon_openai(once)
-                for part in ("system", "turns", "tools"):
-                    self.assertEqual(before[part], after[part], part)
+    @pytest.mark.parametrize("doc", cases("openai-chat-completions"))
+    def test_a_chain_of_three_keeps_the_conversation(self, doc) -> None:
+        once = convert("anthropic-to-openai", convert("gemini-to-anthropic",
+                                                      convert("openai-to-gemini", doc)))
+        before, after = canon_openai(doc), canon_openai(once)
+        for part in ("system", "turns", "tools"):
+            assert before[part] == after[part], part
 
 
-class LanguageEdgeTests(unittest.TestCase):
+class LanguageEdgeTests:
     """Things the expressions rely on, pinned so an engine change cannot silently alter a recipe."""
 
     def test_a_message_without_text_is_left_out_not_emitted_empty(self) -> None:
@@ -263,52 +252,45 @@ class LanguageEdgeTests(unittest.TestCase):
             {"role": "assistant", "content": None, "tool_calls": [{"id": "1", "type": "function",
                                                                   "function": {"name": "f", "arguments": "{}"}}]},
             {"role": "tool", "tool_call_id": "1", "content": "42"}]}
-        self.assertEqual(convert("openai-to-gemini", doc), {"contents": [{"role": "user", "parts": [{"text": "hi"}]}]})
-        self.assertEqual(convert("openai-to-anthropic", doc)["messages"],
-                         [{"role": "user", "content": [{"type": "text", "text": "hi"}]}])
+        assert convert("openai-to-gemini", doc) == {"contents": [{"role": "user", "parts": [{"text": "hi"}]}]}
+        assert convert("openai-to-anthropic", doc)["messages"] == [{"role": "user", "content": [{"type": "text", "text": "hi"}]}]
 
     def test_a_null_inside_a_tool_schema_is_data_and_survives(self) -> None:
         doc = {"model": "m", "messages": [{"role": "user", "content": "x"}],
                "tools": [{"type": "function", "function": {"name": "f", "parameters": {
                    "type": "object", "properties": {"a": {"default": None}}}}}]}
         for name in ("openai-to-gemini", "openai-to-anthropic"):
-            self.assertIn('"default": null', json.dumps(convert(name, doc)), name)
+            assert '"default": null' in json.dumps(convert(name, doc)), name
 
     def test_zero_and_false_values_are_carried(self) -> None:
         doc = {"model": "m", "messages": [{"role": "user", "content": "x"}], "temperature": 0, "top_p": 0,
                "seed": 0, "stream": False, "n": 1}
-        self.assertEqual(convert("openai-to-gemini", doc)["generationConfig"],
-                         {"temperature": 0, "topP": 0, "candidateCount": 1, "seed": 0})
-        self.assertEqual(convert("openai-to-anthropic", doc)["temperature"], 0)
-        self.assertIs(convert("openai-to-anthropic", doc)["stream"], False)
+        assert convert("openai-to-gemini", doc)["generationConfig"] == {"temperature": 0, "topP": 0, "candidateCount": 1, "seed": 0}
+        assert convert("openai-to-anthropic", doc)["temperature"] == 0
+        assert convert("openai-to-anthropic", doc)["stream"] is False
 
     def test_an_empty_or_missing_messages_list_gives_an_empty_conversation_not_an_error(self) -> None:
-        self.assertEqual(convert("openai-to-gemini", {"model": "m", "messages": []}), {"contents": []})
-        self.assertEqual(convert("openai-to-gemini", {"model": "m"}), {"contents": []})
+        assert convert("openai-to-gemini", {"model": "m", "messages": []}) == {"contents": []}
+        assert convert("openai-to-gemini", {"model": "m"}) == {"contents": []}
 
     def test_unicode_and_newlines_are_kept(self) -> None:
         doc = {"model": "m", "messages": [{"role": "user", "content": "日本語\nline 2 \"quoted\""}]}
-        self.assertEqual(convert("openai-to-gemini", doc)["contents"][0]["parts"][0]["text"],
-                         "日本語\nline 2 \"quoted\"")
+        assert convert("openai-to-gemini", doc)["contents"][0]["parts"][0]["text"] == "日本語\nline 2 \"quoted\""
 
 
-class CliTests(unittest.TestCase):
+class CliTests:
     def run_cli(self, *argv: str) -> tuple[int, str, str]:
         out, err = io.StringIO(), io.StringIO()
         return main(list(argv), stdout=out, stderr=err), out.getvalue(), err.getvalue()
 
     def test_list_recipes_shows_all_six(self) -> None:
         code, out, _ = self.run_cli("--list-recipes")
-        self.assertEqual(code, 0)
+        assert code == 0
         for name in NAMES:
-            self.assertIn(name, out)
-        self.assertIn("json -> json", out)
+            assert name in out
+        assert "json -> json" in out
 
     def test_recipe_test_for_a_bundled_recipe(self) -> None:
         code, out, _ = self.run_cli("--recipe", "openai-to-gemini", "--recipe-test")
-        self.assertEqual(code, 0)
-        self.assertIn("5/5 passed", out)
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert code == 0
+        assert "5/5 passed" in out

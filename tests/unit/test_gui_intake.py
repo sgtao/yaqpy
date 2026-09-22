@@ -2,8 +2,7 @@
 
 from __future__ import annotations
 
-import unittest
-
+import pytest
 from yaqpy.app.ports import InMemoryFileSystem
 from yaqpy.gui.intake import IntakeError, from_path, from_text
 
@@ -19,26 +18,26 @@ def _size_of(fs: InMemoryFileSystem):
     return lambda path: len(fs.files[path].encode("utf-8"))
 
 
-class FromPathTests(unittest.TestCase):
+class FromPathTests:
     def test_reads_a_file(self) -> None:
         fs = _fs()
         item = from_path(fs, "/w/sample.yaml", max_bytes=50 * MB, size_of=_size_of(fs))
-        self.assertEqual(item.text, SAMPLE)
-        self.assertEqual(item.name, "sample.yaml")
-        self.assertEqual(item.path, "/w/sample.yaml")
-        self.assertEqual(item.byte_size, len(SAMPLE.encode()))
-        self.assertEqual(item.origin, "dialog")
+        assert item.text == SAMPLE
+        assert item.name == "sample.yaml"
+        assert item.path == "/w/sample.yaml"
+        assert item.byte_size == len(SAMPLE.encode())
+        assert item.origin == "dialog"
 
     def test_missing_file_is_rejected(self) -> None:
         fs = _fs()
-        with self.assertRaises(IntakeError):
+        with pytest.raises(IntakeError):
             from_path(fs, "/w/nope.yaml", max_bytes=50 * MB, size_of=_size_of(fs))
 
     def test_directory_is_rejected(self) -> None:
         fs = _fs()                       # InMemoryFileSystem は登録外を「ファイルでない」とみなす
-        with self.assertRaises(IntakeError) as ctx:
+        with pytest.raises(IntakeError) as ctx:
             from_path(fs, "/w", max_bytes=50 * MB, size_of=_size_of(fs))
-        self.assertIn("フォルダ", str(ctx.exception))
+        assert "フォルダ" in str(ctx.value)
 
     def test_too_large_is_rejected_before_reading(self) -> None:
         fs = _fs()
@@ -50,10 +49,10 @@ class FromPathTests(unittest.TestCase):
             return original(path)
 
         fs.read_text = spy          # type: ignore[method-assign]
-        with self.assertRaises(IntakeError) as ctx:
+        with pytest.raises(IntakeError) as ctx:
             from_path(fs, "/w/big.json", max_bytes=1024, size_of=_size_of(fs))
-        self.assertIn("大きすぎます", str(ctx.exception))
-        self.assertEqual(calls, [], "上限超過のファイルは読んではいけない")
+        assert "大きすぎます" in str(ctx.value)
+        assert calls == [], "上限超過のファイルは読んではいけない"
 
     def test_size_probe_failure_falls_back_to_reading(self) -> None:
         fs = _fs()
@@ -62,17 +61,13 @@ class FromPathTests(unittest.TestCase):
             raise OSError("cannot stat")
 
         item = from_path(fs, "/w/sample.yaml", max_bytes=50 * MB, size_of=broken)
-        self.assertEqual(item.text, SAMPLE)
+        assert item.text == SAMPLE
 
 
-class FromTextTests(unittest.TestCase):
+class FromTextTests:
     def test_paste(self) -> None:
         item = from_text(SAMPLE)
-        self.assertEqual(item.origin, "paste")
-        self.assertEqual(item.name, "")
-        self.assertIsNone(item.path)
-        self.assertEqual(item.byte_size, len(SAMPLE.encode()))
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert item.origin == "paste"
+        assert item.name == ""
+        assert item.path is None
+        assert item.byte_size == len(SAMPLE.encode())
