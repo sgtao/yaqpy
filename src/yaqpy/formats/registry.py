@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from yaqpy.errors import UnknownFormatError
+from yaqpy.formats.sniff import detect_format
 from yaqpy.options import Options
 
 
@@ -62,8 +63,8 @@ class FormatRegistry:
                     names.append(spec.aliases[0])
         return "|".join(names)
 
-    def from_filename(self, filename: str) -> FormatSpec:
-        """Guess from the extension; unknown extensions default to yaml (Go behaviour)."""
+    def guess_from_filename(self, filename: str) -> FormatSpec | None:
+        """The format the extension names, or None when there is no extension or it is unknown."""
         if filename:
             ext = os.path.splitext(filename)[1]
             if len(ext) >= 2 and ext.startswith("."):
@@ -71,6 +72,28 @@ class FormatRegistry:
                 for spec in self._specs:
                     if spec.matches(name) or name in [e.lstrip(".") for e in spec.extensions]:
                         return spec
+        return None
+
+    def from_filename(self, filename: str) -> FormatSpec:
+        """Guess from the extension; unknown extensions default to yaml (Go behaviour)."""
+        return self.guess_from_filename(filename) or self.get("yaml")
+
+    def guess(self, filename: str, text: str) -> FormatSpec:
+        """Guess a format (a yaqpy extension: Go yq only ever looks at the extension).
+
+        The extension wins first, exactly like ``from_filename`` - this never changes behaviour for
+        a file whose extension already names a format. Only when the extension gives no answer (no
+        extension, an unknown one, or piped/pasted text with no name) is the content itself looked
+        at; when that is inconclusive too, ``yaml`` is the fallback, same as it always was.
+        """
+        found = self.guess_from_filename(filename)
+        if found is not None:
+            return found
+        detected = detect_format(text)
+        if detected is not None:
+            spec = next((s for s in self._specs if s.name == detected), None)
+            if spec is not None and spec.decoder_factory is not None:
+                return spec
         return self.get("yaml")
 
     def input_formats(self) -> list[str]:

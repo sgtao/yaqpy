@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import ast
 import sys
-import unittest
 from pathlib import Path
 
 SRC = Path(__file__).resolve().parents[2] / "src" / "yaqpy"
@@ -12,12 +11,20 @@ SRC = Path(__file__).resolve().parents[2] / "src" / "yaqpy"
 # module prefix -> prefixes it must not import
 FORBIDDEN: dict[str, tuple[str, ...]] = {
     "yaqpy.core.model": ("yaqpy.core.lang", "yaqpy.core.engine", "yaqpy.core.operators",
-                        "yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
-    "yaqpy.core.lang": ("yaqpy.core.engine", "yaqpy.core.operators", "yaqpy.formats", "yaqpy.app",
-                       "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
-    "yaqpy.core.engine": ("yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
-    "yaqpy.core.operators": ("yaqpy.formats", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
-    "yaqpy.formats": ("yaqpy.core.engine", "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
+                        "yaqpy.formats", "yaqpy.recipes", "yaqpy.app", "yaqpy.cli", "yaqpy.gui",
+                        "yaqpy.api"),
+    "yaqpy.core.lang": ("yaqpy.core.engine", "yaqpy.core.operators", "yaqpy.formats", "yaqpy.recipes",
+                       "yaqpy.app", "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
+    "yaqpy.core.engine": ("yaqpy.formats", "yaqpy.recipes", "yaqpy.app", "yaqpy.cli", "yaqpy.gui",
+                         "yaqpy.api"),
+    "yaqpy.core.operators": ("yaqpy.formats", "yaqpy.recipes", "yaqpy.app", "yaqpy.cli", "yaqpy.gui",
+                            "yaqpy.api"),
+    "yaqpy.formats": ("yaqpy.core.engine", "yaqpy.recipes", "yaqpy.app", "yaqpy.cli", "yaqpy.gui",
+                     "yaqpy.api"),
+    # recipes: data + checks on plain Python values. It reads formats (the YAML metadata), never the
+    # engine, and knows nothing of the application layer that runs a recipe.
+    "yaqpy.recipes": ("yaqpy.core.engine", "yaqpy.core.operators", "yaqpy.core.lang", "yaqpy.app",
+                     "yaqpy.cli", "yaqpy.gui", "yaqpy.api"),
     "yaqpy.app": ("yaqpy.cli", "yaqpy.gui", "yaqpy.web", "yaqpy.api"),
     "yaqpy.api": ("yaqpy.cli", "yaqpy.gui", "yaqpy.web"),
     "yaqpy.cli": ("yaqpy.gui", "yaqpy.web"),
@@ -62,7 +69,7 @@ def imports_of(path: Path) -> list[str]:
     return names
 
 
-class ArchitectureTests(unittest.TestCase):
+class ArchitectureTests:
     files = sorted(SRC.rglob("*.py"))
 
     def test_dependency_direction(self) -> None:
@@ -75,9 +82,7 @@ class ArchitectureTests(unittest.TestCase):
                     for bad in forbidden:
                         if (module, bad) in ALLOWED_EXCEPTIONS:
                             continue
-                        with self.subTest(module=module, imported=imported):
-                            self.assertFalse(imported == bad or imported.startswith(bad + "."),
-                                             f"{module} must not import {imported}")
+                        assert not (imported == bad or imported.startswith(bad + ".")), f"{module} must not import {imported}"
 
     def test_only_standard_library(self) -> None:
         """gui/ 以外は実行時依存ゼロ（README の約束）。"""
@@ -87,9 +92,7 @@ class ArchitectureTests(unittest.TestCase):
                 continue                      # gui は flet を使ってよい（下の 2 つで別途検査）
             for imported in imports_of(path):
                 top = imported.split(".")[0]
-                with self.subTest(file=path.name, imported=imported):
-                    self.assertTrue(top == "yaqpy" or top in stdlib,
-                                    f"{path.name} imports non-stdlib module {imported}")
+                assert top == "yaqpy" or top in stdlib, f"{path.name} imports non-stdlib module {imported}"
 
     def test_gui_third_party_whitelist(self) -> None:
         """gui/ が使ってよい外部パッケージは flet 系だけ。"""
@@ -100,10 +103,7 @@ class ArchitectureTests(unittest.TestCase):
                 continue
             for imported in imports_of(path):
                 top = imported.split(".")[0]
-                with self.subTest(module=module, imported=imported):
-                    self.assertTrue(
-                        top == "yaqpy" or top in stdlib or top in GUI_ALLOWED_THIRD_PARTY,
-                        f"{module} imports unexpected third-party module {imported}")
+                assert top == "yaqpy" or top in stdlib or top in GUI_ALLOWED_THIRD_PARTY, f"{module} imports unexpected third-party module {imported}"
 
     def test_gui_logic_stays_flet_free(self) -> None:
         """Presenter 層は flet 抜きで単体テストできること（設計書 G-NFR-05）。"""
@@ -112,9 +112,7 @@ class ArchitectureTests(unittest.TestCase):
             if module not in GUI_FLET_FREE_MODULES:
                 continue
             for imported in imports_of(path):
-                with self.subTest(module=module, imported=imported):
-                    self.assertNotEqual(imported.split(".")[0], "flet",
-                                        f"{module} must not import flet")
+                assert imported.split(".")[0] != "flet", f"{module} must not import flet"
 
     def test_cli_reaches_gui_only_lazily(self) -> None:
         """cli/main.py の gui import は関数の中だけ。モジュール先頭にあると、
@@ -127,16 +125,10 @@ class ArchitectureTests(unittest.TestCase):
             elif isinstance(node, ast.ImportFrom) and node.module and node.level == 0:
                 names = [node.module]
             for name in names:
-                with self.subTest(imported=name):
-                    self.assertFalse(name == "yaqpy.gui" or name.startswith("yaqpy.gui."),
-                                     "cli/main.py must import yaqpy.gui lazily (inside a function)")
+                assert not (name == "yaqpy.gui" or name.startswith("yaqpy.gui.")), "cli/main.py must import yaqpy.gui lazily (inside a function)"
 
     def test_no_removed_modules(self) -> None:
         removed = {"cgi", "cgitb", "pipes", "imp", "distutils", "asynchat", "asyncore", "smtpd"}
         for path in self.files:
             for imported in imports_of(path):
-                self.assertNotIn(imported.split(".")[0], removed, f"{path.name} uses a removed module")
-
-
-if __name__ == "__main__":
-    unittest.main()
+                assert imported.split(".")[0] not in removed, f"{path.name} uses a removed module"

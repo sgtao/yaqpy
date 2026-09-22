@@ -1,0 +1,245 @@
+name: openai-to-gemini
+version: 1
+title: OpenAI Chat Completions request -> Gemini generateContent request
+description: |
+  Converts the body of an OpenAI Chat Completions request into the body of a Gemini
+  generateContent request. Text messages, the sampling parameters, function tools and tool_choice
+  are converted; everything else is reported as dropped.
+input: {format: json, api: openai-chat-completions}
+output: {format: json, api: gemini-generate-content}
+target_schema: gemini-generate-content-request.schema.json
+carries:
+  - .messages
+  - .temperature
+  - .top_p
+  - .max_tokens
+  - .max_completion_tokens
+  - .n
+  - .seed
+  - .frequency_penalty
+  - .presence_penalty
+  - .stop
+  - .response_format.type
+  - .response_format.json_schema.schema
+  - .tools
+  - .tool_choice
+drops:
+  - {path: .model, reason: "Gemini takes the model in the URL of the call (models/{model}:generateContent), and model names do not carry over between vendors"}
+  - {path: .stream, reason: "Gemini streams by calling streamGenerateContent, not by a field of the body"}
+  - {path: .stream_options, reason: "see stream"}
+  - {path: .user, reason: "the Gemini request body has no end-user field"}
+  - {path: .parallel_tool_calls, reason: "the Gemini request body has no such setting"}
+  - {path: .response_format.json_schema.name, reason: "Gemini's responseJsonSchema has no name"}
+  - {path: .response_format.json_schema.strict, reason: "no counterpart"}
+  - {path: .response_format.json_schema.description, reason: "no counterpart"}
+  - {path: ".tools[].function.strict", reason: "no counterpart"}
+  - {path: ".messages[].tool_calls", reason: "tool calls in the history are not converted (text messages only)"}
+  - {path: ".messages[role=tool]", reason: "tool results are not converted (text messages only)"}
+  - {path: ".messages[role=function]", reason: "tool results are not converted (text messages only)"}
+  - {path: ".messages[].content[type!=text]", reason: "only text parts are converted; images, audio and files are dropped"}
+  - {path: ".messages[].name", reason: "the target has no participant names"}
+  - {path: ".messages[].refusal", reason: "the target has no counterpart"}
+  - {path: ".tools[type!=function]", reason: "only function tools are converted"}
+notes:
+  - "Function parameters go to parametersJsonSchema, which takes a JSON Schema as it is."
+  - "tool_choice: auto/none/required become mode AUTO/NONE/ANY; a named function becomes mode ANY with allowedFunctionNames."
+  - "stop (a string or a list) becomes stopSequences; max_completion_tokens (or the older max_tokens) becomes maxOutputTokens; n becomes candidateCount."
+  - "Messages that have no text part (for example an assistant message that only calls a tool) are left out."
+tests:
+  - name: minimal
+    input:
+      model: gpt-4o
+      messages:
+        - role: user
+          content: Hello
+    expected:
+      contents:
+        - role: user
+          parts:
+            - text: Hello
+  - name: every supported field
+    input:
+      model: gpt-4o
+      messages:
+        - role: system
+          content: You are helpful.
+        - role: user
+          content: Hello
+        - role: assistant
+          content: Hi!
+        - role: user
+          content: Weather in Oslo?
+      temperature: 0.7
+      top_p: 0.9
+      max_completion_tokens: 1024
+      n: 2
+      seed: 7
+      frequency_penalty: 0.5
+      presence_penalty: -0.5
+      stop:
+        - END
+        - STOP
+      response_format:
+        type: json_schema
+        json_schema:
+          name: answer
+          schema:
+            type: object
+      tools:
+        - type: function
+          function:
+            name: get_weather
+            description: Get the weather of a city
+            parameters:
+              type: object
+              properties:
+                city:
+                  type: string
+                unit:
+                  type: string
+                  default: null
+              required:
+                - city
+      tool_choice:
+        type: function
+        function:
+          name: get_weather
+      parallel_tool_calls: false
+      stream: true
+      user: user-1
+    expected:
+      systemInstruction:
+        parts:
+          - text: You are helpful.
+      contents:
+        - role: user
+          parts:
+            - text: Hello
+        - role: model
+          parts:
+            - text: Hi!
+        - role: user
+          parts:
+            - text: Weather in Oslo?
+      generationConfig:
+        temperature: 0.7
+        topP: 0.9
+        maxOutputTokens: 1024
+        candidateCount: 2
+        seed: 7
+        frequencyPenalty: 0.5
+        presencePenalty: -0.5
+        stopSequences:
+          - END
+          - STOP
+        responseMimeType: application/json
+        responseJsonSchema:
+          type: object
+      tools:
+        - functionDeclarations:
+            - name: get_weather
+              description: Get the weather of a city
+              parametersJsonSchema:
+                type: object
+                properties:
+                  city:
+                    type: string
+                  unit:
+                    type: string
+                    default: null
+                required:
+                  - city
+      toolConfig:
+        functionCallingConfig:
+          mode: ANY
+          allowedFunctionNames:
+            - get_weather
+  - name: several system messages
+    input:
+      model: gpt-4o
+      messages:
+        - role: system
+          content: S1
+        - role: developer
+          content: S2
+        - role: user
+          content: Q
+    expected:
+      systemInstruction:
+        parts:
+          - text: S1
+          - text: S2
+      contents:
+        - role: user
+          parts:
+            - text: Q
+  - name: tools, one without parameters
+    input:
+      model: gpt-4o
+      messages:
+        - role: user
+          content: Go
+      tools:
+        - type: function
+          function:
+            name: get_weather
+            description: Get the weather of a city
+            parameters:
+              type: object
+              properties:
+                city:
+                  type: string
+                unit:
+                  type: string
+                  default: null
+              required:
+                - city
+        - type: function
+          function:
+            name: ping
+      tool_choice: required
+    expected:
+      contents:
+        - role: user
+          parts:
+            - text: Go
+      tools:
+        - functionDeclarations:
+            - name: get_weather
+              description: Get the weather of a city
+              parametersJsonSchema:
+                type: object
+                properties:
+                  city:
+                    type: string
+                  unit:
+                    type: string
+                    default: null
+                required:
+                  - city
+            - name: ping
+      toolConfig:
+        functionCallingConfig:
+          mode: ANY
+  - name: stop as a string, content as parts
+    input:
+      model: gpt-4o
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: a
+            - type: text
+              text: b
+      max_tokens: 50
+      stop: END
+    expected:
+      contents:
+        - role: user
+          parts:
+            - text: a
+            - text: b
+      generationConfig:
+        maxOutputTokens: 50
+        stopSequences:
+          - END

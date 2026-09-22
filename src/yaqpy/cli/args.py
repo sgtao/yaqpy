@@ -7,6 +7,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from yaqpy.app.dto import EvalMode, EvaluateRequest, InputSource
+from yaqpy.app.service import with_prune
 from yaqpy.formats.registry import FormatRegistry, builtin_formats
 from yaqpy.options import (
     CsvOptions, Limits, Options, PropertiesOptions, SchemaOptions, SecurityPolicy, TomlOptions,
@@ -81,6 +82,8 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         raise InvocationError("--schema-enum-max must not be negative")
     if ns.schema:
         expression = f"{expression} | schema" if expression else "schema"
+    if ns.prune_null or ns.prune_empty:
+        expression = with_prune(expression, nulls=ns.prune_null, empties=ns.prune_empty)
 
     # formats (Go's configureInputFormat / configureOutputFormat)
     input_filename = files[0] if files else ""
@@ -93,21 +96,28 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
                                   f"'{output_format}'")
         output_format = "toon"
     if _is_auto(input_format):
-        input_format = formats.from_filename(input_filename).name
+        # An extension that names a format decides now, exactly as before. When it does not (no
+        # extension, an unknown one, or stdin with none at all), "auto" is passed through: the
+        # service resolves it once it can read the content, and guesses from that (a yaqpy
+        # extension - see FormatRegistry.guess). Resolving here would mean reading the input (or
+        # consuming stdin) before this pure, no-IO function is done with the flags.
+        guessed = formats.guess_from_filename(input_filename)
+        input_format = guessed.name if guessed is not None else "auto"
         if _is_auto(output_format):
             output_format = input_format
     elif _is_auto(output_format):
-        guessed = formats.from_filename(input_filename).name
-        if input_filename not in ("", "-") and guessed != "yaml":
+        guessed = formats.guess_from_filename(input_filename)
+        if guessed is not None and input_filename not in ("", "-") and guessed.name != "yaml":
             warnings.append(
                 f"yaqpy default output is now 'auto' (based on the filename extension). Normally "
-                f"yaqpy would output '{guessed}', but for backwards compatibility 'yaml' has been "
-                f"set. Please use -oy to specify yaml, or drop the -p flag.")
+                f"yaqpy would output '{guessed.name}', but for backwards compatibility 'yaml' has "
+                f"been set. Please use -oy to specify yaml, or drop the -p flag.")
         output_format = "yaml"
-    input_spec = formats.get(input_format)
-    output_spec = formats.get(output_format)
+    if input_format != "auto":
+        formats.get(input_format)          # validate a bad -p value early, same as before
+    output_spec = formats.get(output_format) if output_format != "auto" else None
     unwrap = ns.unwrap_scalar
-    if unwrap is None:
+    if unwrap is None and output_spec is not None:
         unwrap = output_spec.unwrap_scalar_default
 
     security = SecurityPolicy(
@@ -116,8 +126,8 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         allow_system=ns.security_enable_system_operator,
     )
     options = Options(
-        input_format=input_spec.name,
-        output_format=output_spec.name,
+        input_format=input_format,
+        output_format=output_format,
         unwrap_scalar=unwrap,
         indent=ns.indent,
         null_input=ns.null_input,
@@ -171,8 +181,8 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         options=options,
         in_place=ns.inplace,
         exit_status=ns.exit_status,
-        input_format=input_spec.name,
-        output_format=output_spec.name,
+        input_format=input_format,
+        output_format=output_format,
         unwrap_scalar=unwrap,
         split_expression=split_expression,
     )

@@ -123,6 +123,12 @@ class UnknownFormatError(FormatError):
     code = "unknown_format"
 
 
+class RecipeError(YqError):
+    """A recipe could not be found, read or understood (a yaqpy extension)."""
+
+    code = "recipe"
+
+
 class SecurityError(YqError):
     """An operator needs a capability the SecurityPolicy does not allow."""
 

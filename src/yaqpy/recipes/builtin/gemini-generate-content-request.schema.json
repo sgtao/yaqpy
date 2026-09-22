@@ -1,0 +1,185 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Gemini generateContent request body",
+  "$comment": "Written from the Discovery document https://generativelanguage.googleapis.com/$discovery/rest?version=v1beta (read 2026-09-22): the property names of GenerateContentRequest, Content, GenerationConfig, Tool, FunctionDeclaration and ToolConfig, the roles ('user' or 'model'), the function calling modes and the range of temperature. `contents` is the only required key: the model goes in the URL of the call (models/{model}:generateContent).",
+  "type": "object",
+  "required": [
+    "contents"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "store": {},
+    "tools": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "codeExecution": {},
+          "googleSearchRetrieval": {},
+          "googleSearch": {},
+          "computerUse": {},
+          "mcpServers": {},
+          "functionDeclarations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/functionDeclaration"
+            }
+          },
+          "googleMaps": {},
+          "urlContext": {},
+          "fileSearch": {}
+        }
+      }
+    },
+    "serviceTier": {},
+    "toolConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "includeServerSideToolInvocations": {},
+        "functionCallingConfig": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "mode": {
+              "enum": [
+                "MODE_UNSPECIFIED",
+                "AUTO",
+                "ANY",
+                "NONE",
+                "VALIDATED"
+              ]
+            },
+            "allowedFunctionNames": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "retrievalConfig": {}
+      }
+    },
+    "generationConfig": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "responseJsonSchema": {},
+        "responseModalities": {},
+        "frequencyPenalty": {
+          "type": "number"
+        },
+        "logprobs": {},
+        "mediaResolution": {},
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2
+        },
+        "presencePenalty": {
+          "type": "number"
+        },
+        "topP": {
+          "type": "number"
+        },
+        "stopSequences": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "string"
+          }
+        },
+        "maxOutputTokens": {
+          "type": "integer"
+        },
+        "enableEnhancedCivicAnswers": {},
+        "speechConfig": {},
+        "audioTranscriptionConfig": {},
+        "_responseJsonSchema": {},
+        "responseFormat": {},
+        "seed": {
+          "type": "integer"
+        },
+        "candidateCount": {
+          "type": "integer"
+        },
+        "responseMimeType": {
+          "type": "string"
+        },
+        "responseLogprobs": {},
+        "enableAffectiveDialog": {},
+        "imageConfig": {},
+        "translationConfig": {},
+        "responseSchema": {},
+        "topK": {
+          "type": "integer"
+        },
+        "thinkingConfig": {}
+      }
+    },
+    "systemInstruction": {
+      "$ref": "#/$defs/content"
+    },
+    "cachedContent": {},
+    "labels": {},
+    "contents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/content"
+      }
+    },
+    "model": {
+      "type": "string"
+    },
+    "safetySettings": {}
+  },
+  "$defs": {
+    "content": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "role": {
+          "enum": [
+            "user",
+            "model"
+          ]
+        },
+        "parts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "functionDeclaration": {
+      "type": "object",
+      "required": [
+        "name"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "behavior": {},
+        "parameters": {
+          "type": "object"
+        },
+        "description": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "responseJsonSchema": {},
+        "response": {},
+        "parametersJsonSchema": {}
+      }
+    }
+  }
+}

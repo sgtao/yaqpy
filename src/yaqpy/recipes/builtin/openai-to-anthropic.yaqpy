@@ -1,0 +1,25 @@
+# OpenAI Chat Completions request body -> Anthropic Messages request body.
+# Style rules: see openai-to-gemini.yaqpy.
+. as $raw
+| ($raw | (.messages[]? | select(.content | tag == "!!str") | .content) |= [{"type": "text", "text": .}]) as $in
+| {}
+| (select([$in.messages[]? | select(.role == "system" or .role == "developer") | .content[]? | select(.type == "text")] | length > 0) | .system) = [$in.messages[] | select(.role == "system" or .role == "developer") | .content[]? | select(.type == "text") | {"type": "text", "text": .text}]
+| .messages = [$in.messages[]? | select(.role == "user" or .role == "assistant") | {"role": .role, "content": [.content[]? | select(.type == "text") | {"type": "text", "text": .text}]} | select(.content | length > 0)]
+# max_tokens is required by Anthropic; 4096 is used when the input gives none (reported as an added item)
+| .max_tokens = 4096
+| (select($in.max_tokens != null) | .max_tokens) = $in.max_tokens
+| (select($in.max_completion_tokens != null) | .max_tokens) = $in.max_completion_tokens
+| (select($in.temperature != null) | .temperature) = $in.temperature
+| (select($in.top_p != null) | .top_p) = $in.top_p
+| (select($in.stop | tag == "!!str") | .stop_sequences) = [$in.stop]
+| (select($in.stop | tag == "!!seq") | .stop_sequences) = $in.stop
+| (select($in.stream != null) | .stream) = $in.stream
+| (select($in.user != null) | .metadata.user_id) = $in.user
+| (select([$in.tools[]? | select(.type == "function")] | length > 0) | .tools) = [$in.tools[] | select(.type == "function") | .function | (pick(["name", "description"]) + {"input_schema": {"type": "object", "properties": {}}} + (pick(["parameters"]) | with_entries(.key = "input_schema")))]
+| (select($in.tool_choice == "auto") | .tool_choice.type) = "auto"
+| (select($in.tool_choice == "none") | .tool_choice.type) = "none"
+| (select($in.tool_choice == "required") | .tool_choice.type) = "any"
+| (select($in.tool_choice.type == "function") | .tool_choice.type) = "tool"
+| (select($in.tool_choice.type == "function") | .tool_choice.name) = $in.tool_choice.function.name
+| (select($in.parallel_tool_calls == false and $in.tool_choice == null) | .tool_choice.type) = "auto"
+| (select($in.parallel_tool_calls == false) | .tool_choice.disable_parallel_tool_use) = true

@@ -1,0 +1,24 @@
+{
+  "model": "gpt-4o",
+  "messages": [
+    {"role": "system", "content": "You are a weather assistant."},
+    {"role": "user", "content": [
+      {"type": "text", "text": "What is the weather in Oslo?"},
+      {"type": "image_url", "image_url": {"url": "https://example.com/map.png"}}
+    ]},
+    {"role": "assistant", "content": "Let me check."},
+    {"role": "user", "content": "Thanks."}
+  ],
+  "temperature": 0.7,
+  "max_completion_tokens": 512,
+  "stop": "END",
+  "stream": true,
+  "tools": [
+    {"type": "function", "function": {
+      "name": "get_weather",
+      "description": "Get the weather of a city",
+      "parameters": {"type": "object", "properties": {"city": {"type": "string"}}, "required": ["city"]}
+    }}
+  ],
+  "tool_choice": "auto"
+}

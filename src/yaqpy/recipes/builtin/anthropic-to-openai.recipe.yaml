@@ -1,0 +1,215 @@
+name: anthropic-to-openai
+version: 1
+title: Anthropic Messages request -> OpenAI Chat Completions request
+description: |
+  Converts the body of an Anthropic Messages request into the body of an OpenAI Chat Completions
+  request. The system prompt, text messages, max tokens, temperature, top_p, stop sequences,
+  stream, the user id, tools and tool_choice are converted; everything else is reported as dropped.
+input: {format: json, api: anthropic-messages}
+output: {format: json, api: openai-chat-completions}
+target_schema: openai-chat-request.schema.json
+carries:
+  - .system
+  - .messages
+  - .max_tokens
+  - .temperature
+  - .top_p
+  - .stop_sequences
+  - .stream
+  - .metadata.user_id
+  - .tools
+  - .tool_choice
+drops:
+  - {path: .model, reason: "model names do not carry over between vendors; name the model where you send the request"}
+  - {path: .top_k, reason: "OpenAI has no top_k"}
+  - {path: ".messages[].content[type!=text]", reason: "only text blocks are converted; images, tool_use and tool_result blocks are dropped"}
+  - {path: ".system[type!=text]", reason: "only text blocks are converted"}
+  - {path: ".tools[type!=custom].type", reason: "only tools that have an input_schema are converted; server tools are dropped"}
+  - {path: .thinking, reason: "not converted; the target has other reasoning settings"}
+notes:
+  - "The system prompt becomes the first message (role system). A message with exactly one text block gets a plain string as content."
+  - "max_tokens becomes max_completion_tokens; metadata.user_id becomes user; disable_parallel_tool_use: true becomes parallel_tool_calls: false."
+tests:
+  - name: minimal
+    input:
+      model: claude-opus-5
+      max_tokens: 100
+      messages:
+        - role: user
+          content: Hello
+    expected:
+      messages:
+        - role: user
+          content: Hello
+      max_completion_tokens: 100
+  - name: every supported field
+    input:
+      model: claude-opus-5
+      max_tokens: 1024
+      system:
+        - type: text
+          text: You are helpful.
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: Hello
+        - role: assistant
+          content:
+            - type: text
+              text: Hi!
+        - role: user
+          content: Weather in Oslo?
+      temperature: 0.7
+      top_p: 0.9
+      top_k: 40
+      stop_sequences:
+        - END
+      stream: true
+      metadata:
+        user_id: user-1
+      tools:
+        - name: get_weather
+          description: Get the weather of a city
+          input_schema:
+            type: object
+            properties:
+              city:
+                type: string
+              unit:
+                type: string
+                default: null
+            required:
+              - city
+      tool_choice:
+        type: tool
+        name: get_weather
+        disable_parallel_tool_use: true
+      thinking:
+        type: disabled
+    expected:
+      messages:
+        - role: system
+          content: You are helpful.
+        - role: user
+          content: Hello
+        - role: assistant
+          content: Hi!
+        - role: user
+          content: Weather in Oslo?
+      max_completion_tokens: 1024
+      temperature: 0.7
+      top_p: 0.9
+      stop:
+        - END
+      stream: true
+      user: user-1
+      tools:
+        - type: function
+          function:
+            name: get_weather
+            description: Get the weather of a city
+            parameters:
+              type: object
+              properties:
+                city:
+                  type: string
+                unit:
+                  type: string
+                  default: null
+              required:
+                - city
+      tool_choice:
+        type: function
+        function:
+          name: get_weather
+      parallel_tool_calls: false
+  - name: system as a string
+    input:
+      model: claude-opus-5
+      max_tokens: 10
+      system: Be brief.
+      messages:
+        - role: user
+          content: Q
+    expected:
+      messages:
+        - role: system
+          content: Be brief.
+        - role: user
+          content: Q
+      max_completion_tokens: 10
+  - name: tools, any of them
+    input:
+      model: claude-opus-5
+      max_tokens: 10
+      messages:
+        - role: user
+          content: Go
+      tools:
+        - name: get_weather
+          description: Get the weather of a city
+          input_schema:
+            type: object
+            properties:
+              city:
+                type: string
+              unit:
+                type: string
+                default: null
+            required:
+              - city
+        - name: ping
+          input_schema:
+            type: object
+            properties: {}
+      tool_choice:
+        type: any
+    expected:
+      messages:
+        - role: user
+          content: Go
+      max_completion_tokens: 10
+      tools:
+        - type: function
+          function:
+            name: get_weather
+            description: Get the weather of a city
+            parameters:
+              type: object
+              properties:
+                city:
+                  type: string
+                unit:
+                  type: string
+                  default: null
+              required:
+                - city
+        - type: function
+          function:
+            name: ping
+            parameters:
+              type: object
+              properties: {}
+      tool_choice: required
+  - name: an image block is not converted
+    input:
+      model: claude-opus-5
+      max_tokens: 10
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: What is this?
+            - type: image
+              source:
+                type: url
+                url: https://example.com/a.png
+      tool_choice:
+        type: none
+    expected:
+      messages:
+        - role: user
+          content: What is this?
+      max_completion_tokens: 10
+      tool_choice: none

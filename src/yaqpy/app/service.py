@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import dataclasses
 import time
 from collections.abc import Callable, Iterator, Sequence
 from datetime import datetime
@@ -35,6 +36,18 @@ def process_expression(expression: str, pretty_print: bool) -> str:
     if pretty_print:
         return f"{expression} | {PRETTY_PRINT_EXP}"
     return expression
+
+
+def with_prune(expression: str, *, nulls: bool = False, empties: bool = False) -> str:
+    """Append ``prune_null`` / ``prune_empty`` (yaqpy extensions) to an expression.
+
+    The parentheses keep a trailing ``# comment`` line of the expression from swallowing the pipe.
+    An empty expression means ``.``.
+    """
+    steps = [name for wanted, name in ((nulls, "prune_null"), (empties, "prune_empty")) if wanted]
+    if not steps:
+        return expression
+    return "(\n" + (expression.rstrip("\n") or ".") + "\n)\n| " + " | ".join(steps)
 
 
 class YqService:
@@ -89,12 +102,32 @@ class YqService:
             clock=self.clock,
         )
 
-    def _resolve_formats(self, request: EvaluateRequest) -> tuple[str, str, bool]:
+    def _resolve_formats(self, request: EvaluateRequest) -> tuple[str, str, bool, InputSource | None]:
+        """Resolve the input/output format names and the unwrap default.
+
+        When the input format is "auto" and the first input's name gives no answer (no extension,
+        an unknown one, or piped/pasted text with no name), the first input's actual text is read
+        once here to guess from its content (a yaqpy extension; see ``FormatRegistry.guess``). If
+        that read text was not already carried by the ``InputSource`` (``source.text``), it is
+        returned as a replacement source so the caller can avoid reading it again (stdin especially
+        can only be read once).
+        """
         options = request.options
         input_format = request.input_format or options.input_format
+        sniffed: InputSource | None = None
         if input_format in ("auto", "a", ""):
-            first_name = request.inputs[0].name if request.inputs else ""
-            input_format = self.formats.from_filename(first_name).name
+            first = request.inputs[0] if request.inputs else None
+            if first is None:
+                input_format = "yaml"
+            else:
+                guessed = self.formats.guess_from_filename(first.name)
+                if guessed is not None:
+                    input_format = guessed.name
+                else:
+                    text = self._read_input(first)
+                    input_format = self.formats.guess(first.name, text).name
+                    if first.text is None:
+                        sniffed = InputSource(first.name, text=text)
         input_spec = self.formats.get(input_format)
         output_format = request.output_format or options.output_format or input_spec.name
         if output_format in ("auto", "a"):
@@ -105,7 +138,7 @@ class YqService:
             unwrap = options.unwrap_scalar
         if unwrap is None:
             unwrap = output_spec.unwrap_scalar_default
-        return input_spec.name, output_spec.name, unwrap
+        return input_spec.name, output_spec.name, unwrap, sniffed
 
     def _read_input(self, source: InputSource) -> str:
         if source.text is not None:
@@ -126,7 +159,9 @@ class YqService:
         options = request.options
         expression_text = process_expression(request.expression, options.pretty_print)
         expression = self.compile(expression_text)
-        input_format, output_format, unwrap = self._resolve_formats(request)
+        input_format, output_format, unwrap, sniffed = self._resolve_formats(request)
+        if sniffed is not None:
+            request = dataclasses.replace(request, inputs=(sniffed, *request.inputs[1:]))
         if request.in_place and input_format == "toml" and not options.toml.allow_lossy:
             raise FormatError(
                 "refusing to update a TOML file in place: its comments are not kept, so the file "

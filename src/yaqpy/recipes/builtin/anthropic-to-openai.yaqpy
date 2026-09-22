@@ -1,0 +1,21 @@
+# Anthropic Messages request body -> OpenAI Chat Completions request body.
+# Style rules: see openai-to-gemini.yaqpy. Content with exactly one text block becomes a plain string.
+. as $raw
+# system and message contents given as strings become lists of text blocks: one code path.
+| ($raw | (.system | select(tag == "!!str")) |= [{"type": "text", "text": .}] | (.messages[]? | select(.content | tag == "!!str") | .content) |= [{"type": "text", "text": .}]) as $in
+| {}
+| .messages = ([$in | {"role": "system", "content": [.system[]? | select(.type == "text") | {"type": "text", "text": .text}]} | select(.content | length > 0)]
+    + [$in.messages[]? | {"role": .role, "content": [.content[]? | select(.type == "text") | {"type": "text", "text": .text}]} | select(.content | length > 0)])
+| (.messages[] | select(.content | length == 1) | .content) |= .[0].text
+| (select($in.max_tokens != null) | .max_completion_tokens) = $in.max_tokens
+| (select($in.temperature != null) | .temperature) = $in.temperature
+| (select($in.top_p != null) | .top_p) = $in.top_p
+| (select($in.stop_sequences | length > 0) | .stop) = $in.stop_sequences
+| (select($in.stream != null) | .stream) = $in.stream
+| (select($in.metadata.user_id != null) | .user) = $in.metadata.user_id
+| (select([$in.tools[]? | select(has("input_schema"))] | length > 0) | .tools) = [$in.tools[] | select(has("input_schema")) | {"type": "function", "function": (pick(["name", "description"]) + (pick(["input_schema"]) | with_entries(.key = "parameters")))}]
+| (select($in.tool_choice.type == "auto") | .tool_choice) = "auto"
+| (select($in.tool_choice.type == "none") | .tool_choice) = "none"
+| (select($in.tool_choice.type == "any") | .tool_choice) = "required"
+| (select($in.tool_choice.type == "tool") | .tool_choice) = {"type": "function", "function": {"name": $in.tool_choice.name}}
+| (select($in.tool_choice.disable_parallel_tool_use == true) | .parallel_tool_calls) = false

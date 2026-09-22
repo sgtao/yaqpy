@@ -1,0 +1,229 @@
+name: anthropic-to-gemini
+version: 1
+title: Anthropic Messages request -> Gemini generateContent request
+description: |
+  Converts the body of an Anthropic Messages request into the body of a Gemini generateContent
+  request. The system prompt, text messages, the sampling parameters, tools and tool_choice are
+  converted; everything else is reported as dropped.
+input: {format: json, api: anthropic-messages}
+output: {format: json, api: gemini-generate-content}
+target_schema: gemini-generate-content-request.schema.json
+carries:
+  - .system
+  - .messages
+  - .max_tokens
+  - .temperature
+  - .top_p
+  - .top_k
+  - .stop_sequences
+  - .tools
+  - .tool_choice
+drops:
+  - {path: .model, reason: "Gemini takes the model in the URL of the call (models/{model}:generateContent), and model names do not carry over between vendors"}
+  - {path: .stream, reason: "Gemini streams by calling streamGenerateContent, not by a field of the body"}
+  - {path: .metadata, reason: "the Gemini request body has no end-user field"}
+  - {path: .tool_choice.disable_parallel_tool_use, reason: "the Gemini request body has no such setting"}
+  - {path: ".messages[].content[type!=text]", reason: "only text blocks are converted; images, tool_use and tool_result blocks are dropped"}
+  - {path: ".system[type!=text]", reason: "only text blocks are converted"}
+  - {path: ".tools[type!=custom].type", reason: "only tools that have an input_schema are converted; server tools are dropped"}
+  - {path: .thinking, reason: "not converted; the target has other reasoning settings"}
+notes:
+  - "The system prompt becomes systemInstruction. tool_choice: auto/none/any become mode AUTO/NONE/ANY; a named tool becomes mode ANY with allowedFunctionNames."
+  - "Tool input schemas go to parametersJsonSchema, which takes a JSON Schema as it is."
+tests:
+  - name: minimal
+    input:
+      model: claude-opus-5
+      max_tokens: 100
+      messages:
+        - role: user
+          content: Hello
+    expected:
+      contents:
+        - role: user
+          parts:
+            - text: Hello
+      generationConfig:
+        maxOutputTokens: 100
+  - name: every supported field
+    input:
+      model: claude-opus-5
+      max_tokens: 1024
+      system:
+        - type: text
+          text: You are helpful.
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: Hello
+        - role: assistant
+          content:
+            - type: text
+              text: Hi!
+        - role: user
+          content: Weather in Oslo?
+      temperature: 0.7
+      top_p: 0.9
+      top_k: 40
+      stop_sequences:
+        - END
+      stream: true
+      metadata:
+        user_id: user-1
+      tools:
+        - name: get_weather
+          description: Get the weather of a city
+          input_schema:
+            type: object
+            properties:
+              city:
+                type: string
+              unit:
+                type: string
+                default: null
+            required:
+              - city
+      tool_choice:
+        type: tool
+        name: get_weather
+        disable_parallel_tool_use: true
+      thinking:
+        type: disabled
+    expected:
+      systemInstruction:
+        parts:
+          - text: You are helpful.
+      contents:
+        - role: user
+          parts:
+            - text: Hello
+        - role: model
+          parts:
+            - text: Hi!
+        - role: user
+          parts:
+            - text: Weather in Oslo?
+      generationConfig:
+        maxOutputTokens: 1024
+        temperature: 0.7
+        topP: 0.9
+        topK: 40
+        stopSequences:
+          - END
+      tools:
+        - functionDeclarations:
+            - name: get_weather
+              description: Get the weather of a city
+              parametersJsonSchema:
+                type: object
+                properties:
+                  city:
+                    type: string
+                  unit:
+                    type: string
+                    default: null
+                required:
+                  - city
+      toolConfig:
+        functionCallingConfig:
+          mode: ANY
+          allowedFunctionNames:
+            - get_weather
+  - name: system as a string
+    input:
+      model: claude-opus-5
+      max_tokens: 10
+      system: Be brief.
+      messages:
+        - role: user
+          content: Q
+    expected:
+      systemInstruction:
+        parts:
+          - text: Be brief.
+      contents:
+        - role: user
+          parts:
+            - text: Q
+      generationConfig:
+        maxOutputTokens: 10
+  - name: tools, any of them
+    input:
+      model: claude-opus-5
+      max_tokens: 10
+      messages:
+        - role: user
+          content: Go
+      tools:
+        - name: get_weather
+          description: Get the weather of a city
+          input_schema:
+            type: object
+            properties:
+              city:
+                type: string
+              unit:
+                type: string
+                default: null
+            required:
+              - city
+        - name: ping
+          input_schema:
+            type: object
+            properties: {}
+      tool_choice:
+        type: any
+    expected:
+      contents:
+        - role: user
+          parts:
+            - text: Go
+      generationConfig:
+        maxOutputTokens: 10
+      tools:
+        - functionDeclarations:
+            - name: get_weather
+              description: Get the weather of a city
+              parametersJsonSchema:
+                type: object
+                properties:
+                  city:
+                    type: string
+                  unit:
+                    type: string
+                    default: null
+                required:
+                  - city
+            - name: ping
+              parametersJsonSchema:
+                type: object
+                properties: {}
+      toolConfig:
+        functionCallingConfig:
+          mode: ANY
+  - name: an image block is not converted
+    input:
+      model: claude-opus-5
+      max_tokens: 10
+      messages:
+        - role: user
+          content:
+            - type: text
+              text: What is this?
+            - type: image
+              source:
+                type: url
+                url: https://example.com/a.png
+      tool_choice:
+        type: none
+    expected:
+      contents:
+        - role: user
+          parts:
+            - text: What is this?
+      generationConfig:
+        maxOutputTokens: 10
+      toolConfig:
+        functionCallingConfig:
+          mode: NONE

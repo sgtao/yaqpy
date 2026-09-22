@@ -37,10 +37,33 @@ uv run yaqpy -P -N -e '.items[] | select(.price > 500) | .name' examples/sample.
 
 ### 主なフラグ
 
-Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops`、`-s` / `--split-exp` / `--split-exp-file`（結果ごとに別のファイルへ。[文書の分割](#文書の分割v030-で追加)）、`--string-interpolation[=false]`（文字列補間の切り替え）など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。yaqpy 独自のフラグは `--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}` です。
+Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops`、`-s` / `--split-exp` / `--split-exp-file`（結果ごとに別のファイルへ。[文書の分割](#文書の分割v030-で追加)）、`--string-interpolation[=false]`（文字列補間の切り替え）など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。yaqpy 独自のフラグは、`--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}`、`--schema` 系（[スキーマの出力](#スキーマの出力schemago-版にはない拡張)）、`--prune-null` `--prune-empty`（[結果を整える](#結果を整えるprune_null-と-prune_emptygo-版にはない拡張)）、`--recipe` `--list-recipes` `--recipe-test` `--report` `--apply` `--out-dir`（[変換レシピ](#変換レシピapi-のリクエストを別の-api-用にするgo-版にはない拡張)）、`--print-spec` `--example` `--guide-prompt` `--skill-md`（[yaqpy が自分を説明する](#yaqpy-が自分を説明する--print-spec---example---guide-prompt---skill-md)）です。
 
 - 出力形式は `-o`（`yaml` / `json` / `props` / `toon` / `xml` / `csv` / `tsv` / `toml`）で指定します。**`-p`（入力形式）だけを指定した場合、出力は Go 版との互換のため YAML のまま**です（警告が出ます）
-- 入力形式は、ファイルの拡張子（`.yaml` `.yml` `.json` `.toon` `.xml` `.csv` `.tsv` `.properties` `.toml`）から自動判定します。拡張子が不明なとき、および標準入力は YAML として扱います
+- 入力形式は、ファイルの拡張子（`.yaml` `.yml` `.json` `.toon` `.xml` `.csv` `.tsv` `.properties` `.toml`）から自動判定します。拡張子で決まらないとき（次の節）は、中身を見て判定します
+
+---
+[toTop](#toreadme)
+## 入力形式の自動判定：拡張子で決まらないときは中身を見る（Go 版にはない拡張）
+
+Go 版 yq は、入力形式をファイルの拡張子だけで決めます（`-p auto`、既定）。拡張子が無い・見覚えがない・標準入力（パイプ）のときは、**Go 版は常に YAML 扱い**にします。yaqpy は、**そのときだけ**中身を見て、形式を推測します。拡張子が分かるときは、これまでどおり拡張子だけで決まります（振る舞いは変わりません）。
+
+```bash
+# 拡張子が無いファイル（中身は TOML）
+uv run yaqpy -o json -I 0 '.' app_noext
+# {"name":"yaqpy","version":"0.4.0"}
+
+# 標準入力（パイプ）。JSON の中身を判定
+echo '{"name": "yaqpy", "tags": ["a","b"]}' | uv run yaqpy -o json -I 0 '.'
+# {"name":"yaqpy","tags":["a","b"]}
+```
+
+- **拡張子が最優先**です。`.json` のファイルは、中身がどう見えても JSON として読みます。中身を見るのは、拡張子が形式を決められなかったとき（拡張子が無い・知らない拡張子・標準入力・貼り付け）だけです
+- 見るのは**先頭のごく一部**（コメントを除いた最初の 10 行程度）です。ファイル全体は読みません（巨大な JSON は、形の確認だけに切り替えます）
+- 見分けるのは `json` `xml` `toml` `props`（properties）`csv` `tsv` です。**`<` で始まれば XML**、**`{` か `[` で始まり、そのまま JSON として読めれば JSON**、**`[section]` の見出しや、引用符・配列・日付を持つ `key = value` の並びなら TOML**、**素の `key = value` の並びなら properties**、**同じ個数の `,` か `\t` が並ぶ複数行なら CSV/TSV** です
+- **一つに決められない、またはどの形式としても読めないときは、これまでどおり YAML 扱い**にします（エラーにはしません）。単純な `key: value` の YAML や配列は、もともと他の形式の見た目に当てはまらないので、そのまま YAML と判定されます
+- ライブラリでは `yaqpy.detect_format(text)` が同じ判定をする単体の関数です。ファイル名を持たないテキストの形式を知りたいときに使います（[ライブラリとしての使い方](#ライブラリとしての使い方)）
+- GUI では、**貼り付けたテキスト**と、**開くダイアログで選んだ、見覚えのない拡張子（または拡張子なし）のファイル**が、この判定の対象です（[GUI の使い方](#gui-の使い方)）
 
 ---
 [toTop](#toreadme)
@@ -405,6 +428,266 @@ required:
 
 ---
 [toTop](#toreadme)
+## 結果を整える：`prune_null` と `prune_empty`（Go 版にはない拡張）
+
+別の形に組み立て直すと、入力になかったキーが `null` で残り、空になったまとまりが `{}` で残ることがあります。API に `"temperature": null` や `"generationConfig": {}` を送ると、キーを書かないのとは意味が変わる場合があります。この 2 つが、それを取り除きます。
+
+| 演算子（フラグ） | すること |
+|---|---|
+| `prune_null`（`--prune-null`） | 値が `null` のマップの項目を消す。**配列の要素は消しません**（ほかの要素の位置が変わるため。`del(.. \| select(. == null))` とは違います） |
+| `prune_empty`（`--prune-empty`） | 値が空のマップ・空の配列の項目を、内側から消す（`{a: {b: {}}}` は `{}` になる。いちばん外側は残ります） |
+
+```bash
+echo '{"a": null, "b": {"c": null}, "d": 1}' | uv run yaqpy -o json -I 0 --prune-null --prune-empty
+# {"d":1}
+
+# 範囲を絞る：.cfg の中だけ整え、ほかは触らない（with は元の文書を返します）
+uv run yaqpy -o json 'with(.cfg; prune_null)' body.json
+```
+
+> **当てた範囲のすべてに効きます。** JSON Schema の `"default": null` のような「データとしての null」も消えます。API の本文全体にフラグを当てるより、`with(.generationConfig; prune_null)` のように範囲を絞るか、そもそも `null` を作らない書き方にします（同梱のレシピは、そうしています）。
+
+---
+[toTop](#toreadme)
+## 変換レシピ：API のリクエストを別の API 用にする（Go 版にはない拡張）
+
+**レシピ**は、名前を付けて使い回せる変換です。OpenAI・Gemini・Anthropic の**リクエストボディ**を、相互に変換するものを同梱しています。変換そのものは、これまでの式（`select` や代入）で書けたものです。レシピが足すのは、**その結果を確かめて、何を落としたかを知らせる**仕組みです。
+
+| 名前 | 変換 |
+|---|---|
+| `openai-to-gemini` / `gemini-to-openai` | OpenAI Chat Completions ⇄ Gemini generateContent |
+| `openai-to-anthropic` / `anthropic-to-openai` | OpenAI Chat Completions ⇄ Anthropic Messages |
+| `gemini-to-anthropic` / `anthropic-to-gemini` | Gemini generateContent ⇄ Anthropic Messages |
+
+```bash
+uv run yaqpy --list-recipes                                       # 一覧
+uv run yaqpy --recipe openai-to-gemini examples/openai-request.json
+```
+
+変換した本文は**標準出力**へ、報告は**標準エラー出力**へ出ます（`|` でほかのコマンドに渡しても、報告は混ざりません）。
+
+```text
+recipe openai-to-gemini: examples/openai-request.json
+  dropped .model - Gemini takes the model in the URL of the call (models/{model}:generateContent), and model names do not carry over between vendors
+  dropped .stream - Gemini streams by calling streamGenerateContent, not by a field of the body
+  dropped .messages[].content[type!=text] - only text parts are converted; images, audio and files are dropped
+```
+
+```json
+{
+  "systemInstruction": {"parts": [{"text": "You are a weather assistant."}]},
+  "contents": [
+    {"role": "user", "parts": [{"text": "What is the weather in Oslo?"}]},
+    {"role": "model", "parts": [{"text": "Let me check."}]},
+    {"role": "user", "parts": [{"text": "Thanks."}]}
+  ],
+  "generationConfig": {"temperature": 0.7, "maxOutputTokens": 512, "stopSequences": ["END"]},
+  "tools": [{"functionDeclarations": [{"name": "get_weather", "description": "Get the weather of a city", "parametersJsonSchema": {…}}]}],
+  "toolConfig": {"functionCallingConfig": {"mode": "AUTO"}}
+}
+```
+
+（見やすさのために整形・省略しています。実際の出力は、既定のインデントで 1 項目ずつ改行されます。）
+
+- 入力は、拡張子から判定します（`.json` `.yaml` など）。標準入力と、拡張子がないときは、レシピが読む形式（JSON）です。出力は、レシピの形式（JSON）です。`-o yaml` や `-I 0` で変えられます
+- **`--recipe` は、`-i` `-n` `-s` `-P` `--schema` `eval-all` `--expression` `--from-file` と一緒には使えません**（エラーになります）。レシピが式の代わりで、引数はすべて入力ファイルだからです
+
+### 何を変換するか
+
+| 内容 | OpenAI | Gemini | Anthropic |
+|---|---|---|---|
+| system の指示 | `system` / `developer` のメッセージ | `systemInstruction.parts` | `system`（text ブロックの配列） |
+| 会話 | `messages`（`user` / `assistant`） | `contents`（`user` / `model`。role がなければ `user`） | `messages`（`user` / `assistant`） |
+| 最大トークン数 | `max_completion_tokens`（古い `max_tokens` も読む） | `generationConfig.maxOutputTokens` | `max_tokens`（**必須**） |
+| 乱数・確率 | `temperature` `top_p` | `temperature` `topP` `topK` | `temperature` `top_p` `top_k` |
+| 停止列 | `stop`（文字列か配列） | `stopSequences` | `stop_sequences` |
+| 候補数・乱数の種・ペナルティ | `n` `seed` `frequency_penalty` `presence_penalty` | `candidateCount` `seed` `frequencyPenalty` `presencePenalty` | なし（落として報告） |
+| 関数ツール | `tools[].function` | `tools[].functionDeclarations[]`（`parametersJsonSchema`） | `tools[]`（`input_schema`） |
+| ツールの選択 | `tool_choice`（`auto` `none` `required`／関数名） | `toolConfig.functionCallingConfig`（`AUTO` `NONE` `ANY`＋`allowedFunctionNames`） | `tool_choice`（`auto` `none` `any` `tool`） |
+| 応答の形 | `response_format`（`json_object` `json_schema`） | `responseMimeType` `responseJsonSchema` | 変換しない（落として報告） |
+| ストリーム・利用者 | `stream` `user` | （本文にない） | `stream` `metadata.user_id` |
+
+- **1 通のメッセージに、テキストが 1 つだけなら、OpenAI 側の `content` は文字列**にします（多くの互換サーバーが読める形）。複数ならテキストパーツの配列です
+- OpenAI ⇄ Anthropic では、`parallel_tool_calls: false` と `tool_choice.disable_parallel_tool_use: true` を対応させます
+
+### 変換しないもの（落として、報告します）
+
+| 落とすもの | 理由 |
+|---|---|
+| **`model`（すべての変換）** | モデル名はベンダーをまたいで通用しません。変換先で必要なら、目標スキーマとの照合が「不足」と知らせます。Gemini ではモデルは URL（`models/{model}:generateContent`）で指定します |
+| 画像・音声・ファイルなど、テキスト以外のパーツ | テキストだけを変換します |
+| ツール呼び出しの履歴（`tool_calls` `role: tool` `tool_use` `tool_result` `functionCall` `functionResponse`） | 会話のテキストだけを変換します。**履歴に含まれる場合は、その分が欠けます**（報告に出ます） |
+| 変換先にない設定（`n` `seed` `top_k` `parallel_tool_calls` など） | 上の表のとおり |
+| 関数ツール以外のツール（Gemini の `googleSearch` など、Anthropic のサーバーツール） | 関数だけを変換します |
+| レシピが知らないキー（`reasoning_effort` `thinking` `safetySettings` など） | **「NOT HANDLED」として報告します**（黙って落としません） |
+
+### 補うもの
+
+| 補うもの | 理由 |
+|---|---|
+| Anthropic への変換で、`max_tokens: 4096` | Messages API は `max_tokens` が必須です。**4096 はレシピの既定値**で、入力の値ではありません（`max_tokens` か `max_completion_tokens` があれば、その値を使います） |
+| Gemini → OpenAI で、`response_format.json_schema.name: "response"` | OpenAI は JSON Schema に名前を要求しますが、Gemini には名前がありません |
+| `parameters` のない関数に、空の `input_schema`（**報告には出ません**） | Anthropic の `input_schema` は必須です（`{"type": "object", "properties": {}}`）。「引数なし」と同じ意味なので、報告しません |
+
+### 報告の読み方
+
+変換のたびに、次の項目を標準エラー出力へ出します。**何も出なければ、落としたものも補ったものも、目標スキーマとの食い違いもありません**。
+
+| 表示 | 意味 |
+|---|---|
+| `dropped パス - 理由` | レシピが「運ばない」と宣言している項目が、入力にあった |
+| `NOT HANDLED パス` | 入力にあるが、レシピが運ぶとも落とすとも言っていない項目（**書き足すか、利用者が確かめてください**） |
+| `added パス = 値 - 理由` | 入力になく、レシピが自分で補った |
+| `target schema: パス: …` | 変換結果が、変換先のスキーマに合わない（不足・余分・型・値・範囲・個数） |
+
+`--report` を付けると、変換結果の代わりに、詳しい報告を標準出力へ出します。
+
+```bash
+uv run yaqpy --recipe openai-to-anthropic --report examples/openai-request.json
+```
+
+```text
+Recipe:  openai-to-anthropic (builtin)
+Input:   examples/openai-request.json (json)
+Output:  json
+Verdict: needs a look (see below)
+
+Dropped (the recipe declares that it does not carry these over):
+  .model  [.model]  - model names do not carry over between vendors; name the model where you send the request
+  .messages[].content[type!=text]  [.messages[1].content[1]]  - only text parts are converted; …
+
+Changes (before -> after). A move is a candidate: the same value at another path. Paths are
+compared as they are, so list items are compared by position.
+  moved    .messages[0].content -> .system[0].text  ("You are a weather assistant.")
+  moved    .max_completion_tokens -> .max_tokens  (512)
+  moved    .stop -> .stop_sequences[0]  ("END")
+  …
+Target schema:
+  .model: required, but the result has no such key
+```
+
+- **変更（Changes）の `moved`（移動）は「候補」です**：入力から消えた値が、別のパスに現れたときに、その対応を示します。同じ値が複数あるとき（`true` や `"user"` など）は、対応を決められないので、`removed`/`added` のままです
+- **パスは、そのまま比べます**。配列を組み替えると、位置ごとの比較になります（値を追えるものは `moved` で示します）
+- `--prune-null` `--prune-empty` を付けると、変換結果にも掛けられます（[結果を整える](#結果を整えるprune_null-と-prune_emptygo-版にはない拡張)）
+
+### ファイルにまとめて書く：`--apply --out-dir`
+
+変換した結果をファイルへ書くのは、`--apply` を付けたときだけです。**元のファイルは書き換えません**（`-o` は出力形式なので、書き先は `--out-dir DIR` で指定します）。
+
+```bash
+uv run yaqpy --recipe openai-to-gemini --apply --out-dir converted a.json b.json c.json
+```
+
+```text
+input   result  dropped  not handled  schema issues  output
+a.json  ok      3        0            0              converted\a.json
+b.json  check   1        1            0              converted\b.json
+c.json  error   -        -            -              -
+(dropped = declared by the recipe; 'check' = something not handled or not fitting the target schema. Re-run without --apply, or with --report, for the details.)
+```
+
+（`c.json` は壊れた JSON で、標準エラー出力に `Error: c.json: bad JSON: Expecting value` が出ます。`b.json` は、レシピが知らない `reasoning_effort` を含むので `check` です。パスの区切りは、Windows では `\` です。）
+
+- ファイル名は入力と同じです（拡張子は出力形式に合わせます）。**入力と同じ場所に書く指定や、別の入力と同じ名前になる指定は、そのファイルだけエラー**にして、元のファイルには触れません
+- 1 つのファイルが失敗しても、残りは続けます。終了コードは、失敗があれば 1 です（`check` は 0 です）
+- 標準入力（`-`）は、名前がないので使えません
+
+### 目標スキーマとの照合
+
+変換結果が「その API が受け付ける形か」を、レシピに付けた**目標スキーマ**（JSON Schema）と比べます。
+
+- 3 つの API のスキーマは、各社の公式の定義から書いています（OpenAI は OpenAPI 定義、Gemini は Discovery ドキュメント、Anthropic は API ドキュメントと SDK のパラメータ）。**参照元は、各スキーマファイルの `$comment` に書いてあります**
+- 比べるのは、キーの有無・余分なキー・型・値の範囲・配列の個数です（`type` `enum` `const` `required` `properties` `additionalProperties` `items` `minItems` `maxItems` `minimum` `maximum` `anyOf` `oneOf` `allOf`、ローカルの `$ref`）。**JSON Schema の完全な検証器ではありません**（`validate` は、のちの版の予定です）
+- **実際の API は呼びません**。鍵が要り、課金されるためです。最後の確認は、利用者が行います
+
+### 注意
+
+- **Anthropic への変換**：公式ドキュメントは、新しいモデルでは `temperature` が非推奨（1.0 のみ受け付ける）としています。使うモデルで確かめてください
+- **Gemini → 他の API**：`parameters`（OpenAPI 形式のスキーマ）は、型名を小文字にして JSON Schema として渡します。`nullable` のような OpenAPI 固有のキーは変換しません（`parametersJsonSchema` なら、そのまま渡します）
+- `allowedFunctionNames` が複数あるとき、OpenAI では `tool_choice: required`、Anthropic では `tool_choice: any` になります（名前の絞り込みは失われます）。1 つのときは、その関数を指定します
+- レシピの変換は、**ここに書いた範囲のリクエスト**です。レスポンスの変換は、まだありません
+
+### 自分のレシピを作る
+
+レシピは、**式のファイル**（`.yaqpy`）と、あってもなくてもよい**説明のファイル**（同じ名前の `.recipe.yaml`）です。
+
+```bash
+uv run yaqpy --recipe ./my.yaqpy input.json          # 式のファイル。my.recipe.yaml があれば読む
+uv run yaqpy --recipe ./my.recipe.yaml input.json    # 説明のファイルだけでもよい（expression: か expression_file: を書く）
+uv run yaqpy --recipe ./my.yaqpy --recipe-test       # tests: に書いたケースを実行
+```
+
+式のファイルの中身は、ふつうの yaqpy の式です（`#` でコメントが書けます。`--from-file` で読むファイルと同じです）。説明のファイルは YAML で、次のキーが書けます（**書き間違いはエラー**にします。黙って無視しません）。
+
+| キー | 内容 |
+|---|---|
+| `name` `title` `description` `version` | 名前・題名・説明・版 |
+| `input` / `output` | `format`（`json` など。既定は `json`）と `api`（表示用） |
+| `carries` | 式が読む入力のパス（`.messages` `.generationConfig.temperature` など） |
+| `drops` | 意図して落とす入力のパスと理由（`path:` `reason:`）。入力にあれば `dropped` と報告します |
+| `adds` | 式が自分で補う出力のパスと理由。`unless:` に入力のパスを並べると、それが入力にあるときは報告しません |
+| `target_schema` | 目標スキーマ（JSON のファイル名か、その場に書いたマッピング） |
+| `prune` | `[nulls, empties]`：結果全体に `prune_null` `prune_empty` を掛ける（`null` とは書けません。YAML が「値の null」と読むためです） |
+| `tests` | `name` `input` `expected` の一覧。`--recipe-test` で実行 |
+| `notes` | 利用者への注意書き |
+
+パスの書き方：`.a.b`（キー）、`.items[]`（配列のすべての要素）、`.parts[type=text]` / `.parts[type!=text]`（マップの要素のうち、その値がある／ない）。**`carries` と `drops` を書くと**、入力にあるそれ以外の項目が `NOT HANDLED` として報告されます。**書かなければ**、その報告は出ません（差分と目標スキーマの照合だけです）。YAML の `[ ]` の中に `[]` を含むパスを書くときは、`".items[]"` のように引用符で囲みます。
+
+#### 式の書き方の規約
+
+同梱のレシピは、次の規約で書いています。**式を誤ると、エラーにならずに結果だけが変わります**。
+
+1. **キーがあるときだけ書く**：`(select($in.temperature != null) | .generationConfig.temperature) = $in.temperature`。`select` は、代入の左辺に置くか、パイプの最後に置きます
+2. **`select` の後ろに定数やオブジェクトを続けない**：`(… \| select(条件) \| "値") // 既定` は、条件が偽でも "値" を返します（Go 版 yq と同じ挙動）。ロールの書き換えは、代入で書きます：`(.contents[] \| select(.role == "assistant") \| .role) = "model"`
+3. **代入の右辺では、存在しないキーは `null` ではなく「結果なし」になる**：`.tools = [.. \| {"n": .name, "d": .description}]` は、`description` のない要素がまるごと消えます。任意のキーは `pick(["description"])` で足します
+4. **代入の右辺の中に、別の代入を入れない**（効きません）
+5. **`null` をデータとして持つものは、`prune_null` を全体に掛けない**（ツールの引数スキーマの `"default": null` など）
+
+`yaqpy --print-spec` と `--guide-prompt` は、この規約と、使えない書き方の一覧を出します。
+
+#### 安全性
+
+**レシピは、ファイル・環境変数・外部コマンドに触れません**（同梱のものも、自作のものも同じです）。`--security-disable-*` を付けなくても、`env(…)` などは `env operations have been disabled` で拒否されます。ほかの人のレシピを試すときも、本文の外に何も読まれません。説明ファイルの `target_schema:` `expression_file:` が指せるのは、**レシピと同じフォルダのファイルだけ**です（絶対パスや `..` はエラーにします。説明ファイルを、任意のファイルを読む手段にさせないためです）。
+
+### ライブラリから使う
+
+```python
+import yaqpy
+
+run = yaqpy.apply_recipe("openai-to-gemini", body_text)     # 名前か、build_recipe で作った Recipe
+run.output                                                  # 変換した本文（テキスト）
+run.report.dropped                                          # 落とした項目（declared=False は NOT HANDLED）
+run.report.added, run.report.issues, run.report.clean
+yaqpy.list_recipes()                                        # 同梱のレシピ
+```
+
+ライブラリはファイルを読まないので、レシピは**名前か `Recipe` オブジェクト**で渡します（パスは受け付けません）。
+
+---
+[toTop](#toreadme)
+## yaqpy が自分を説明する：`--print-spec` `--example` `--guide-prompt` `--skill-md`
+
+AI に yaqpy の式を書かせたいとき、Claude Code などのスキルに登録したいときのために、yaqpy 自身が説明を出します。**どれも「出力して終了」で、ファイルは読みません**。
+
+| フラグ | 出力 |
+|---|---|
+| `--print-spec` | 式の記法、**使える演算子と使えない演算子の一覧**、形式、レシピ、**やってはいけない書き方**（Markdown） |
+| `--example`（別名 `--sample`） | 使用例。入力・コマンド・結果の 3 点セットで、**結果は、出力するときに実際に実行したもの** |
+| `--guide-prompt`（別名 `--prompts`） | AI に yaqpy の式を書かせるためのお願い文（記法・演算子・禁止事項・例・答え方） |
+| `--skill-md` | Claude Code などの `SKILL.md` としてそのまま置ける文書。ここまでの全機能（形式・`schema`・レシピ・変換）を含みます |
+
+```bash
+uv run yaqpy --print-spec > spec.md
+uv run yaqpy --skill-md > .claude/skills/yaqpy/SKILL.md      # スキルとして置く
+uv run yaqpy --guide-prompt | clip                            # Windows：お願い文をコピー
+```
+
+- **登録表から自動生成します**：演算子の一覧は、字句解析の規則表と演算子の登録表から作ります。演算子やレシピを足すと、出力も変わります。**「使えない演算子」の一覧は、実際に `unknown operator` になるものと一致することをテストで確かめています**
+- **例は、実行して確かめています**：出力する例と同じものを、自動テストが実行し、期待する結果と一致することを確かめます
+- 言語は日本語です（識別子・コマンド・演算子名は原文のままです）。`mdss-convert` の `--guide-prompt` `--print-spec` に相当し、名前の別名は `--sample` `--prompts` です（`mdss-convert` の終了コード 2/3/4 は採りません。成功は 0、引数の誤りは 1 です）
+
+---
+[toTop](#toreadme)
 ## GUI の使い方
 
 デスクトップアプリです（`uv sync --extra gui` のあと `uv run yaqpy-gui` または `uv run yaqpy --gui`）。画面の見方、式の書き方（初心者向け）、保存・設定・エラーの読み方は **[USAGE-GUI.ja.md](USAGE-GUI.ja.md)** にまとめています。
@@ -438,6 +721,14 @@ yq.evaluate(expr, text)                                             # -> '{"port
 ```
 
 - ライブラリの既定は `SecurityPolicy.strict()`（`env`・`load`・`system` を禁止）。必要なら `Options(security=SecurityPolicy(allow_env=True))` を渡します。CLI は Go 版と同じ既定（env・file を許可、system は禁止）です
+- レシピ（[変換レシピ](#ライブラリから使う)）は `yaqpy.apply_recipe("openai-to-gemini", text)`、一覧は `yaqpy.list_recipes()` です。ライブラリはファイルを読まないので、レシピは名前か `Recipe` オブジェクトで渡します
+- `yaqpy.detect_format(text)` は、テキストの中身だけから形式を推測します（[入力形式の自動判定](#入力形式の自動判定拡張子で決まらないときは中身を見るgo-版にはない拡張)と同じ判定。ファイル名を持たないテキストの形式を知りたいときに使います）。`Options(input_format="auto")` を渡したときは、`evaluate` 系の呼び出しも同じ判定を自動でします（既定の `input_format="yaml"` は変えていません）
+
+  ```python
+  yaqpy.detect_format('{"a": 1}')                 # -> 'json'
+  yaqpy.detect_format('name = "x"\n')              # -> 'toml'
+  yaqpy.evaluate(".a", '{"a": 5}', options=yaqpy.Options(input_format="auto"))   # -> '5\n'
+  ```
 - 設定はすべて呼び出しごとの `Options`（変更不可の dataclass）で渡すため、設定の違う評価を同時に実行できます（グローバル状態なし）
 - `Limits(max_steps=..., timeout_seconds=..., max_depth=..., max_input_bytes=...)` で評価量に上限を掛けられます
 
@@ -568,7 +859,13 @@ uv run yaqpy --split-exp-file name.yq multi.yaml
 
 ### まだ使えないもの
 
-`load` `load_str`（ファイルを読む）、`eval`、`envsubst`、`system`（外部コマンド）、`error` は**実装していません**。式としては解釈されますが、**実行すると `Error: unknown operator ...` で終了します**。ファイル・環境変数・外部コマンドに触れるため、安全性の設計をしてから入れる予定です（改修計画の O3）。
+次の演算子は**実装していません**。式としては解釈されますが、**実行すると `Error: unknown operator ...` で終了します**。ファイル・環境変数・外部コマンドに触れる（`error` を除く）ため、安全性の設計をしてから入れる予定です（改修計画の O3）。
+
+<!-- yaqpy:unimplemented-operators:begin  (yaqpy --print-spec の「使えない演算子」と一致することを、テストで確かめています) -->
+`envsubst` `error` `eval` `load` `load_base64` `load_props` `load_str` `load_xml` `str_load` `system` `xml_load`
+<!-- yaqpy:unimplemented-operators:end -->
+
+この一覧は、実装から自動生成される `yaqpy --print-spec` の「使えない演算子」と同じです（[yaqpy が自分を説明する](#yaqpy-が自分を説明する--print-spec---example---guide-prompt---skill-md)）。
 ---
 [toTop](#toreadme)
 ## Go 版 yq との違い
@@ -577,8 +874,8 @@ yaqpy は Go 版 yq（v4.53.6）の**独立した再実装**です。
 
 | 分類 | 内容 |
 |---|---|
-| 追加した機能 | TOON 形式の入出力、**`schema` 演算子（JSON Schema の出力）**、Python ライブラリ API、デスクトップ GUI（XML・CSV/TSV・properties・TOML は Go 版にもあり、同じ規則で実装） |
-| **未実装の演算子** | `load` `load_str` `eval` `envsubst` `system` `error`。式としては解釈されますが、実行すると `Error: unknown operator ...` で終了します（ファイル・環境変数・外部コマンドに触れるため、安全性の設計をしてから入れる予定です） |
+| 追加した機能 | TOON 形式の入出力、**`schema` 演算子（JSON Schema の出力）**、**`prune_null` `prune_empty`**、**変換レシピ（`--recipe`。API のリクエストの相互変換）**、**自己説明（`--print-spec` `--example` `--guide-prompt` `--skill-md`）**、**入力形式の中身での自動判定**（拡張子で決まらないときだけ。Go 版は拡張子のみで、決まらなければ常に YAML）、Python ライブラリ API、デスクトップ GUI（XML・CSV/TSV・properties・TOML は Go 版にもあり、同じ規則で実装） |
+| **未実装の演算子** | `load` 系（`load` `load_str` `load_props` `load_xml` `load_base64` など）`eval` `envsubst` `system` `error`（[一覧](#まだ使えないもの)）。式としては解釈されますが、実行すると `Error: unknown operator ...` で終了します（ファイル・環境変数・外部コマンドに触れるため、安全性の設計をしてから入れる予定です） |
 | 未対応のフォーマット | INI・HCL・Lua・shell 変数・KYaml など、Go 版にあるその他の形式（base64・URI・`sh` は形式ではなく演算子 `@base64` `@uri` `@sh` として使えます）。TOML はコメントを保持しない（`-i` は既定で拒否） |
 | 未対応のオプション | `-f`（`--front-matter`）、`-C`（色付き出力） |
 | 演算子の細かい違い | ① **`shuffle` の並びは Go 版と違います**（Go の乱数列を再現しないため。並べ替えとしては正しい）② 正規表現は Python の `re` を、Go（RE2）に近づけて使っています。`\pL` などの Unicode クラスと `(?U)` は使えません（[正規表現](#正規表現gore2との違い)）③ 空の文字列を `from_*` で読むと、Go 版は形式によって `EOF` エラー、yaqpy は `null` ④ `-s` は名前に `..` を含むものを書きません ⑤ `tz` の IANA 名は OS の時間帯データが要ります（Windows は `pip install tzdata`）⑥ 時刻の精度はマイクロ秒（Go はナノ秒）、年は 1〜9999 |

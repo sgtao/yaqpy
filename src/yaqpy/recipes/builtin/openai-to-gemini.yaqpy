@@ -1,0 +1,36 @@
+# OpenAI Chat Completions request body -> Gemini generateContent request body.
+#
+# Style rules (see the recipe guide in USAGE.ja.md):
+#  - The output is built with assignments at the top level, each one only when the input has the key,
+#    so no null is left behind.
+#  - The right side of an assignment is evaluated read-only: a key that does not exist yields
+#    nothing there (not null). Optional keys inside a constructed object therefore go through pick.
+#  - The right side of an assignment never contains another assignment (it would have no effect).
+#  - select(...) is either the last step of a pipe or the left side of an assignment. Followed by a
+#    constant or an object, it would still yield that constant when nothing was selected (Go's
+#    value operator does so too).
+. as $raw
+# A message content given as a string becomes a list of text parts, so one code path handles both.
+| ($raw | (.messages[]? | select(.content | tag == "!!str") | .content) |= [{"type": "text", "text": .}]) as $in
+| {}
+| (select([$in.messages[]? | select(.role == "system" or .role == "developer") | .content[]? | select(.type == "text")] | length > 0) | .systemInstruction) = {"parts": [$in.messages[] | select(.role == "system" or .role == "developer") | .content[]? | select(.type == "text") | {"text": .text}]}
+| .contents = [$in.messages[]? | select(.role == "user" or .role == "assistant") | {"role": .role, "parts": [.content[]? | select(.type == "text") | {"text": .text}]} | select(.parts | length > 0)]
+| (.contents[] | select(.role == "assistant") | .role) = "model"
+| (select($in.temperature != null) | .generationConfig.temperature) = $in.temperature
+| (select($in.top_p != null) | .generationConfig.topP) = $in.top_p
+| (select($in.max_tokens != null) | .generationConfig.maxOutputTokens) = $in.max_tokens
+| (select($in.max_completion_tokens != null) | .generationConfig.maxOutputTokens) = $in.max_completion_tokens
+| (select($in.n != null) | .generationConfig.candidateCount) = $in.n
+| (select($in.seed != null) | .generationConfig.seed) = $in.seed
+| (select($in.frequency_penalty != null) | .generationConfig.frequencyPenalty) = $in.frequency_penalty
+| (select($in.presence_penalty != null) | .generationConfig.presencePenalty) = $in.presence_penalty
+| (select($in.stop | tag == "!!str") | .generationConfig.stopSequences) = [$in.stop]
+| (select($in.stop | tag == "!!seq") | .generationConfig.stopSequences) = $in.stop
+| (select($in.response_format.type == "json_object" or $in.response_format.type == "json_schema") | .generationConfig.responseMimeType) = "application/json"
+| (select($in.response_format.type == "json_schema" and $in.response_format.json_schema.schema != null) | .generationConfig.responseJsonSchema) = $in.response_format.json_schema.schema
+| (select([$in.tools[]? | select(.type == "function")] | length > 0) | .tools) = [{"functionDeclarations": [$in.tools[] | select(.type == "function") | .function | (pick(["name", "description"]) + (pick(["parameters"]) | with_entries(.key = "parametersJsonSchema")))]}]
+| (select($in.tool_choice == "auto") | .toolConfig.functionCallingConfig.mode) = "AUTO"
+| (select($in.tool_choice == "none") | .toolConfig.functionCallingConfig.mode) = "NONE"
+| (select($in.tool_choice == "required") | .toolConfig.functionCallingConfig.mode) = "ANY"
+| (select($in.tool_choice.type == "function") | .toolConfig.functionCallingConfig.mode) = "ANY"
+| (select($in.tool_choice.type == "function") | .toolConfig.functionCallingConfig.allowedFunctionNames) = [$in.tool_choice.function.name]
