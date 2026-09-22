@@ -50,7 +50,8 @@ uv run yaqpy --gui        # こちらでも同じ画面が開きます
 - **初回だけ**、画面の部品（Flet のデスクトップクライアント）の準備が入って、少し待ちます。2 回目からは、この準備は入りません
 - 部品（flet）を入れていない状態で起動すると、入れ方を案内して終了します（コマンドは壊れません）
 - `yaqpy --gui a.yaml` のように**実在するファイルを 1 つだけ**続けて書くと、そのファイルを開いた状態で起動します（v0.5.0 から）。式（`yaqpy --gui '.a'`）や、存在しないパス、2 つ以上のファイルは「一緒には使えません」と断られます（打ち間違いの式をファイルと見なさないための安全策です）
-- 窓を閉じると、アプリは終了します（Windows で確認済み。ほかの OS では未確認です）
+- 窓を閉じると、アプリは終了します（**Windows で実機確認済み**。v0.5.0 で macOS / Linux でも同じ仕組み（`page.window.on_event`）を使うようにしましたが、**実機（macOS / Linux）ではまだ確認していません**。Windows 特有の後始末（`taskkill`）は Windows でだけ行います）
+- 表示言語は既定で日本語です。[設定画面](#9-設定画面)で英語に切り替えられます（v0.5.0。次の起動から反映）
 
 ---
 [toTop](#toreadme)
@@ -491,12 +492,14 @@ select(fi == 0) * select(fi == 1)
 | 最大入力（MiB） | 50 | 開けるファイルの上限です | **前回の値を覚えています** |
 | 表示行数の上限 | 5000 | 右の窓に出す行数の上限です（保存・コピーは全量） | **前回の値を覚えています** |
 | ダークテーマ | オフ | 暗い配色にします | **前回の値を覚えています** |
+| 表示言語 | 日本語 | 画面の文言（ボタン・ラベル・案内・エラーの見出し）を日本語／英語で切り替えます（v0.5.0） | **前回の値を覚えています**。**次回の起動から**効きます（すでに開いている画面の文字は変わりません） |
 
 - **v0.5.0 から、タイムアウト・最大入力・表示行数の上限・ダークテーマは次の起動でも引き継がれます。** env / load の許可だけは、危険な許可を持ち越さないため毎回既定（不許可）に戻ります
 - **設定を変えると、次の実行から効きます。** 「env を許可」と「表示行数」は、変えた瞬間に自動で再実行します
 - **`system` 演算子（外部コマンドの実行）は、GUI では提供しません**
 - 数値欄を空にしたり `0` にしたりしても、設定は壊れません。欄を離れると、実際に使われている値が表示し直されます
 - コマンド（CLI）は既定で env を**許可**しますが、GUI は安全のため既定で**不許可**です
+- **英語表示の対象は画面の文言（ボタン・ラベル・案内・エラーの見出し）だけです。** 式の構文エラーの「N 文字目でエラー」や YAML エラーの「N 行 M 列」のような、**エラーの詳しい内容は今のところ日本語のまま**です（`gui/errors_ja.py`。将来の課題）
 
 ### 許可されていない式を書いたとき
 
@@ -632,7 +635,7 @@ GUI でやることは、コマンドでもできます（書き方はほぼ同�
 | 7 章（開く） | `tests/unit/test_gui_intake.py`（大きすぎる・フォルダ・UTF-8）、`tests/unit/test_gui_main_page.py` の `OpenDialogTests`（拡張子で絞らないこと）、`StartupFileTests`（`yaqpy --gui file.yaml`） |
 | 7-1 章（複数ファイル・eval-all） | `test_gui_presenter.py` の `MultiDocumentTests`・`EvalAllTests`、`test_gui_main_page.py` の `MultiFileUiTests` |
 | 8 章（保存） | `test_gui_presenter.py` の `SaveTests`（全量保存・上書き確認・上書き前のバックアップ・古い結果を保存しない）、`DefaultSaveNameTests` |
-| 9 章（設定） | `test_gui_state.py`（既定は不許可・system は常に不許可）、`test_gui_presenter.py` の `SecurityTests`、`test_gui_prefs.py`（設定の保存・復元） |
+| 9 章（設定） | `test_gui_state.py`（既定は不許可・system は常に不許可）、`test_gui_presenter.py` の `SecurityTests`、`test_gui_prefs.py`（設定の保存・復元）、`test_gui_texts.py`・`test_gui_settings_page.py`（表示言語の切り替え） |
 | 10 章（エラー） | `tests/unit/test_gui_errors_ja.py` |
 | 11 章（中止） | `test_gui_presenter.py` の `CancelTests`（実行中の評価を別タスクから止める）、`tests/unit/test_format_decode_budget.py`（デコード中の中止） |
 
