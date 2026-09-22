@@ -34,5 +34,5 @@ async def load_settings(sp: ft.SharedPreferences) -> SettingsState:
 async def save_settings(sp: ft.SharedPreferences, settings: SettingsState) -> None:
     try:
         await sp.set(_KEY, json.dumps(settings_to_dict(settings)))
-    except Exception:                            # noqa: BLE001 - 保存に失敗しても操作は続けられる
+    except Exception:                            # noqa: BLE001, S110 - 保存に失敗しても操作は続けられる
         pass
