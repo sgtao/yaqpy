@@ -41,7 +41,11 @@ class QueryState:
 
 @dataclass(slots=True)
 class SettingsState:
-    """設定画面の値。v1 では永続化しない（セッション内のみ）。"""
+    """設定画面の値。
+
+    ``allow_env`` / ``allow_file`` を除く「安全な設定」は Phase U1 で永続化する
+    （``gui/_prefs.py``。危険な許可は毎回既定に戻す。5-4 節 U1）。
+    """
 
     allow_env: bool = False
     allow_file: bool = False
@@ -53,6 +57,39 @@ class SettingsState:
     @property
     def max_input_bytes(self) -> int:
         return self.max_input_mib * 1024 * 1024
+
+
+def _positive_float(raw: object, fallback: float) -> float:
+    try:
+        value = float(raw)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return fallback
+    return value if value > 0 else fallback
+
+
+def _positive_int(raw: object, fallback: int) -> int:
+    return int(_positive_float(raw, float(fallback)))
+
+
+def settings_to_dict(settings: SettingsState) -> dict[str, object]:
+    """永続化する「安全な設定」だけを取り出す（``allow_env`` / ``allow_file`` は含めない）。"""
+    return {
+        "timeout_seconds": settings.timeout_seconds,
+        "max_input_mib": settings.max_input_mib,
+        "max_display_lines": settings.max_display_lines,
+        "dark_theme": settings.dark_theme,
+    }
+
+
+def settings_from_dict(data: dict[str, object]) -> SettingsState:
+    """読み込み時に壊れた値（型違い・欠損）が来ても既定値で受ける。"""
+    defaults = SettingsState()
+    return SettingsState(
+        timeout_seconds=_positive_float(data.get("timeout_seconds"), defaults.timeout_seconds),
+        max_input_mib=_positive_int(data.get("max_input_mib"), defaults.max_input_mib),
+        max_display_lines=_positive_int(data.get("max_display_lines"), defaults.max_display_lines),
+        dark_theme=bool(data.get("dark_theme", defaults.dark_theme)),
+    )
 
 
 @dataclass(slots=True)

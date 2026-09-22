@@ -11,6 +11,7 @@ import flet as ft
 
 from yaqpy.gui import texts
 from yaqpy.gui._di import make_presenter
+from yaqpy.gui._prefs import load_settings, save_settings
 from yaqpy.gui.pages.main_page import MainPage
 from yaqpy.gui.pages.settings_page import SettingsPage
 from yaqpy.gui.state import GuiState
@@ -33,7 +34,7 @@ def _terminate_process_tree() -> None:
     os._exit(0)                               # taskkill が間に合わなかったときの保険
 
 
-def _main(page: ft.Page) -> None:
+async def _main(page: ft.Page) -> None:
     page.title = texts.APP_TITLE
     page.padding = 12
     page.window.width = 1180
@@ -41,11 +42,21 @@ def _main(page: ft.Page) -> None:
     page.window.min_width = 820
     page.window.min_height = 560
 
+    sp = ft.SharedPreferences()
+    page.services.append(sp)
+
     state = GuiState()
+    state.settings = await load_settings(sp)   # allow_env / allow_file は既定のまま（U1）
     presenter = make_presenter(state)
 
     picker = ft.FilePicker()
     page.services.append(picker)           # Flet 1.0: overlay ではなく services
+
+    def persist_settings() -> None:
+        async def _save() -> None:
+            await save_settings(sp, state.settings)
+
+        page.run_task(_save)
 
     content = ft.Container(expand=True)
     nav_labels = [texts.NAV_MAIN, texts.NAV_SETTINGS]
@@ -68,7 +79,8 @@ def _main(page: ft.Page) -> None:
     main_page = MainPage(page=page, presenter=presenter, state=state, picker=picker,
                          on_open_settings=go_to_settings)
     settings_page = SettingsPage(page=page, state=state,
-                                 on_changed=lambda: page.run_task(main_page.rerun))
+                                 on_changed=lambda: page.run_task(main_page.rerun),
+                                 on_persist=persist_settings)
     pages = [main_page, settings_page]
 
     nav_bar = ft.Container(
