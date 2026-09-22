@@ -23,7 +23,9 @@ from yaqpy.gui.state import GuiState
 
 VALIDATE_DEBOUNCE_SECONDS = 0.3
 PASTE_DEBOUNCE_SECONDS = 0.3
-PASTE_MIN_LINES = 10             # 未読込のあいだの貼り付け欄の高さ
+EDIT_DEBOUNCE_SECONDS = 0.5      # 読み込み後の追加編集：打ち終わってから取り込むまでの間
+COPY_FEEDBACK_SECONDS = 1.5      # ボタン文字を「コピーしました！」に変えておく時間
+PASTE_MIN_LINES = 4              # 未読込のあいだの貼り付け欄の高さ（画面に収まるよう控えめに）
 PANE_HEADER_HEIGHT = 44         # 右見出しの保存ボタンに高さを合わせ、左右の枠の上端を揃える
 MONO = ft.TextStyle(font_family="Consolas", size=12)
 BUTTON_TEXT_SIZE = 14           # Flet のボタン文字（labelLarge）と同じ大きさ。ファイル名の表示に使う
@@ -56,10 +58,13 @@ class MainPage:
         self._validate_token = 0
 
         # --- ファイルバー ---
+        # 「ファイルを開く」と「＋ファイルを追加」は 1 つのボタンに統一した（要望）。
+        # 何も開いていなければ最初の 1 件として開き、すでにあれば閉じずに増やす。
+        # 最初から有効：0 件のときに無効化すると何も開けなくなってしまうため。
         self._file_label = ft.Text(texts.MSG_NO_DOCUMENT, size=BUTTON_TEXT_SIZE,
                                    weight=ft.FontWeight.BOLD, selectable=True)
         self._add_file_button = ft.Button(content=texts.BTN_ADD_FILE, icon=ft.Icons.ADD,
-                                          on_click=self._on_add_file, disabled=True)
+                                          on_click=self._on_add_file)
         self._close_button = ft.Button(content=texts.BTN_CLOSE, icon=ft.Icons.CLOSE,
                                        on_click=self._on_close, disabled=True)
 
@@ -77,10 +82,19 @@ class MainPage:
                                       value=state.query.output_format,
                                       options=_options(output_format_choices()),
                                       on_select=self._on_output_format)
-        self._indent_field = ft.TextField(label=texts.LBL_INDENT, width=110,
+        # インデントは数字欄に直接打つほか、±ボタンでも操作できる（要望）。Flet に専用の
+        # スピナー部品は無いので、IconButton を左右に添える形で組む。
+        self._indent_field = ft.TextField(label=texts.LBL_INDENT, width=64,
+                                          text_align=ft.TextAlign.CENTER,
                                           value=str(state.query.indent),
                                           input_filter=ft.NumbersOnlyInputFilter(),
                                           on_change=self._on_indent)
+        self._indent_minus = ft.IconButton(icon=ft.Icons.REMOVE_CIRCLE_OUTLINE, tooltip="-1",
+                                           on_click=self._on_indent_minus)
+        self._indent_plus = ft.IconButton(icon=ft.Icons.ADD_CIRCLE_OUTLINE, tooltip="+1",
+                                          on_click=self._on_indent_plus)
+        self._indent_stepper = ft.Row([self._indent_minus, self._indent_field, self._indent_plus],
+                                      spacing=0, vertical_alignment=ft.CrossAxisAlignment.END)
         self._pretty_switch = ft.Switch(label=texts.LBL_PRETTY, value=state.query.pretty_print,
                                         on_change=self._on_pretty)
 
@@ -115,25 +129,33 @@ class MainPage:
                                      on_click=self._on_run, disabled=True)
         self._cancel_button = ft.Button(content=texts.BTN_CANCEL, icon=ft.Icons.STOP,
                                         on_click=self._on_cancel, disabled=True)
+        # 式が難しいときに AI へ相談する文面を出す（CLI の --guide-prompt の GUI 版。要望）。
+        # 文書の有無に関わらず使えるので、無効化しない。
+        self._guide_button = ft.IconButton(icon=ft.Icons.SMART_TOY_OUTLINED,
+                                           tooltip=texts.BTN_GUIDE_PROMPT,
+                                           on_click=self._on_open_guide_prompt)
         self._progress = ft.ProgressBar(visible=False)
 
         # --- 2 ペイン ---
         # 見出しの横：入力形式・出力形式が auto でも指定でも、実際に採る形式名を出す
         self._original_badge, self._original_format = _format_badge()
         self._converted_badge, self._converted_format = _format_badge()
+        # 読み込み後も原文欄は編集できる（追加編集。書き換えたら赤字で目立たせる。要望）。
+        self._edited_label = ft.Text(texts.LBL_EDITED, size=11, weight=ft.FontWeight.BOLD,
+                                     color=ft.Colors.ERROR, visible=False)
         # 未読込のあいだは貼り付け欄として編集可にする（ドロップが使えない環境の保険）
         self._original = ft.TextField(multiline=True, expand=True, text_style=MONO,
                                       border=ft.OutlineInputBorder())
+        self._edit_token = 0
         # G0 の判定は「v1 はドロップ見送り」。領域は作らず、代わりにクリックで開ける案内を出す。
+        # アイコン・余白は控えめにして、未読込の画面が窓の高さに収まりやすくしている。
         self._drop_hint = ft.Container(
             content=ft.Column([
-                ft.Icon(icon=ft.Icons.UPLOAD_FILE, size=40, color=ft.Colors.ON_SURFACE_VARIANT),
+                ft.Icon(icon=ft.Icons.UPLOAD_FILE, size=28, color=ft.Colors.ON_SURFACE_VARIANT),
                 ft.Text(texts.MSG_NO_DOCUMENT, size=13),
                 ft.Text(texts.MSG_DROP_UNSUPPORTED, size=11, color=ft.Colors.ON_SURFACE_VARIANT),
-                ft.Button(content=texts.BTN_OPEN, icon=ft.Icons.FOLDER_OPEN,
-                          on_click=self._on_open),
-            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=8),
-            alignment=ft.Alignment.CENTER, padding=16, on_click=self._on_open,
+            ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
+            alignment=ft.Alignment.CENTER, padding=10, on_click=self._on_add_file,
         )
         self._paste_token = 0
         self._show_unloaded()
@@ -165,21 +187,21 @@ class MainPage:
 
     def _build(self) -> ft.Control:
         file_bar = ft.Row([
-            ft.Button(content=texts.BTN_OPEN, icon=ft.Icons.FOLDER_OPEN, on_click=self._on_open),
-            self._file_label,
             self._add_file_button,
+            self._file_label,
             self._close_button,
         ], alignment=ft.MainAxisAlignment.START, spacing=12)
 
         files_bar = ft.Row([self._files_row], spacing=16)
 
-        format_bar = ft.Row([self._input_dd, self._output_dd, self._indent_field,
+        format_bar = ft.Row([self._input_dd, self._output_dd, self._indent_stepper,
                              self._pretty_switch], spacing=12)
 
         filter_bar = ft.Column([
             ft.Row([self._property_dd, self._add_button], spacing=8),
             self._candidate_note,
-            ft.Row([self._expr_field, self._run_button, self._cancel_button], spacing=8),
+            ft.Row([self._expr_field, self._guide_button, self._run_button, self._cancel_button],
+                  spacing=8),
             self._expr_error,
         ], spacing=FILTER_ROW_SPACING)
 
@@ -187,7 +209,7 @@ class MainPage:
         # こうすると窓の高さを使い切り、長い文書は枠の中でスクロールする。
         panes = ft.Row([
             ft.Column([ft.Row([ft.Text(texts.LBL_ORIGINAL, size=12, weight=ft.FontWeight.W_600),
-                               self._original_badge],
+                               self._original_badge, self._edited_label],
                               height=PANE_HEADER_HEIGHT,
                               vertical_alignment=ft.CrossAxisAlignment.CENTER),
                        ft.Column([self._drop_hint, self._original],
@@ -213,17 +235,6 @@ class MainPage:
 
     # ------------------------------------------------------------------ 操作
 
-    async def _on_open(self, e: ft.Event[ft.Button]) -> None:
-        # 拡張子で絞らない：開いたら内容で形式を判定する（yaqpy 独自の拡張）。ファイル名も
-        # 拡張子も自由（既知の拡張子は今までどおり最優先、未知・なしは中身を見る）。
-        files = await self._picker.pick_files(
-            dialog_title=texts.BTN_OPEN,
-            allow_multiple=False,
-        )
-        if files:
-            await self._load(files[0].path)
-        self._page.update()                 # async ハンドラは終了時にも update する
-
     async def open_startup_file(self, path: str) -> None:
         """起動引数で渡されたファイルを開く（``yaqpy --gui a.yaml``。U2）。"""
         await self._load(path)
@@ -246,9 +257,9 @@ class MainPage:
         self._expr_field.value = self._state.query.expression
         self._expr_field.error = None
         self._close_button.disabled = False
-        self._add_file_button.disabled = False
         self._run_button.disabled = False
         self._expr_error.visible = False
+        self._edited_label.visible = False      # 新しい文書は「追加編集」前の状態から始まる
         self._refresh_format_badges()
         self._refresh_multi_file_ui()
 
@@ -266,19 +277,39 @@ class MainPage:
 
     # ------------------------------------------------------------------ 複数ファイル（U3）
 
-    async def _on_add_file(self, e: ft.Event[ft.Button]) -> None:
-        """いま開いているものを閉じずに、もう 1 件（複数選択可）を一覧に加える。"""
+    async def _on_add_file(self, e: ft.Event) -> None:
+        """[＋ファイルを追加]：「開く」と「追加」を統一した唯一の入口（要望）。
+
+        何も開いていなければ、選んだ最初の 1 件が最初の文書になる（今までの「開く」に相当）。
+        すでに開いていれば、選んだものをすべて閉じずに増やす。拡張子では絞らない：開いたら
+        内容で形式を判定する（yaqpy 独自の拡張）。
+        """
         files = await self._picker.pick_files(dialog_title=texts.BTN_ADD_FILE, allow_multiple=True)
-        for picked in files:
+        if not files:
+            self._page.update()
+            return
+        start = 0
+        if not self._state.documents:
+            vm = await self._p.open_path(files[0].path)
+            if vm.ok:
+                self._show_loaded()
+                self._original.value = vm.original_text
+                self._file_label.value = f"{vm.name}  ({vm.byte_size:,} B)"
+                self._file_label.tooltip = vm.path or ""
+                self._after_open()
+            else:
+                self._show_error(vm.error.message, vm.error.hint)
+            start = 1
+        for picked in files[start:]:
             vm = await self._p.add_path(picked.path)
             if not vm.ok:
                 self._show_error(vm.error.message, vm.error.hint)
-        if files:
+        if self._state.document.is_loaded:
             self._sync_active_document_view()
             self._refresh_multi_file_ui()
             await self._run()
             await self._reload_candidates()
-        self._page.update()
+        self._page.update()                 # async ハンドラは終了時にも update する
 
     async def _on_select_document(self, index: int) -> None:
         self._p.select_document(index)
@@ -306,6 +337,7 @@ class MainPage:
         self._original.value = doc.original_text
         self._file_label.value = f"{doc.name or texts.MSG_PASTED}  ({doc.byte_size:,} B)"
         self._file_label.tooltip = doc.path or ""
+        self._edited_label.visible = doc.edited     # 文書ごとに「追加編集」の有無を覚えている
         self._refresh_format_badges()
 
     def _refresh_multi_file_ui(self) -> None:
@@ -348,12 +380,16 @@ class MainPage:
         self._original.value = ""
 
     def _show_loaded(self) -> None:
-        """読込済み：案内を消し、左ペインを読み取り専用の原文表示にする。"""
+        """読込済み：案内を消し、左ペインを**追加編集できる**原文表示にする（要望）。
+
+        開いたファイルそのもの（ディスク上）は書き換わらない：ここでの編集は
+        ``DocumentState.original_text``（画面上の入力）だけを差し替える。
+        """
         self._drop_hint.visible = False
-        self._original.read_only = True
+        self._original.read_only = False
         self._original.min_lines = None
         self._original.hint_text = None
-        self._original.on_change = None
+        self._original.on_change = self._on_edit_original
 
     def _on_paste(self, e: ft.Event[ft.TextField]) -> None:
         """入力が 300 ms 止まったら、欄の中身を 1 つの文書として取り込む。
@@ -369,6 +405,30 @@ class MainPage:
                 await self._open_pasted()
 
         self._page.run_task(later)
+
+    def _on_edit_original(self, e: ft.Event[ft.TextField]) -> None:
+        """読み込み後の追加編集：打ち終わって 500 ms 止まったら取り込み直す（要望）。"""
+        self._edit_token += 1
+        token = self._edit_token
+
+        async def later() -> None:
+            await asyncio.sleep(EDIT_DEBOUNCE_SECONDS)
+            if token == self._edit_token:
+                await self._apply_edit()
+
+        self._page.run_task(later)
+
+    async def _apply_edit(self) -> None:
+        changed = self._p.edit_active_document(self._original.value or "")
+        if not changed:
+            return
+        self._edited_label.visible = True
+        doc = self._state.document
+        self._file_label.value = f"{doc.name or texts.MSG_PASTED}  ({doc.byte_size:,} B)"
+        self._refresh_format_badges()
+        await self._run()
+        await self._reload_candidates()
+        self._page.update()
 
     async def _open_pasted(self) -> None:
         text = self._original.value or ""
@@ -396,8 +456,8 @@ class MainPage:
         self._expr_field.error = None
         self._expr_error.visible = False
         self._close_button.disabled = True
-        self._add_file_button.disabled = True
         self._run_button.disabled = True
+        self._edited_label.visible = False
         self._truncated_note.visible = False
         self._save_button.disabled = True
         self._copy_button.disabled = True
@@ -433,6 +493,18 @@ class MainPage:
             self._state.query.indent = max(0, int(e.control.value or "2"))
         except ValueError:
             return
+        self._page.run_task(self._run)
+
+    def _on_indent_minus(self, e: ft.Event[ft.IconButton]) -> None:
+        self._set_indent(max(0, self._state.query.indent - 1))
+
+    def _on_indent_plus(self, e: ft.Event[ft.IconButton]) -> None:
+        self._set_indent(self._state.query.indent + 1)
+
+    def _set_indent(self, value: int) -> None:
+        """±ボタンからの変更。数字欄の表示も合わせて書き換える。"""
+        self._state.query.indent = value
+        self._indent_field.value = str(value)
         self._page.run_task(self._run)
 
     def _on_pretty(self, e: ft.Event[ft.Switch]) -> None:
@@ -524,6 +596,51 @@ class MainPage:
         # 押したことが伝わるよう、状態バーで受け付けたことを示す。
         self._cancel_button.disabled = True
         self._status_text.value = texts.MSG_CANCELLING
+
+    # ------------------------------------------------------------------ AI への相談文（要望）
+
+    async def _on_open_guide_prompt(self, e: ft.Event[ft.IconButton]) -> None:
+        prompt = await self._p.guide_prompt()
+        self._show_guide_prompt_dialog(prompt)
+        self._page.update()
+
+    def _show_guide_prompt_dialog(self, prompt: str) -> None:
+        """CLI の --guide-prompt の内容を、編集してコピーできるダイアログで出す（要望）。
+
+        MD Slide Studio の「AI プロンプト」画面を参考にした：全文を編集可能な 1 つの欄に入れ、
+        末尾の「## 依頼」をユーザーが書き換えてからコピーする、という使い方を想定している。
+        """
+        field = ft.TextField(value=prompt, multiline=True, min_lines=16, max_lines=16,
+                             text_style=MONO, expand=True)
+        copy_button = ft.TextButton(content=texts.BTN_COPY_PROMPT)
+
+        def close(_: ft.Event) -> None:
+            self._page.pop_dialog()
+
+        async def copy(_: ft.Event) -> None:
+            await ft.Clipboard().set(field.value or "")
+            copy_button.content = texts.MSG_COPIED_SHORT
+            self._page.update()
+            await asyncio.sleep(COPY_FEEDBACK_SECONDS)
+            copy_button.content = texts.BTN_COPY_PROMPT
+            self._page.update()
+
+        copy_button.on_click = copy
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text(texts.DLG_GUIDE_PROMPT_TITLE),
+            content=ft.Column([
+                ft.Text(texts.DLG_GUIDE_PROMPT_HINT, size=12, color=ft.Colors.ON_SURFACE_VARIANT),
+                field,
+            ], width=640, height=460, spacing=8, tight=True),
+            actions=[
+                ft.TextButton(content=texts.BTN_CLOSE, on_click=close),
+                copy_button,
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        self._page.show_dialog(dialog)
 
     # ------------------------------------------------------------------ 保存（G3）
 

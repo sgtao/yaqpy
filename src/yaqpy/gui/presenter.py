@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import os
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from yaqpy.app.dto import EvalMode, EvaluateRequest, EvaluateResult, InputSource
 from yaqpy.app.ports import FileSystemPort
 from yaqpy.app.printer import MemorySink
+from yaqpy.app.selfdoc import render_guide_prompt
 from yaqpy.app.service import YqService
 from yaqpy.core.engine.limits import StepBudget
 from yaqpy.errors import UnknownFormatError
@@ -190,6 +191,25 @@ class MainPresenter:
         self._last_run = None
         self._candidates = []
 
+    def edit_active_document(self, text: str) -> bool:
+        """いま表示している文書の原文を画面上で書き換える（追加編集。改修計画とは別の追加要望）。
+
+        変わっていなければ何もしない（デバウンス経由で不要な再実行を避ける）。開いたファイル
+        そのもの（ディスク上の内容）は触らない：保存で上書きするときは、その時点のディスクの
+        中身をあらためて読んでバックアップする（``_backup_before_overwrite``）ので、ここで
+        ``original_text`` を書き換えても G4 の安全策は影響を受けない。
+        """
+        if not self.state.documents:
+            return False
+        doc = self.state.document
+        if doc.original_text == text:
+            return False
+        self.state.documents[self.state.active_index] = replace(
+            doc, original_text=text, byte_size=len(text.encode("utf-8")), edited=True)
+        self._last_run = None
+        self._candidates = []
+        return True
+
     # ------------------------------------------------------------------ 式の検証
 
     def validate(self, expression: str) -> ValidationViewModel:
@@ -315,6 +335,15 @@ class MainPresenter:
             return self._service.formats.get(name).name
         except UnknownFormatError:
             return name
+
+    # ------------------------------------------------------------------ AI への相談文（追加要望）
+
+    async def guide_prompt(self) -> str:
+        """CLI の ``--guide-prompt`` と同じ内容（式の記法・演算子一覧・やってはいけないこと・例）を返す。
+
+        文書の有無に関わらず使える。例の実行を含むのでスレッドへ逃がす。
+        """
+        return await asyncio.to_thread(render_guide_prompt, self._service)
 
     # ------------------------------------------------------------------ 保存（G3）
 

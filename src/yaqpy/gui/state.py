@@ -17,6 +17,7 @@ class DocumentState:
     name: str = ""                # 形式の自動判定に使う表示名（ファイル名）
     original_text: str = ""
     byte_size: int = 0
+    edited: bool = False          # 読み込み後に画面上で書き換えたか（追加編集。追加要望）
 
     @property
     def is_loaded(self) -> bool:

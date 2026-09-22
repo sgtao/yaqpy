@@ -37,9 +37,9 @@ def _terminate_process_tree() -> None:
 async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
     page.padding = 12
     page.window.width = 1180
-    page.window.height = 820
+    page.window.height = 880          # 未読込の画面（案内＋貼り付け欄）が収まるように少し広げた
     page.window.min_width = 820
-    page.window.min_height = 560
+    page.window.min_height = 620
 
     sp = ft.SharedPreferences()
     page.services.append(sp)
@@ -84,10 +84,17 @@ async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
                                  on_persist=persist_settings)
     pages = [main_page, settings_page]
 
+    async def quit_app(e: ft.Event) -> None:
+        # 窓の × と同じ経路（page.window.close() → prevent_close → on_window_event）で終了する。
+        await page.window.close()
+
     nav_bar = ft.Container(
         content=ft.Row([
             ft.TextButton(content=nav_texts[0], on_click=lambda e: show(0)),
             ft.TextButton(content=nav_texts[1], on_click=lambda e: show(1)),
+            ft.Container(expand=True),
+            ft.IconButton(icon=ft.Icons.POWER_SETTINGS_NEW, icon_color=ft.Colors.ERROR,
+                         tooltip=texts.BTN_QUIT, on_click=quit_app),
         ], alignment=ft.MainAxisAlignment.START),
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
         padding=ft.Padding.symmetric(horizontal=8, vertical=4),

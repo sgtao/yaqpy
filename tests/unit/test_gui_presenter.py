@@ -125,6 +125,73 @@ class MultiDocumentTests:
         assert [d.name for d in p.state.documents] == ["data.json"]
 
 
+class EditActiveDocumentTests:
+    """読み込み後の原文への追加編集（改修計画とは別の追加要望）。"""
+
+    async def test_edit_changes_the_active_document_and_marks_it_edited(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/other.yaml")
+        assert not p.state.document.edited
+        changed = p.edit_active_document("b: 3\n")
+        assert changed
+        assert p.state.document.edited
+        assert p.state.document.original_text == "b: 3\n"
+        assert p.state.document.byte_size == len(b"b: 3\n")
+
+    async def test_editing_to_the_same_text_is_a_no_op(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/other.yaml")
+        p.edit_active_document("b: 3\n")
+        changed = p.edit_active_document("b: 3\n")
+        assert not changed
+
+    async def test_edit_is_used_by_run(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/other.yaml")
+        p.edit_active_document("b: 99\n")
+        vm = await p.run()
+        assert vm.ok
+        assert vm.full_text == "b: 99\n"
+
+    async def test_edit_does_not_touch_the_file_on_disk(self) -> None:
+        """開いたファイルそのもの（ディスク上）は編集で変わらない：G4 の安全策と独立。"""
+        p = make_presenter()
+        await p.open_path("/w/other.yaml")
+        p.edit_active_document("b: 99\n")
+        assert p._fs.files["/w/other.yaml"] == "b: 2\n"
+
+    async def test_edit_with_no_documents_is_a_no_op(self) -> None:
+        p = make_presenter()
+        assert not p.edit_active_document("a: 1\n")
+
+    async def test_switching_documents_keeps_each_ones_edited_flag(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        await p.add_path("/w/other.yaml")
+        p.edit_active_document("b: 99\n")           # other.yaml が対象（アクティブ）
+        p.select_document(0)                         # sample.yaml へ
+        assert not p.state.document.edited
+        p.select_document(1)                         # other.yaml へ戻る
+        assert p.state.document.edited
+        assert p.state.document.original_text == "b: 99\n"
+
+
+class GuidePromptTests:
+    """CLI の ``--guide-prompt`` を GUI からも呼べる（追加要望）。"""
+
+    async def test_matches_the_cli_output(self) -> None:
+        from yaqpy.app.selfdoc import render_guide_prompt
+
+        p = make_presenter()
+        prompt = await p.guide_prompt()
+        assert prompt == render_guide_prompt(p._service)
+
+    async def test_works_without_any_document_open(self) -> None:
+        p = make_presenter()
+        prompt = await p.guide_prompt()
+        assert "yaqpy" in prompt
+
+
 class EvalAllTests:
     """CLI の ``eval-all`` に相当する、複数文書をまとめた評価（presenter 層のみ）。
 

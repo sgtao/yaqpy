@@ -18,7 +18,6 @@ from __future__ import annotations
 APP_TITLE = "yaqpy"
 
 # ボタン・ラベル
-BTN_OPEN = "ファイルを開く"
 BTN_ADD_FILE = "＋ファイルを追加"
 BTN_CLOSE = "閉じる"
 BTN_RUN = "実行"
@@ -27,6 +26,7 @@ BTN_SAVE = "保存"
 BTN_COPY = "コピー"
 BTN_OPEN_SETTINGS = "設定を開く"
 BTN_ADD_TO_EXPR = "式に追加"
+BTN_QUIT = "終了"
 LBL_INPUT_FORMAT = "入力形式"
 LBL_OUTPUT_FORMAT = "出力形式"
 LBL_INDENT = "インデント"
@@ -36,6 +36,7 @@ LBL_PROPERTY = "プロパティ"
 LBL_ORIGINAL = "オリジナル"
 LBL_CONVERTED = "変換結果"
 LBL_LANGUAGE = "表示言語"
+LBL_EDITED = "追加編集"
 
 # プレースホルダ・案内
 PH_EXPRESSION = "例: .items[] | select(.price > 500)"
@@ -73,6 +74,16 @@ MSG_PASTE_HERE = "ここに YAML / JSON を貼り付けてください"
 MSG_PASTED = "（貼り付けたテキスト）"
 MSG_NO_CANDIDATES = "この文書からはプロパティ候補を作れませんでした"
 MSG_TOO_MANY_CANDIDATES = "候補が多いため、絞り込んでください"
+MSG_COPIED_SHORT = "コピーしました！"
+
+# AI への相談文（--guide-prompt の GUI 版。追加要望）
+BTN_GUIDE_PROMPT = "AI に相談"
+DLG_GUIDE_PROMPT_TITLE = "AI への相談文"
+DLG_GUIDE_PROMPT_HINT = (
+    "この内容を ChatGPT や Claude などの AI にそのまま貼り付けてください。末尾の「## 依頼」の"
+    "行を、やりたいことに書き換えられます（この欄自体を編集してから貼り付けても構いません）。"
+)
+BTN_COPY_PROMPT = "プロンプトをコピー"
 
 # エラー
 ERR_BUSY = "実行中です。終わるまでお待ちください"
@@ -107,7 +118,6 @@ _JA: dict[str, str] = {k: v for k, v in globals().items() if k.isupper() and isi
 
 _EN: dict[str, str] = {
     "APP_TITLE": "yaqpy",
-    "BTN_OPEN": "Open File",
     "BTN_ADD_FILE": "+ Add File",
     "BTN_CLOSE": "Close",
     "BTN_RUN": "Run",
@@ -116,6 +126,7 @@ _EN: dict[str, str] = {
     "BTN_COPY": "Copy",
     "BTN_OPEN_SETTINGS": "Open Settings",
     "BTN_ADD_TO_EXPR": "Add to Expression",
+    "BTN_QUIT": "Quit",
     "LBL_INPUT_FORMAT": "Input Format",
     "LBL_OUTPUT_FORMAT": "Output Format",
     "LBL_INDENT": "Indent",
@@ -125,6 +136,7 @@ _EN: dict[str, str] = {
     "LBL_ORIGINAL": "Original",
     "LBL_CONVERTED": "Result",
     "LBL_LANGUAGE": "Display language",
+    "LBL_EDITED": "Edited",
     "PH_EXPRESSION": "e.g. .items[] | select(.price > 500)",
     "MSG_NO_DOCUMENT": "Open a file, or paste text here",
     "MSG_RUNNING": "Running…",
@@ -162,6 +174,15 @@ _EN: dict[str, str] = {
     "MSG_PASTED": "(pasted text)",
     "MSG_NO_CANDIDATES": "No property suggestions could be made from this document",
     "MSG_TOO_MANY_CANDIDATES": "Too many suggestions — type to narrow them down",
+    "MSG_COPIED_SHORT": "Copied!",
+    "BTN_GUIDE_PROMPT": "Ask AI",
+    "DLG_GUIDE_PROMPT_TITLE": "Prompt for AI",
+    "DLG_GUIDE_PROMPT_HINT": (
+        "Paste this as-is into ChatGPT, Claude, or another AI. You can rewrite the "
+        '"## 依頼" ("Request") line at the end with what you actually want to do '
+        "(or edit this box itself before pasting)."
+    ),
+    "BTN_COPY_PROMPT": "Copy Prompt",
     "ERR_BUSY": "Still running. Please wait for it to finish",
     "ERR_NO_DOCUMENT": "Open a file first",
     "ERR_TOO_LARGE": "The file is too large ({size} / limit {limit})",

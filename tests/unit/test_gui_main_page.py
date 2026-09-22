@@ -114,12 +114,15 @@ class FormatBadgeTests:
 
 @pytest.mark.skipif(ft is None, reason="flet is not installed")
 class OpenDialogTests:
-    """開くダイアログは拡張子で絞らない：開いたあと中身で形式を判定する（yaqpy 独自）。"""
+    """開くダイアログは拡張子で絞らない：開いたあと中身で形式を判定する（yaqpy 独自）。
+
+    「開く」と「＋ファイルを追加」は 1 つのボタン（``_on_add_file``）に統一されている。
+    """
 
     async def test_the_file_picker_is_not_restricted_to_known_extensions(self) -> None:
         page, _, _ = make_page()
         page._picker.pick_files = mock.AsyncMock(return_value=[])
-        await page._on_open(mock.MagicMock())
+        await page._on_add_file(mock.MagicMock())
         _, kwargs = page._picker.pick_files.call_args
         assert "allowed_extensions" not in kwargs
 
@@ -128,7 +131,7 @@ class OpenDialogTests:
         presenter._fs.files["/w/weird.dat"] = "[db]\nport = 1\n"
         picked = mock.MagicMock(path="/w/weird.dat")
         page._picker.pick_files = mock.AsyncMock(return_value=[picked])
-        await page._on_open(mock.MagicMock())
+        await page._on_add_file(mock.MagicMock())
         assert badge(page, "original") == (True, "toml")
 
 
@@ -207,3 +210,141 @@ class StartupFileTests:
         await page.open_startup_file("/w/does-not-exist.yaml")
         assert not state.document.is_loaded
         assert page._status_icon.color == ft.Colors.ERROR
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class UnifiedAddFileButtonTests:
+    """「ファイルを開く」と「＋ファイルを追加」を 1 つのボタンに統一した（要望）。"""
+
+    async def test_is_enabled_from_the_start(self) -> None:
+        page, _presenter, _state = make_page()
+        assert page._add_file_button.disabled is False
+
+    async def test_with_nothing_open_the_first_pick_opens_it(self) -> None:
+        page, _presenter, state = make_page()
+        page._picker.pick_files = mock.AsyncMock(
+            return_value=[mock.MagicMock(path="/w/shop.xml")])
+        await page._on_add_file(mock.MagicMock())
+        assert [d.name for d in state.documents] == ["shop.xml"]
+        assert badge(page, "original") == (True, "xml")
+
+    async def test_with_something_open_it_adds_instead_of_replacing(self) -> None:
+        page, presenter, state = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        page._picker.pick_files = mock.AsyncMock(
+            return_value=[mock.MagicMock(path="/w/app.toml")])
+        await page._on_add_file(mock.MagicMock())
+        assert [d.name for d in state.documents] == ["shop.xml", "app.toml"]
+
+    async def test_selecting_several_files_with_nothing_open_opens_the_first_and_adds_the_rest(
+        self) -> None:
+        page, _presenter, state = make_page()
+        page._picker.pick_files = mock.AsyncMock(return_value=[
+            mock.MagicMock(path="/w/shop.xml"), mock.MagicMock(path="/w/app.toml")])
+        await page._on_add_file(mock.MagicMock())
+        assert [d.name for d in state.documents] == ["shop.xml", "app.toml"]
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class EditableOriginalTests:
+    """読み込み後も原文欄を編集できる（追加編集。要望）。"""
+
+    async def test_loaded_original_is_not_read_only(self) -> None:
+        page, presenter, _state = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        assert page._original.read_only is False
+
+    async def test_editing_shows_the_edited_label_and_reruns(self) -> None:
+        page, presenter, state = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        assert page._edited_label.visible is False
+        page._original.value = "<shop><item>pencil</item></shop>\n"
+        await page._apply_edit()
+        assert page._edited_label.visible is True
+        assert state.document.edited
+        assert "pencil" in page._converted.value
+
+    async def test_reapplying_the_same_text_is_a_no_op(self) -> None:
+        page, presenter, _state = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        page._original.value = presenter.state.document.original_text
+        await page._apply_edit()
+        assert page._edited_label.visible is False
+
+    async def test_a_fresh_document_hides_the_edited_label(self) -> None:
+        page, presenter, _state = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        page._original.value = "<shop><item>pencil</item></shop>\n"
+        await page._apply_edit()
+        await presenter.open_path("/w/app.toml")
+        page._after_open()
+        assert page._edited_label.visible is False
+
+    async def test_switching_tabs_keeps_each_documents_edited_flag(self) -> None:
+        page, presenter, state = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        await presenter.add_path("/w/app.toml")
+        page._refresh_multi_file_ui()
+        page._original.value = "[db]\nport = 2\n"
+        await page._apply_edit()
+        assert page._edited_label.visible is True
+        await page._on_select_document(0)              # shop.xml（編集していない）
+        assert page._edited_label.visible is False
+        await page._on_select_document(1)              # app.toml（編集した）
+        assert page._edited_label.visible is True
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class IndentStepperTests:
+    """インデントを ± ボタンでも操作できる（要望）。"""
+
+    async def test_plus_increments_the_field_and_state(self) -> None:
+        page, _presenter, state = make_page()
+        page._on_indent_plus(mock.MagicMock())
+        assert state.query.indent == 3
+        assert page._indent_field.value == "3"
+
+    async def test_minus_decrements_the_field_and_state(self) -> None:
+        page, _presenter, state = make_page()
+        page._on_indent_minus(mock.MagicMock())
+        assert state.query.indent == 1
+        assert page._indent_field.value == "1"
+
+    async def test_minus_does_not_go_below_zero(self) -> None:
+        page, _presenter, state = make_page()
+        for _ in range(5):
+            page._on_indent_minus(mock.MagicMock())
+        assert state.query.indent == 0
+        assert page._indent_field.value == "0"
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class GuidePromptDialogTests:
+    """CLI の --guide-prompt を GUI からも呼べる（要望）。
+
+    実際のクリップボード操作（``ft.Clipboard().set``）は、生きた page が無いと
+    ``RuntimeError`` になる（他の ``_on_copy`` も同様に未検査）。ここではダイアログの
+    中身が正しく組み立てられることだけを確かめる。
+    """
+
+    async def test_opens_a_dialog_with_the_guide_prompt_prefilled(self) -> None:
+        from yaqpy.app.selfdoc import render_guide_prompt
+
+        page, presenter, _state = make_page()
+        await page._on_open_guide_prompt(mock.MagicMock())
+        dialog = page._page.show_dialog.call_args.args[0]
+        assert isinstance(dialog, ft.AlertDialog)
+        assert dialog.title.value == "AI への相談文"
+        field = dialog.content.controls[-1]
+        assert field.value == render_guide_prompt(presenter._service)
+
+    async def test_works_without_a_document_open(self) -> None:
+        page, _presenter, _state = make_page()
+        await page._on_open_guide_prompt(mock.MagicMock())
+        page._page.show_dialog.assert_called_once()

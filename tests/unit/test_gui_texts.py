@@ -29,12 +29,12 @@ def _restore_default_language():
 
 class LanguageTests:
     def test_default_is_japanese(self) -> None:
-        assert texts.BTN_OPEN == "ファイルを開く"
+        assert texts.BTN_ADD_FILE == "＋ファイルを追加"
         assert texts.DEFAULT_LANGUAGE == "ja"
 
     def test_switching_to_english_changes_the_module_attributes(self) -> None:
         texts.select_language("en")
-        assert texts.BTN_OPEN == "Open File"
+        assert texts.BTN_ADD_FILE == "+ Add File"
         assert texts.SET_TITLE == "Settings"
 
     def test_app_title_is_the_same_in_both_languages(self) -> None:
@@ -44,11 +44,11 @@ class LanguageTests:
     def test_switching_back_to_japanese_restores_the_original(self) -> None:
         texts.select_language("en")
         texts.select_language("ja")
-        assert texts.BTN_OPEN == "ファイルを開く"
+        assert texts.BTN_ADD_FILE == "＋ファイルを追加"
 
     def test_an_unrecognised_language_falls_back_to_japanese(self) -> None:
         texts.select_language("fr")
-        assert texts.BTN_OPEN == "ファイルを開く"
+        assert texts.BTN_ADD_FILE == "＋ファイルを追加"
 
     def test_every_japanese_key_has_an_english_counterpart(self) -> None:
         # texts.py 自身も import 時に同じ検査を assert している。ここでは回帰検知として残す。
