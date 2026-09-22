@@ -53,6 +53,7 @@ class SettingsState:
     max_input_mib: int = 50
     max_display_lines: int = 5000
     dark_theme: bool = False
+    language: str = "ja"             # "ja" / "en"（U4）。次の起動から有効（gui/texts.py）
 
     @property
     def max_input_bytes(self) -> int:
@@ -71,6 +72,9 @@ def _positive_int(raw: object, fallback: int) -> int:
     return int(_positive_float(raw, float(fallback)))
 
 
+_LANGUAGES = ("ja", "en")
+
+
 def settings_to_dict(settings: SettingsState) -> dict[str, object]:
     """永続化する「安全な設定」だけを取り出す（``allow_env`` / ``allow_file`` は含めない）。"""
     return {
@@ -78,17 +82,22 @@ def settings_to_dict(settings: SettingsState) -> dict[str, object]:
         "max_input_mib": settings.max_input_mib,
         "max_display_lines": settings.max_display_lines,
         "dark_theme": settings.dark_theme,
+        "language": settings.language,
     }
 
 
 def settings_from_dict(data: dict[str, object]) -> SettingsState:
     """読み込み時に壊れた値（型違い・欠損）が来ても既定値で受ける。"""
     defaults = SettingsState()
+    language = data.get("language")
+    if language not in _LANGUAGES:
+        language = defaults.language
     return SettingsState(
         timeout_seconds=_positive_float(data.get("timeout_seconds"), defaults.timeout_seconds),
         max_input_mib=_positive_int(data.get("max_input_mib"), defaults.max_input_mib),
         max_display_lines=_positive_int(data.get("max_display_lines"), defaults.max_display_lines),
         dark_theme=bool(data.get("dark_theme", defaults.dark_theme)),
+        language=language,
     )
 
 

@@ -17,8 +17,14 @@ from yaqpy.errors import (
 )
 from yaqpy.gui import texts
 
-# capability 名 → 設定画面での呼び名
-_CAPABILITY_JA = {"env": "環境変数（env / strenv）", "file": "ファイル読み込み（load / loadstr）"}
+
+def _capability_label(capability: str) -> str:
+    """capability 名 → 設定画面での呼び名（表示言語に合わせる。U4）。
+
+    その場で ``texts`` を読むのは、``select_language`` が呼ばれたあとの言語を必ず反映するため
+    （モジュール読み込み時点の値を固定してしまわないように）。
+    """
+    return {"env": texts.CAP_ENV, "file": texts.CAP_FILE}.get(capability, capability or texts.CAP_UNKNOWN)
 
 
 @dataclass(frozen=True, slots=True)
@@ -58,7 +64,7 @@ def to_view_model(exc: BaseException) -> ErrorViewModel:
                               hint=texts.HINT_INPUT_FORMAT)
 
     if isinstance(exc, SecurityError):
-        name = _CAPABILITY_JA.get(exc.capability, exc.capability or "この機能")
+        name = _capability_label(exc.capability)
         return ErrorViewModel("security", f"この式は {name} を使いますが、許可されていません",
                               hint=texts.HINT_SECURITY.format(capability=name),
                               capability=exc.capability)

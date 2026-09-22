@@ -35,7 +35,6 @@ def _terminate_process_tree() -> None:
 
 
 async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
-    page.title = texts.APP_TITLE
     page.padding = 12
     page.window.width = 1180
     page.window.height = 820
@@ -47,6 +46,8 @@ async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
 
     state = GuiState()
     state.settings = await load_settings(sp)   # allow_env / allow_file は既定のまま（U1）
+    texts.select_language(state.settings.language)   # 画面を組み立てる前に 1 回だけ（U4）
+    page.title = texts.APP_TITLE
     presenter = make_presenter(state)
 
     picker = ft.FilePicker()

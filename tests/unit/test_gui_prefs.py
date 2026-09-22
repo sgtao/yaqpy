@@ -37,13 +37,14 @@ class SettingsPersistenceTests:
         sp = _FakePreferences()
         settings = SettingsState(timeout_seconds=30.0, max_input_mib=10,
                                  max_display_lines=100, dark_theme=True,
-                                 allow_env=True, allow_file=True)
+                                 allow_env=True, allow_file=True, language="en")
         await save_settings(sp, settings)
         restored = await load_settings(sp)
         assert restored.timeout_seconds == 30.0
         assert restored.max_input_mib == 10
         assert restored.max_display_lines == 100
         assert restored.dark_theme is True
+        assert restored.language == "en"
 
     async def test_security_switches_are_never_persisted(self) -> None:
         """allow_env / allow_file は毎回既定（不許可）に戻す（5-4 節 U1 の注意）。"""
@@ -107,3 +108,14 @@ class SettingsDictTests:
         assert restored.timeout_seconds == defaults.timeout_seconds
         assert restored.max_input_mib == defaults.max_input_mib
         assert restored.max_display_lines == defaults.max_display_lines
+
+    def test_an_unknown_language_falls_back_to_the_default(self) -> None:
+        from yaqpy.gui.state import settings_from_dict
+
+        restored = settings_from_dict({"language": "fr"})
+        assert restored.language == SettingsState().language
+
+    def test_a_known_language_is_kept(self) -> None:
+        from yaqpy.gui.state import settings_from_dict
+
+        assert settings_from_dict({"language": "en"}).language == "en"
