@@ -126,7 +126,12 @@ class MultiDocumentTests:
 
 
 class EvalAllTests:
-    """CLI の ``eval-all`` に相当する、複数文書をまとめた評価（U3）。"""
+    """CLI の ``eval-all`` に相当する、複数文書をまとめた評価（presenter 層のみ）。
+
+    画面のトグルは撤去した（形式の異なる文書を混ぜると変換に失敗するなど、ユースケースを
+    詰め切れていないため。USAGE-GUI.ja.md 7-1）。ここは ``state.eval_all`` を直接操作して、
+    ロジック自体が壊れていないことだけを確かめる。
+    """
 
     async def _with_two_documents(self) -> "MainPresenter":
         p = make_presenter()
