@@ -406,7 +406,7 @@ class GuiFlagTests(CliTestCase):
         assert "cannot be combined" in r.stderr
 
     def test_gui_flag_rejects_two_files(self) -> None:
-        """複数ファイルは U3 まで見送り（今は 1 つだけ開ける）。"""
+        """--gui 自体が起動時に開けるのは 1 件だけ（複数開くには GUI 内の [＋追加]。U3）。"""
         first = self.write("a.yaml", "a: 1\n")
         second = self.write("b.yaml", "b: 1\n")
         r = yq("--gui", first, second)

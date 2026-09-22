@@ -51,8 +51,9 @@ def _launch_gui(ns: argparse.Namespace, err: TextIO) -> int:
     (``yaqpy --gui a.yaml``, GUI design doc Q8 / improvement plan 5-4 U2). An
     expression, ``--from-file``, more than one path, or a single argument that is not
     an existing file (most likely a mistyped expression, not a path) stays an error:
-    the GUI has no notion of an expression given on the command line, and (until U3)
-    can only open one document at a time.
+    the GUI has no notion of an expression given on the command line, and --gui itself
+    only ever opens one document at startup. More can still be added afterwards from
+    within the running GUI (the "+ Add File" button, U3); this flag is not how.
     """
     if ns.expression or ns.from_file or len(ns.args) > 1:
         err.write("Error: --gui cannot be combined with an expression or files\n")

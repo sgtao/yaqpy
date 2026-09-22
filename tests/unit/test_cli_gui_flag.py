@@ -88,7 +88,7 @@ class RejectionTests:
         self._assert_rejected("--gui", "--from-file", "expr.yq")
 
     def test_two_files(self) -> None:
-        """複数ファイルは U3 まで見送り（今は 1 つだけ開ける）。"""
+        """--gui 自体が起動時に開けるのは 1 件だけ（複数開くには GUI 内の [＋追加]。U3）。"""
         self._assert_rejected("--gui", "a.yaml", "b.yaml")
 
     def test_a_single_argument_that_is_not_a_real_file(self) -> None:
