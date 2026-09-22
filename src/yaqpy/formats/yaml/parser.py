@@ -12,6 +12,7 @@ from dataclasses import dataclass, field
 
 from yaqpy.core.model.node import Kind, Node, Style
 from yaqpy.errors import YamlSyntaxError
+from yaqpy.formats.base import DecodeBudget
 from yaqpy.formats.yaml.resolver import resolve_plain
 
 _FLOW_END = set(",]}")
@@ -47,11 +48,13 @@ class ParseResult:
 
 class YamlParser:
     def __init__(self, text: str, *, filename: str = "", line_offset: int = 0,
-                 max_depth: int = 1000, anchors: dict[str, Node] | None = None) -> None:
+                 max_depth: int = 1000, anchors: dict[str, Node] | None = None,
+                 budget: DecodeBudget | None = None) -> None:
         self.filename = filename
         self.line_offset = line_offset
         self.max_depth = max_depth
         self.anchors: dict[str, Node] = anchors if anchors is not None else {}
+        self._budget = budget
         raw_lines = text.split("\n")
         if raw_lines and raw_lines[-1] == "":
             raw_lines.pop()
@@ -73,6 +76,14 @@ class YamlParser:
     def _error(self, message: str, li: int | None = None, col: int = 0) -> YamlSyntaxError:
         line_no = (self.li if li is None else li) + 1 + self.line_offset
         return YamlSyntaxError(message, line=line_no, column=col + 1, filename=self.filename)
+
+    def _tick(self) -> None:
+        """巨大な文書のデコード中でも中止・タイムアウトが効くように、主要な走査ループごとに呼ぶ
+
+        （5-4 節 U1。評価と同じ ``StepBudget`` を共有するので、中止フラグと締切の両方に反応する）。
+        """
+        if self._budget is not None:
+            self._budget.tick()
 
     def eof(self) -> bool:
         return self.li >= len(self.lines)
@@ -119,6 +130,7 @@ class YamlParser:
     def parse_stream(self) -> list[Node]:
         documents: list[Node] = []
         while True:
+            self._tick()
             doc = self.parse_document(first=not documents)
             if doc is None:
                 break
@@ -376,6 +388,7 @@ class YamlParser:
         first = True
         last_key: Node | None = None
         while True:
+            self._tick()
             if first:
                 groups: list[CommentGroup] = self.pending
                 self.pending = []
@@ -500,6 +513,7 @@ class YamlParser:
         first = True
         last_item: Node | None = None
         while True:
+            self._tick()
             if first:
                 groups: list[CommentGroup] = self.pending
                 self.pending = []
@@ -1311,9 +1325,10 @@ def _unquote_double(raw: str, parser: YamlParser, ci: int) -> str:
 
 
 def parse_documents(text: str, *, filename: str = "", line_offset: int = 0,
-                    max_depth: int = 1000, anchors: dict[str, Node] | None = None) -> list[Node]:
+                    max_depth: int = 1000, anchors: dict[str, Node] | None = None,
+                    budget: DecodeBudget | None = None) -> list[Node]:
     parser = YamlParser(text, filename=filename, line_offset=line_offset, max_depth=max_depth,
-                        anchors=anchors)
+                        anchors=anchors, budget=budget)
     try:
         return parser.parse_stream()
     except RecursionError:

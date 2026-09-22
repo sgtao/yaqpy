@@ -5,6 +5,13 @@ from __future__ import annotations
 import io
 from unittest import mock
 
+try:
+    import flet as ft
+except ImportError:                        # pragma: no cover - flet は任意の依存
+    ft = None
+
+import pytest
+
 from yaqpy.gui import app
 
 
@@ -17,6 +24,14 @@ class EntryGuardTests:
         assert 'pip install "flet>=1.0,<2"' in err.getvalue()
         assert "uv sync --extra gui" in err.getvalue()
         assert "https://github.com/sgtao/yaqpy" in err.getvalue()   # リリースからの導入案内
+
+    @pytest.mark.skipif(ft is None, reason="flet is not installed")
+    def test_initial_path_reaches_run_app(self) -> None:
+        """``yaqpy --gui a.yaml`` の a.yaml が run_app まで届くこと（U2）。"""
+        with mock.patch("yaqpy.gui._run.run_app") as run_app:
+            code = app.main_entry(initial_path="/w/a.yaml")
+        assert code == 0
+        run_app.assert_called_once_with(initial_path="/w/a.yaml")
 
     def test_app_module_imports_without_flet(self) -> None:
         """app.py が import 時点で flet を要求しないこと。"""

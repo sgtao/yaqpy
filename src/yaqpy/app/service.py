@@ -169,6 +169,7 @@ class YqService:
                 "--toml-allow-lossy to accept that.")
         decoder = self.formats.decoder_for(input_format, options)
         encoder = self.formats.encoder_for(output_format, options, unwrap)
+        budget = budget if budget is not None else self.new_budget(options)
         env = self.make_env(options, budget)
         nav = Navigator(env)
         printer = ResultPrinter(encoder, sink, nul_separated=options.nul_separated_output,
@@ -180,9 +181,11 @@ class YqService:
             if options.null_input or not request.inputs:
                 document_count = self._evaluate_null_input(nav, expression, printer, request.mode)
             elif request.mode is EvalMode.STREAM:
-                document_count = self._evaluate_stream(nav, expression, printer, decoder, request)
+                document_count = self._evaluate_stream(nav, expression, printer, decoder, request,
+                                                       budget)
             else:
-                document_count = self._evaluate_all(nav, expression, printer, decoder, request)
+                document_count = self._evaluate_all(nav, expression, printer, decoder, request,
+                                                    budget)
         except YqError:
             raise
         except RecursionError:
@@ -227,18 +230,18 @@ class YqService:
         return 0
 
     def _decode(self, decoder: Any, request: EvaluateRequest, source: InputSource,
-                file_index: int, process_leading: bool) -> Iterator[Node]:
+                file_index: int, process_leading: bool, budget: StepBudget) -> Iterator[Node]:
         text = self._read_input(source)
         name = "" if source.name in ("<text>",) else source.name
         return decoder.decode_documents(text, filename=name, file_index=file_index,
-                                        process_leading=process_leading)
+                                        process_leading=process_leading, budget=budget)
 
     def _evaluate_stream(self, nav: Navigator, expression: Expression, printer: ResultPrinter,
-                         decoder: Any, request: EvaluateRequest) -> int:
+                         decoder: Any, request: EvaluateRequest, budget: StepBudget) -> int:
         total = 0
         root: ExprNode | None = expression.root
         for file_index, source in enumerate(request.inputs):
-            for node in self._decode(decoder, request, source, file_index, True):
+            for node in self._decode(decoder, request, source, file_index, True, budget):
                 result = nav.evaluate(self._root_context([node]), root)
                 printer.print_results(result.nodes)
                 total += 1
@@ -247,10 +250,10 @@ class YqService:
         return total
 
     def _evaluate_all(self, nav: Navigator, expression: Expression, printer: ResultPrinter,
-                      decoder: Any, request: EvaluateRequest) -> int:
+                      decoder: Any, request: EvaluateRequest, budget: StepBudget) -> int:
         documents: list[Node] = []
         for file_index, source in enumerate(request.inputs):
-            for node in self._decode(decoder, request, source, file_index, file_index == 0):
+            for node in self._decode(decoder, request, source, file_index, file_index == 0, budget):
                 node.evaluate_together = True     # Go's readDocuments
                 documents.append(node)
         if not documents:

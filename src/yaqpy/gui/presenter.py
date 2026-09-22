@@ -5,11 +5,12 @@ from __future__ import annotations
 import asyncio
 import os
 from collections.abc import Callable
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 from yaqpy.app.dto import EvalMode, EvaluateRequest, EvaluateResult, InputSource
 from yaqpy.app.ports import FileSystemPort
 from yaqpy.app.printer import MemorySink
+from yaqpy.app.selfdoc import render_guide_prompt
 from yaqpy.app.service import YqService
 from yaqpy.core.engine.limits import StepBudget
 from yaqpy.errors import UnknownFormatError
@@ -17,6 +18,9 @@ from yaqpy.gui import intake, texts
 from yaqpy.gui.errors_ja import ErrorViewModel, to_view_model
 from yaqpy.gui.paths import DEFAULT_MAX_DEPTH, DEFAULT_MAX_ITEMS, PathCandidate, collect_paths
 from yaqpy.gui.state import AUTO, DocumentState, GuiState, build_options, truncate_for_display
+
+BACKUP_SUFFIX = ".bak"
+"""上書き保存の直前に、元の内容をここに退避する（U2）。同名のバックアップは毎回上書きする。"""
 
 
 @dataclass(frozen=True, slots=True)
@@ -71,6 +75,7 @@ class SaveViewModel:
     path: str = ""
     byte_size: int = 0
     needs_overwrite_confirmation: bool = False   # 元ファイルと同じパスを指された
+    backup_path: str = ""            # 上書き保存で作ったバックアップ（別名保存なら空。U2）
     error: ErrorViewModel | None = None
 
     @property
@@ -115,19 +120,95 @@ class MainPresenter:
         return self._accept(intake.from_text(text, name=name))
 
     def close_document(self) -> None:
-        self.state.document = DocumentState()
+        """開いているものをすべて閉じて、最初の状態に戻す。"""
+        self.state.documents = []
+        self.state.active_index = 0
+        self.state.eval_all = False
         self.state.query.expression = "."
         self._last_run = None
         self._candidates = []
 
     def _accept(self, item: intake.IntakeItem) -> OpenViewModel:
-        self.state.document = DocumentState(path=item.path, name=item.name,
-                                            original_text=item.text, byte_size=item.byte_size)
+        self.state.documents = [DocumentState(path=item.path, name=item.name,
+                                              original_text=item.text, byte_size=item.byte_size)]
+        self.state.active_index = 0
+        self.state.eval_all = False
         self.state.query.expression = "."          # 新しい文書は恒等式から始める
         self._last_run = None
         self._candidates = []
         return OpenViewModel(name=item.name, path=item.path, original_text=item.text,
                              byte_size=item.byte_size)
+
+    # ------------------------------------------------------------------ 複数ファイル（U3）
+
+    async def add_path(self, path: str) -> OpenViewModel:
+        """いま開いているものを閉じずに、もう 1 件をファイル一覧に加える。
+
+        式はそのままにする（同じ式を複数の文書に当てて見比べる／``eval_all`` でまとめて評価する、
+        という使い方を想定している）。
+        """
+        try:
+            item = await asyncio.to_thread(
+                intake.from_path, self._fs, path,
+                max_bytes=self.state.settings.max_input_bytes,
+                size_of=self._size_of,
+                origin=intake.DIALOG,
+            )
+        except intake.IntakeError as e:
+            return OpenViewModel(error=ErrorViewModel("intake", str(e)))
+        except Exception as e:                      # noqa: BLE001 - 画面を落とさない
+            return OpenViewModel(error=to_view_model(e))
+        self.state.documents.append(DocumentState(path=item.path, name=item.name,
+                                                   original_text=item.text,
+                                                   byte_size=item.byte_size))
+        self.state.active_index = len(self.state.documents) - 1
+        self._last_run = None
+        self._candidates = []
+        return OpenViewModel(name=item.name, path=item.path, original_text=item.text,
+                             byte_size=item.byte_size)
+
+    def select_document(self, index: int) -> None:
+        """一覧の 1 件を「いま表示している文書」にする（式は変えない）。"""
+        if 0 <= index < len(self.state.documents):
+            self.state.active_index = index
+            self._last_run = None
+            self._candidates = []
+
+    def close_document_at(self, index: int) -> None:
+        """一覧の 1 件だけを閉じる。最後の 1 件ならすべて閉じたのと同じになる。"""
+        documents = self.state.documents
+        if not (0 <= index < len(documents)):
+            return
+        del documents[index]
+        if not documents:
+            self.close_document()
+            return
+        if index < self.state.active_index:
+            self.state.active_index -= 1
+        self.state.active_index = min(self.state.active_index, len(documents) - 1)
+        if len(documents) < 2:
+            self.state.eval_all = False            # まとめて評価は 2 件以上のときだけ意味がある
+        self._last_run = None
+        self._candidates = []
+
+    def edit_active_document(self, text: str) -> bool:
+        """いま表示している文書の原文を画面上で書き換える（追加編集。改修計画とは別の追加要望）。
+
+        変わっていなければ何もしない（デバウンス経由で不要な再実行を避ける）。開いたファイル
+        そのもの（ディスク上の内容）は触らない：保存で上書きするときは、その時点のディスクの
+        中身をあらためて読んでバックアップする（``_backup_before_overwrite``）ので、ここで
+        ``original_text`` を書き換えても G4 の安全策は影響を受けない。
+        """
+        if not self.state.documents:
+            return False
+        doc = self.state.document
+        if doc.original_text == text:
+            return False
+        self.state.documents[self.state.active_index] = replace(
+            doc, original_text=text, byte_size=len(text.encode("utf-8")), edited=True)
+        self._last_run = None
+        self._candidates = []
+        return True
 
     # ------------------------------------------------------------------ 式の検証
 
@@ -255,6 +336,15 @@ class MainPresenter:
         except UnknownFormatError:
             return name
 
+    # ------------------------------------------------------------------ AI への相談文（追加要望）
+
+    async def guide_prompt(self) -> str:
+        """CLI の ``--guide-prompt`` と同じ内容（式の記法・演算子一覧・やってはいけないこと・例）を返す。
+
+        文書の有無に関わらず使える。例の実行を含むのでスレッドへ逃がす。
+        """
+        return await asyncio.to_thread(render_guide_prompt, self._service)
+
     # ------------------------------------------------------------------ 保存（G3）
 
     def default_save_name(self) -> str:
@@ -270,31 +360,75 @@ class MainPresenter:
         return f"{stem or 'output'}{extension}"
 
     async def save(self, path: str, *, confirmed: bool = False) -> SaveViewModel:
-        """変換結果の**全量**を別名保存する。"""
+        """変換結果の**全量**を保存する。
+
+        既定は別名保存。**開いている元ファイルと同じパス**を指されたときだけ、確認
+        （``confirmed=True``）のうえで上書きを許す。上書きの直前に、元の内容を
+        ``{path}.bak`` として必ずバックアップする（G4 の緩和。U2）。バックアップが
+        作れなければ、元のファイルを壊さないために**上書きしない**。
+        """
         run = self._last_run
         if run is None:                       # 表示が古い／まだ実行していない
             run = await self.run()
             if not run.ok:
                 return SaveViewModel(path=path, error=run.error)
-        if not confirmed and self._is_source_path(path):
+        overwriting = self._is_source_path(path)
+        if not confirmed and overwriting:
             return SaveViewModel(path=path, needs_overwrite_confirmation=True)
+        backup_path = ""
+        if confirmed and overwriting:
+            backup_path, error = await self._backup_before_overwrite(path)
+            if error is not None:
+                return SaveViewModel(path=path, error=error)
         text = run.full_text                  # ← display_text を使わないこと（S1）
         try:
             await asyncio.to_thread(self._fs.atomic_write, path, text)
         except Exception as e:                # noqa: BLE001 - 画面を落とさない
             return SaveViewModel(path=path, error=to_view_model(e))
-        return SaveViewModel(path=path, byte_size=len(text.encode("utf-8")))
+        return SaveViewModel(path=path, byte_size=len(text.encode("utf-8")), backup_path=backup_path)
+
+    async def _backup_before_overwrite(self, path: str) -> tuple[str, ErrorViewModel | None]:
+        """``path`` の**今の中身**を ``{path}.bak`` に退避する。戻り値は (バックアップ先, エラー)。
+
+        元のファイルがもう無ければ（レース）、退避するものが無いので何もしない。
+        """
+        try:
+            original = await asyncio.to_thread(self._fs.read_text, path)
+        except FileNotFoundError:
+            return "", None
+        except Exception as e:                # noqa: BLE001 - 上書きの中止として画面に出す
+            return "", to_view_model(e)
+        backup_path = f"{path}{BACKUP_SUFFIX}"
+        try:
+            await asyncio.to_thread(self._fs.atomic_write, backup_path, original)
+        except Exception as e:                # noqa: BLE001 - 上書きの中止として画面に出す
+            return "", to_view_model(e)
+        return backup_path, None
 
     def _is_source_path(self, path: str) -> bool:
-        """保存先が、いま開いているファイルと同じか（大文字小文字・相対表記を吸収する）。"""
-        source = self.state.document.path
-        if not source:
-            return False
+        """保存先が、**開いているどれかの**文書と同じか（大文字小文字・相対表記を吸収する）。
+
+        アクティブな 1 件だけでなく一覧全体を見る：複数ファイル（U3）を開いているとき、
+        アクティブでない方のパスへうっかり保存しても、G4 の確認・バックアップを素通りしない。
+        """
         try:
-            return (os.path.normcase(os.path.realpath(source))
-                    == os.path.normcase(os.path.realpath(path)))
+            target = os.path.normcase(os.path.realpath(path))
         except OSError:
-            return source == path
+            target = None
+        for doc in self.state.documents:
+            source = doc.path
+            if not source:
+                continue
+            if target is not None:
+                try:
+                    if os.path.normcase(os.path.realpath(source)) == target:
+                        return True
+                    continue
+                except OSError:
+                    pass
+            if source == path:
+                return True
+        return False
 
     def _collect_sync(self, input_format: str, text: str) -> list[PathCandidate]:
         """別スレッドで動く。デコードだけして評価器は通さない。"""
@@ -311,11 +445,21 @@ class MainPresenter:
         return self._service.evaluate(request, MemorySink(), budget=budget)
 
     def _build_request(self) -> EvaluateRequest:
-        d, q = self.state.document, self.state.query
+        q = self.state.query
+        if self.state.eval_all and self.state.has_multiple_documents:
+            # CLI の eval-all 相当：開いているすべての文書を 1 回の評価にまとめて渡す
+            # （fi / filename で文書ごとに参照できる）。
+            inputs = tuple(InputSource(d.source_name, d.original_text)
+                          for d in self.state.documents)
+            mode = EvalMode.ALL
+        else:
+            d = self.state.document
+            inputs = (InputSource(d.source_name, d.original_text),)
+            mode = EvalMode.STREAM
         return EvaluateRequest(
             expression=q.expression or ".",
-            inputs=(InputSource(d.source_name, d.original_text),),
-            mode=EvalMode.STREAM,
+            inputs=inputs,
+            mode=mode,
             options=build_options(self.state),
             input_format=q.input_format,       # "auto" なら service が拡張子で判定する
             output_format=q.output_format,

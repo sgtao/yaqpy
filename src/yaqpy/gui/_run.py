@@ -11,6 +11,7 @@ import flet as ft
 
 from yaqpy.gui import texts
 from yaqpy.gui._di import make_presenter
+from yaqpy.gui._prefs import load_settings, save_settings
 from yaqpy.gui.pages.main_page import MainPage
 from yaqpy.gui.pages.settings_page import SettingsPage
 from yaqpy.gui.state import GuiState
@@ -33,19 +34,30 @@ def _terminate_process_tree() -> None:
     os._exit(0)                               # taskkill が間に合わなかったときの保険
 
 
-def _main(page: ft.Page) -> None:
-    page.title = texts.APP_TITLE
+async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
     page.padding = 12
     page.window.width = 1180
-    page.window.height = 820
+    page.window.height = 880          # 未読込の画面（案内＋貼り付け欄）が収まるように少し広げた
     page.window.min_width = 820
-    page.window.min_height = 560
+    page.window.min_height = 620
+
+    sp = ft.SharedPreferences()
+    page.services.append(sp)
 
     state = GuiState()
+    state.settings = await load_settings(sp)   # allow_env / allow_file は既定のまま（U1）
+    texts.select_language(state.settings.language)   # 画面を組み立てる前に 1 回だけ（U4）
+    page.title = texts.APP_TITLE
     presenter = make_presenter(state)
 
     picker = ft.FilePicker()
     page.services.append(picker)           # Flet 1.0: overlay ではなく services
+
+    def persist_settings() -> None:
+        async def _save() -> None:
+            await save_settings(sp, state.settings)
+
+        page.run_task(_save)
 
     content = ft.Container(expand=True)
     nav_labels = [texts.NAV_MAIN, texts.NAV_SETTINGS]
@@ -68,13 +80,39 @@ def _main(page: ft.Page) -> None:
     main_page = MainPage(page=page, presenter=presenter, state=state, picker=picker,
                          on_open_settings=go_to_settings)
     settings_page = SettingsPage(page=page, state=state,
-                                 on_changed=lambda: page.run_task(main_page.rerun))
+                                 on_changed=lambda: page.run_task(main_page.rerun),
+                                 on_persist=persist_settings)
     pages = [main_page, settings_page]
+
+    def ask_quit(e: ft.Event) -> None:
+        """要望：終了ボタンはワンクリックで閉じず、確認を挟む。"""
+
+        def cancel(_: ft.Event) -> None:
+            page.pop_dialog()
+
+        async def confirm(_: ft.Event) -> None:
+            page.pop_dialog()
+            # 窓の × と同じ経路（page.window.close() → prevent_close → on_window_event）で終了する。
+            await page.window.close()
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text(texts.DLG_QUIT_TITLE),
+            actions=[
+                ft.TextButton(content=texts.DLG_QUIT_CANCEL, on_click=cancel, autofocus=True),
+                ft.TextButton(content=texts.DLG_QUIT_OK, on_click=confirm),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        page.show_dialog(dialog)
 
     nav_bar = ft.Container(
         content=ft.Row([
             ft.TextButton(content=nav_texts[0], on_click=lambda e: show(0)),
             ft.TextButton(content=nav_texts[1], on_click=lambda e: show(1)),
+            ft.Container(expand=True),
+            ft.IconButton(icon=ft.Icons.POWER_SETTINGS_NEW, icon_color=ft.Colors.ERROR,
+                         tooltip=texts.BTN_QUIT, on_click=ask_quit),
         ], alignment=ft.MainAxisAlignment.START),
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
         padding=ft.Padding.symmetric(horizontal=8, vertical=4),
@@ -85,23 +123,33 @@ def _main(page: ft.Page) -> None:
             return
         presenter.cancel()                    # 走っている評価を協調的に止める（リスク R9）
         await page.window.destroy()
-        await asyncio.sleep(CLOSE_GRACE_SECONDS)
-        _terminate_process_tree()
+        if sys.platform == "win32":
+            # flet.exe が生き残る既知の不具合（_terminate_process_tree）への対処。macOS / Linux
+            # ではこの不具合は報告されておらず、taskkill は Windows 専用コマンドなので他 OS では
+            # 呼ばない（U4。実機未確認のため、既知の不具合が無い前提でこの対処に限定する）。
+            await asyncio.sleep(CLOSE_GRACE_SECONDS)
+            _terminate_process_tree()
 
-    if sys.platform == "win32":
-        # 窓を閉じたときに自分で終了させる（理由は _terminate_process_tree）。
-        page.window.prevent_close = True
-        page.window.on_event = on_window_event
+    # 窓を閉じたときに評価を止めてから終了させる。`page.window.on_event` は OS を問わない
+    # Flet の API（実測は Windows のみ。macOS / Linux は動作未確認。U4）。
+    page.window.prevent_close = True
+    page.window.on_event = on_window_event
 
     def on_close(e: ft.Event) -> None:
-        presenter.cancel()                    # セッションが破棄されるときの保険（Windows 以外はこちら）
+        presenter.cancel()                    # セッションが破棄されるときの保険
 
     page.on_close = on_close
     page.theme_mode = ft.ThemeMode.DARK if state.settings.dark_theme else ft.ThemeMode.LIGHT
 
     show(0)
     page.add(content, nav_bar)
+    if initial_path:
+        # yaqpy --gui a.yaml（U2）。add() の後で走らせ、画面が組み上がってから開く。
+        page.run_task(main_page.open_startup_file, initial_path)
 
 
-def run_app() -> None:
-    ft.run(_main)
+def run_app(*, initial_path: str | None = None) -> None:
+    async def main(page: ft.Page) -> None:
+        await _main(page, initial_path=initial_path)
+
+    ft.run(main)

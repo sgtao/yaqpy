@@ -17,6 +17,7 @@ class DocumentState:
     name: str = ""                # 形式の自動判定に使う表示名（ファイル名）
     original_text: str = ""
     byte_size: int = 0
+    edited: bool = False          # 読み込み後に画面上で書き換えたか（追加編集。追加要望）
 
     @property
     def is_loaded(self) -> bool:
@@ -41,7 +42,11 @@ class QueryState:
 
 @dataclass(slots=True)
 class SettingsState:
-    """設定画面の値。v1 では永続化しない（セッション内のみ）。"""
+    """設定画面の値。
+
+    ``allow_env`` / ``allow_file`` を除く「安全な設定」は Phase U1 で永続化する
+    （``gui/_prefs.py``。危険な許可は毎回既定に戻す。5-4 節 U1）。
+    """
 
     allow_env: bool = False
     allow_file: bool = False
@@ -49,20 +54,80 @@ class SettingsState:
     max_input_mib: int = 50
     max_display_lines: int = 5000
     dark_theme: bool = False
+    language: str = "ja"             # "ja" / "en"（U4）。次の起動から有効（gui/texts.py）
 
     @property
     def max_input_bytes(self) -> int:
         return self.max_input_mib * 1024 * 1024
 
 
+def _positive_float(raw: object, fallback: float) -> float:
+    try:
+        value = float(raw)  # type: ignore[arg-type]
+    except (TypeError, ValueError):
+        return fallback
+    return value if value > 0 else fallback
+
+
+def _positive_int(raw: object, fallback: int) -> int:
+    return int(_positive_float(raw, float(fallback)))
+
+
+_LANGUAGES = ("ja", "en")
+
+
+def settings_to_dict(settings: SettingsState) -> dict[str, object]:
+    """永続化する「安全な設定」だけを取り出す（``allow_env`` / ``allow_file`` は含めない）。"""
+    return {
+        "timeout_seconds": settings.timeout_seconds,
+        "max_input_mib": settings.max_input_mib,
+        "max_display_lines": settings.max_display_lines,
+        "dark_theme": settings.dark_theme,
+        "language": settings.language,
+    }
+
+
+def settings_from_dict(data: dict[str, object]) -> SettingsState:
+    """読み込み時に壊れた値（型違い・欠損）が来ても既定値で受ける。"""
+    defaults = SettingsState()
+    language = data.get("language")
+    if language not in _LANGUAGES:
+        language = defaults.language
+    return SettingsState(
+        timeout_seconds=_positive_float(data.get("timeout_seconds"), defaults.timeout_seconds),
+        max_input_mib=_positive_int(data.get("max_input_mib"), defaults.max_input_mib),
+        max_display_lines=_positive_int(data.get("max_display_lines"), defaults.max_display_lines),
+        dark_theme=bool(data.get("dark_theme", defaults.dark_theme)),
+        language=language,
+    )
+
+
 @dataclass(slots=True)
 class GuiState:
-    """画面をまたいで共有する唯一の状態。"""
+    """画面をまたいで共有する唯一の状態。
 
-    document: DocumentState = field(default_factory=DocumentState)
+    ``documents`` は開いている文書の一覧（U3。開いた順）。単一ファイルの操作（開く・貼り付け・
+    閉じる）は、これまでどおり 1 件だけの一覧として扱う。``document`` はいま選ばれている 1 件
+    （``active_index``）を指す読み取り専用のショートカットで、代入はできない
+    （``documents``／``active_index`` を操作すること）。
+    """
+
+    documents: list[DocumentState] = field(default_factory=list)
+    active_index: int = 0
+    eval_all: bool = False           # 2 件以上を「まとめて評価」する（CLI の eval-all 相当。U3）
     query: QueryState = field(default_factory=QueryState)
     settings: SettingsState = field(default_factory=SettingsState)
     running: bool = False
+
+    @property
+    def document(self) -> DocumentState:
+        if 0 <= self.active_index < len(self.documents):
+            return self.documents[self.active_index]
+        return DocumentState()
+
+    @property
+    def has_multiple_documents(self) -> bool:
+        return len(self.documents) > 1
 
 
 def build_options(state: GuiState) -> Options:

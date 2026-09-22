@@ -40,23 +40,23 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 Python 3.13 以上が必要です。yaqpy は PyPI には公開していないので、**GitHub のリリース**から入れます。
 
 1. [Releases](https://github.com/sgtao/yaqpy/releases) で、入れたい版を選びます（最新版が一番上です）
-2. 次のコマンドの **`0.4.0`（と `v0.4.0`）を、選んだ版の番号に読み替えて**実行します
+2. 次のコマンドの **`0.5.0`（と `v0.5.0`）を、選んだ版の番号に読み替えて**実行します
 
 ```bash
 # ビルド済みの wheel から入れる（Git は不要）
-pip install https://github.com/sgtao/yaqpy/releases/download/v0.4.0/yaqpy-0.4.0-py3-none-any.whl
+pip install https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl
 
 # GUI も使う場合（Flet が追加されます）
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.4.0/yaqpy-0.4.0-py3-none-any.whl"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl"
 
 # コマンドとして入れる場合（uv）
-uv tool install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.4.0/yaqpy-0.4.0-py3-none-any.whl"
+uv tool install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl"
 ```
 
 Git がある場合は、タグを指定して入れることもできます。
 
 ```bash
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.4.0"
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.5.0"
 ```
 
 新しい版に更新するときは、新しい版の番号で同じコマンドを実行します。ソースを見たい・改造したい場合は [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。

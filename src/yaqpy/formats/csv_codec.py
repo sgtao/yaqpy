@@ -20,6 +20,7 @@ from typing import TextIO
 
 from yaqpy.core.model.node import Kind, Node
 from yaqpy.errors import FormatError
+from yaqpy.formats.base import DecodeBudget
 from yaqpy.formats.yaml.codec import YamlDecoder
 from yaqpy.formats.yaml.resolver import resolve_plain
 from yaqpy.options import Options
@@ -155,7 +156,8 @@ class CsvDecoder:
     # ------------------------------------------------------------------ documents
 
     def decode_documents(self, text: str, *, filename: str = "", file_index: int = 0,
-                         process_leading: bool = True) -> Iterator[Node]:
+                         process_leading: bool = True,
+                         budget: DecodeBudget | None = None) -> Iterator[Node]:
         if len(text.encode("utf-8", "surrogatepass")) > self.options.limits.max_input_bytes:
             raise FormatError("input exceeds max_input_bytes", format=self._format, filename=filename)
         try:
@@ -166,6 +168,8 @@ class CsvDecoder:
             header = header_record[1]
             root = Node.sequence()
             for _, row in records:
+                if budget is not None:
+                    budget.tick()
                 obj = Node.mapping()
                 obj.parent = root
                 for name, cell in zip(header, row):

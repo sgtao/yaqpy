@@ -10,6 +10,7 @@ from typing import Any, TextIO
 from yaqpy.core.model import tags
 from yaqpy.core.model.node import Kind, Node, Style
 from yaqpy.errors import FormatError
+from yaqpy.formats.base import DecodeBudget
 from yaqpy.options import Options
 
 
@@ -26,25 +27,30 @@ def _pairs_hook(pairs: list[tuple[str, Any]]) -> list[tuple[str, Any]]:
     return _Object(pairs)
 
 
-def _to_node(value: Any, parent: Node | None = None) -> Node:
+def _to_node(value: Any, parent: Node | None = None,
+            budget: DecodeBudget | None = None) -> Node:
     if isinstance(value, _Object):
         node = Node.mapping(parent=parent)
         for key, child in value:
+            if budget is not None:
+                budget.tick()
             key_node = Node.string(str(key))
             key_node.tag = "!!str"
             key_node.parent = node
             key_node.is_map_key = True
-            child_node = _to_node(child, node)
+            child_node = _to_node(child, node, budget)
             child_node.key = key_node
             node.content.extend((key_node, child_node))
         return node
     if isinstance(value, list):
         node = Node.sequence(parent=parent)
         for i, child in enumerate(value):
+            if budget is not None:
+                budget.tick()
             key_node = Node.integer(i)
             key_node.parent = node
             key_node.is_map_key = True
-            child_node = _to_node(child, node)
+            child_node = _to_node(child, node, budget)
             child_node.key = key_node
             node.content.append(child_node)
         return node
@@ -76,7 +82,8 @@ class JsonDecoder:
         )
 
     def decode_documents(self, text: str, *, filename: str = "", file_index: int = 0,
-                         process_leading: bool = True) -> Iterator[Node]:
+                         process_leading: bool = True,
+                         budget: DecodeBudget | None = None) -> Iterator[Node]:
         if text.startswith("﻿"):
             text = text[1:]
         if len(text.encode("utf-8", "surrogatepass")) > self.options.limits.max_input_bytes:
@@ -85,6 +92,8 @@ class JsonDecoder:
         index = 0
         n = len(text)
         while True:
+            if budget is not None:
+                budget.tick()
             while pos < n and text[pos] in " \t\r\n":
                 pos += 1
             if pos >= n:
@@ -96,7 +105,7 @@ class JsonDecoder:
                                   line=e.lineno, column=e.colno) from None
             except RecursionError:
                 raise FormatError("JSON nesting too deep", format="json", filename=filename) from None
-            node = _to_node(value)
+            node = _to_node(value, budget=budget)
             node.document_index = index
             node.filename = filename
             node.file_index = file_index

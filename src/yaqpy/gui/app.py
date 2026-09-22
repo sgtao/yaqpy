@@ -17,14 +17,14 @@ def flet_available() -> bool:
     return importlib.util.find_spec("flet") is not None
 
 
-def main_entry(*, stderr: TextIO | None = None) -> int:
+def main_entry(*, stderr: TextIO | None = None, initial_path: str | None = None) -> int:
     err = stderr or sys.stderr
     if not flet_available():
         err.write(texts.INSTALL_HINT)
         return 1
     from yaqpy.gui._run import run_app
 
-    run_app()
+    run_app(initial_path=initial_path)
     return 0
 
 

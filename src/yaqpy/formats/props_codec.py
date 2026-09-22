@@ -9,6 +9,7 @@ from typing import TextIO
 from yaqpy.core.model.leading import DOC_SEPARATOR_MARKER
 from yaqpy.core.model.node import Kind, Node
 from yaqpy.errors import FormatError
+from yaqpy.formats.base import DecodeBudget
 from yaqpy.options import Options
 
 
@@ -204,7 +205,8 @@ def _split_key_value(line: str) -> tuple[str, str]:
     return _unescape(key), _unescape(line[i:])
 
 
-def parse_properties(text: str) -> list[tuple[str, str, list[str]]]:
+def parse_properties(text: str,
+                     budget: DecodeBudget | None = None) -> list[tuple[str, str, list[str]]]:
     """``(key, value, comments)`` for every property, in the order the keys first appear.
 
     Comment lines (``#`` or ``!``) belong to the next property. A later definition of the same key
@@ -215,6 +217,8 @@ def parse_properties(text: str) -> list[tuple[str, str, list[str]]]:
     lines = _LINE_BREAK.split(text)
     i = 0
     while i < len(lines):
+        if budget is not None:
+            budget.tick()
         line = lines[i].lstrip(_BLANKS)
         i += 1
         if line == "":
@@ -370,7 +374,8 @@ class PropertiesDecoder:
         self.array_brackets = self.options.props.use_array_brackets
 
     def decode_documents(self, text: str, *, filename: str = "", file_index: int = 0,
-                         process_leading: bool = True) -> Iterator[Node]:
+                         process_leading: bool = True,
+                         budget: DecodeBudget | None = None) -> Iterator[Node]:
         if text.startswith("﻿"):
             text = text[1:]
         if len(text.encode("utf-8", "surrogatepass")) > self.options.limits.max_input_bytes:
@@ -379,7 +384,7 @@ class PropertiesDecoder:
             return
         root = Node.mapping()
         try:
-            for key, value, comments in parse_properties(text):
+            for key, value, comments in parse_properties(text, budget):
                 path = parse_key(key, array_brackets=self.array_brackets)
                 if len(path) > MAX_PATH_DEPTH:
                     raise FormatError(f"properties: the key '{key[:40]}...' is nested more than "

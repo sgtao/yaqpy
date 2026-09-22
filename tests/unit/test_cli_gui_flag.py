@@ -6,6 +6,7 @@ main_entry はモックに差し替えるので、flet が入っている環境�
 from __future__ import annotations
 
 import io
+from pathlib import Path
 from unittest import mock
 
 from yaqpy.cli.main import main
@@ -67,7 +68,7 @@ class DelegationTests:
 
 
 class RejectionTests:
-    """--gui と式・ファイルの併用は、黙って無視せずエラーにする。"""
+    """--gui と式・複数ファイルの併用は、黙って無視せずエラーにする。"""
 
     def _assert_rejected(self, *argv: str) -> None:
         with mock.patch("yaqpy.gui.app.main_entry") as entry:
@@ -77,9 +78,6 @@ class RejectionTests:
         assert out == ""
         entry.assert_not_called()
 
-    def test_positional_file(self) -> None:
-        self._assert_rejected("--gui", "sample.yaml")
-
     def test_expression_and_file(self) -> None:
         self._assert_rejected("--gui", ".a", "sample.yaml")
 
@@ -88,3 +86,29 @@ class RejectionTests:
 
     def test_from_file_flag(self) -> None:
         self._assert_rejected("--gui", "--from-file", "expr.yq")
+
+    def test_two_files(self) -> None:
+        """--gui 自体が起動時に開けるのは 1 件だけ（複数開くには GUI 内の [＋追加]。U3）。"""
+        self._assert_rejected("--gui", "a.yaml", "b.yaml")
+
+    def test_a_single_argument_that_is_not_a_real_file(self) -> None:
+        """存在しないパスは、打ち間違えた式かもしれないので開かずに断る。"""
+        self._assert_rejected("--gui", ".a")
+
+
+class StartupFileTests:
+    """``yaqpy --gui a.yaml`` は、その 1 ファイルを開いた状態で起動する（U2、設計書 Q8）。"""
+
+    def test_a_real_file_is_passed_through_as_the_initial_path(self, tmp_path: Path) -> None:
+        path = tmp_path / "sample.yaml"
+        path.write_text("a: 1\n", encoding="utf-8")
+        with mock.patch("yaqpy.gui.app.main_entry", return_value=0) as entry:
+            code, out, err = run("--gui", str(path))
+        assert code == 0
+        assert out == err == ""
+        assert entry.call_args.kwargs["initial_path"] == str(path)
+
+    def test_no_file_means_no_initial_path(self) -> None:
+        with mock.patch("yaqpy.gui.app.main_entry", return_value=0) as entry:
+            run("--gui")
+        assert entry.call_args.kwargs["initial_path"] is None

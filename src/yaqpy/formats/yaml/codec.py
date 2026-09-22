@@ -9,6 +9,7 @@ from typing import TextIO
 from yaqpy.core.model.leading import DOC_SEPARATOR_MARKER, render_leading_content
 from yaqpy.core.model.node import Kind, Node
 from yaqpy.errors import FormatError
+from yaqpy.formats.base import DecodeBudget
 from yaqpy.formats.yaml.emitter import emit_document
 from yaqpy.formats.yaml.parser import parse_documents
 from yaqpy.options import Options
@@ -65,7 +66,8 @@ class YamlDecoder:
         return docs[0]
 
     def decode_documents(self, text: str, *, filename: str = "", file_index: int = 0,
-                         process_leading: bool = True) -> Iterator[Node]:
+                         process_leading: bool = True,
+                         budget: DecodeBudget | None = None) -> Iterator[Node]:
         if text.startswith("﻿"):
             text = text[1:]
         if len(text.encode("utf-8", "surrogatepass")) > self.options.limits.max_input_bytes:
@@ -78,7 +80,7 @@ class YamlDecoder:
         try:
             documents = parse_documents(body, filename=filename, line_offset=line_offset,
                                         max_depth=self.options.limits.max_depth,
-                                        anchors=self.anchors)
+                                        anchors=self.anchors, budget=budget)
         except RecursionError:
             raise FormatError("document nesting too deep", format="yaml", filename=filename) from None
         if not documents:

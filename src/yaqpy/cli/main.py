@@ -46,13 +46,25 @@ def _launch_gui(ns: argparse.Namespace, err: TextIO) -> int:
     The import is deliberately lazy (inside this function): the CLI must keep working
     when the optional ``gui`` extra (flet) is not installed. ``yaqpy.gui.app`` itself
     does not import flet at module level, so this import is always safe.
+
+    A single positional argument that names a real file opens that file at startup
+    (``yaqpy --gui a.yaml``, GUI design doc Q8 / improvement plan 5-4 U2). An
+    expression, ``--from-file``, more than one path, or a single argument that is not
+    an existing file (most likely a mistyped expression, not a path) stays an error:
+    the GUI has no notion of an expression given on the command line, and --gui itself
+    only ever opens one document at startup. More can still be added afterwards from
+    within the running GUI (the "+ Add File" button, U3); this flag is not how.
     """
-    if ns.args or ns.expression or ns.from_file:
+    if ns.expression or ns.from_file or len(ns.args) > 1:
+        err.write("Error: --gui cannot be combined with an expression or files\n")
+        return EXIT_ERROR
+    initial_path = ns.args[0] if ns.args else None
+    if initial_path is not None and not LocalFileSystem().exists_file(initial_path):
         err.write("Error: --gui cannot be combined with an expression or files\n")
         return EXIT_ERROR
     from yaqpy.gui import app as gui_app
 
-    return gui_app.main_entry(stderr=err)
+    return gui_app.main_entry(stderr=err, initial_path=initial_path)
 
 
 def main(argv: list[str] | None = None, *, stdout: TextIO | None = None,

@@ -12,10 +12,12 @@ from yaqpy.gui.state import GuiState
 
 class SettingsPage:
     def __init__(self, *, page: ft.Page, state: GuiState,
-                 on_changed: Callable[[], None]) -> None:
+                 on_changed: Callable[[], None],
+                 on_persist: Callable[[], None] | None = None) -> None:
         self._page = page
         self._state = state
         self._on_changed = on_changed
+        self._on_persist = on_persist or (lambda: None)
         s = state.settings
 
         self._allow_env = ft.Switch(label=texts.SET_ALLOW_ENV, value=s.allow_env,
@@ -41,6 +43,15 @@ class SettingsPage:
                                        on_change=self._on_max_lines, on_blur=self._restore_fields)
         self._dark = ft.Switch(label=texts.SET_DARK, value=s.dark_theme,
                                on_change=self._on_dark)
+        # 言語名はそれ自身の言語で出す（現在の表示言語には合わせない。「日本語」「English」は不変）
+        self._language = ft.Dropdown(
+            label=texts.LBL_LANGUAGE, width=180, value=s.language,
+            options=[ft.DropdownOption(key="ja", text="日本語"),
+                    ft.DropdownOption(key="en", text="English")],
+            on_select=self._on_language,
+        )
+        self._language_note = ft.Text(texts.SET_LANGUAGE_NOTE, size=12,
+                                      color=ft.Colors.ON_SURFACE_VARIANT)
 
         self._root = ft.Column([
             ft.Text(texts.SET_TITLE, size=20, weight=ft.FontWeight.BOLD),
@@ -56,6 +67,8 @@ class SettingsPage:
             ft.Divider(),
             ft.Text(texts.SET_VIEW, weight=ft.FontWeight.W_600),
             self._dark,
+            self._language,
+            self._language_note,
         ], scroll=ft.ScrollMode.AUTO, expand=True, spacing=10)
 
     @property
@@ -86,15 +99,18 @@ class SettingsPage:
     def _on_timeout(self, e: ft.Event[ft.TextField]) -> None:
         value = _positive(e.control.value, self._state.settings.timeout_seconds)
         self._state.settings.timeout_seconds = float(value)
+        self._on_persist()
 
     def _on_max_input(self, e: ft.Event[ft.TextField]) -> None:
         self._state.settings.max_input_mib = int(
             _positive(e.control.value, self._state.settings.max_input_mib))
+        self._on_persist()
 
     def _on_max_lines(self, e: ft.Event[ft.TextField]) -> None:
         self._state.settings.max_display_lines = int(
             _positive(e.control.value, self._state.settings.max_display_lines))
         self._on_changed()
+        self._on_persist()
 
     def _restore_fields(self, e: ft.Event[ft.TextField]) -> None:
         """空欄や 0 のまま欄を離れたら、実際に使われている値を表示し直す。"""
@@ -106,6 +122,12 @@ class SettingsPage:
     def _on_dark(self, e: ft.Event[ft.Switch]) -> None:
         self._state.settings.dark_theme = bool(e.control.value)
         self._page.theme_mode = ft.ThemeMode.DARK if e.control.value else ft.ThemeMode.LIGHT
+        self._on_persist()
+
+    def _on_language(self, e: ft.Event[ft.Dropdown]) -> None:
+        """次回の起動から効く（画面の文字は作り直さないと変わらないため。U4）。"""
+        self._state.settings.language = e.control.value or self._state.settings.language
+        self._on_persist()
 
 
 def _positive(raw: str | None, fallback: float) -> float:
