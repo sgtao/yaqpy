@@ -470,6 +470,20 @@ class SaveTests:
         assert vm.backup_path == ""
         assert "/w/out.yaml.bak" not in p._fs.files
 
+    async def test_overwrite_protection_covers_every_open_document_not_just_the_active_one(
+        self) -> None:
+        """複数ファイル（U3）：アクティブでない方のパスへ保存しても G4 の確認を素通りしない。"""
+        p = await self._ready()
+        await p.add_path("/w/other.yaml")           # これでアクティブは other.yaml になる
+        assert p.state.document.name == "other.yaml"
+        vm = await p.save("/w/sample.yaml")          # アクティブではないが、開いてはいる
+        assert not vm.ok
+        assert vm.needs_overwrite_confirmation
+        assert "/w/sample.yaml" not in p._fs.written
+        vm = await p.save("/w/sample.yaml", confirmed=True)
+        assert vm.ok
+        assert vm.backup_path == "/w/sample.yaml.bak"
+
     async def test_backup_failure_leaves_the_source_untouched(self) -> None:
         """バックアップが作れなければ、元のファイルは書き換えない。"""
 

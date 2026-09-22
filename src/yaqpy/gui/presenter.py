@@ -377,15 +377,29 @@ class MainPresenter:
         return backup_path, None
 
     def _is_source_path(self, path: str) -> bool:
-        """保存先が、いま開いているファイルと同じか（大文字小文字・相対表記を吸収する）。"""
-        source = self.state.document.path
-        if not source:
-            return False
+        """保存先が、**開いているどれかの**文書と同じか（大文字小文字・相対表記を吸収する）。
+
+        アクティブな 1 件だけでなく一覧全体を見る：複数ファイル（U3）を開いているとき、
+        アクティブでない方のパスへうっかり保存しても、G4 の確認・バックアップを素通りしない。
+        """
         try:
-            return (os.path.normcase(os.path.realpath(source))
-                    == os.path.normcase(os.path.realpath(path)))
+            target = os.path.normcase(os.path.realpath(path))
         except OSError:
-            return source == path
+            target = None
+        for doc in self.state.documents:
+            source = doc.path
+            if not source:
+                continue
+            if target is not None:
+                try:
+                    if os.path.normcase(os.path.realpath(source)) == target:
+                        return True
+                    continue
+                except OSError:
+                    pass
+            if source == path:
+                return True
+        return False
 
     def _collect_sync(self, input_format: str, text: str) -> list[PathCandidate]:
         """別スレッドで動く。デコードだけして評価器は通さない。"""
