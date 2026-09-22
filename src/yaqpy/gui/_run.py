@@ -97,16 +97,20 @@ async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
             return
         presenter.cancel()                    # 走っている評価を協調的に止める（リスク R9）
         await page.window.destroy()
-        await asyncio.sleep(CLOSE_GRACE_SECONDS)
-        _terminate_process_tree()
+        if sys.platform == "win32":
+            # flet.exe が生き残る既知の不具合（_terminate_process_tree）への対処。macOS / Linux
+            # ではこの不具合は報告されておらず、taskkill は Windows 専用コマンドなので他 OS では
+            # 呼ばない（U4。実機未確認のため、既知の不具合が無い前提でこの対処に限定する）。
+            await asyncio.sleep(CLOSE_GRACE_SECONDS)
+            _terminate_process_tree()
 
-    if sys.platform == "win32":
-        # 窓を閉じたときに自分で終了させる（理由は _terminate_process_tree）。
-        page.window.prevent_close = True
-        page.window.on_event = on_window_event
+    # 窓を閉じたときに評価を止めてから終了させる。`page.window.on_event` は OS を問わない
+    # Flet の API（実測は Windows のみ。macOS / Linux は動作未確認。U4）。
+    page.window.prevent_close = True
+    page.window.on_event = on_window_event
 
     def on_close(e: ft.Event) -> None:
-        presenter.cancel()                    # セッションが破棄されるときの保険（Windows 以外はこちら）
+        presenter.cancel()                    # セッションが破棄されるときの保険
 
     page.on_close = on_close
     page.theme_mode = ft.ThemeMode.DARK if state.settings.dark_theme else ft.ThemeMode.LIGHT
