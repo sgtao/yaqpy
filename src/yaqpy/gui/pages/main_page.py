@@ -58,8 +58,15 @@ class MainPage:
         # --- ファイルバー ---
         self._file_label = ft.Text(texts.MSG_NO_DOCUMENT, size=BUTTON_TEXT_SIZE,
                                    weight=ft.FontWeight.BOLD, selectable=True)
+        self._add_file_button = ft.Button(content=texts.BTN_ADD_FILE, icon=ft.Icons.ADD,
+                                          on_click=self._on_add_file, disabled=True)
         self._close_button = ft.Button(content=texts.BTN_CLOSE, icon=ft.Icons.CLOSE,
                                        on_click=self._on_close, disabled=True)
+
+        # --- 複数ファイル（U3）：2 件以上のときだけ出す ---
+        self._files_row = ft.Row([], spacing=6, wrap=True, visible=False)
+        self._eval_all_switch = ft.Switch(label=texts.LBL_EVAL_ALL, value=False, visible=False,
+                                          tooltip=texts.HINT_EVAL_ALL, on_change=self._on_eval_all)
 
         # --- 形式バー ---
         self._input_dd = ft.Dropdown(label=texts.LBL_INPUT_FORMAT, width=170,
@@ -160,8 +167,11 @@ class MainPage:
         file_bar = ft.Row([
             ft.Button(content=texts.BTN_OPEN, icon=ft.Icons.FOLDER_OPEN, on_click=self._on_open),
             self._file_label,
+            self._add_file_button,
             self._close_button,
         ], alignment=ft.MainAxisAlignment.START, spacing=12)
+
+        files_bar = ft.Row([self._files_row, self._eval_all_switch], spacing=16)
 
         format_bar = ft.Row([self._input_dd, self._output_dd, self._indent_field,
                              self._pretty_switch], spacing=12)
@@ -197,7 +207,7 @@ class MainPage:
         status_bar = ft.Row([self._status_icon, self._status_text, self._settings_link,
                              ft.Container(expand=True), self._format_text], spacing=8)
 
-        return ft.Column([file_bar, ft.Divider(height=1), format_bar, filter_bar,
+        return ft.Column([file_bar, files_bar, ft.Divider(height=1), format_bar, filter_bar,
                           self._progress, panes, ft.Divider(height=1), status_bar],
                          expand=True, spacing=8)
 
@@ -213,6 +223,11 @@ class MainPage:
         if files:
             await self._load(files[0].path)
         self._page.update()                 # async ハンドラは終了時にも update する
+
+    async def open_startup_file(self, path: str) -> None:
+        """起動引数で渡されたファイルを開く（``yaqpy --gui a.yaml``。U2）。"""
+        await self._load(path)
+        self._page.update()
 
     async def _load(self, path: str) -> None:
         vm = await self._p.open_path(path)
@@ -231,9 +246,11 @@ class MainPage:
         self._expr_field.value = self._state.query.expression
         self._expr_field.error = None
         self._close_button.disabled = False
+        self._add_file_button.disabled = False
         self._run_button.disabled = False
         self._expr_error.visible = False
         self._refresh_format_badges()
+        self._refresh_multi_file_ui()
 
     def _refresh_format_badges(self) -> None:
         """見出しの横の形式名を、いまの選択（auto を解決した後）に合わせる。"""
@@ -246,6 +263,85 @@ class MainPage:
     async def _after_load(self) -> None:
         await self._run()
         await self._reload_candidates()
+
+    # ------------------------------------------------------------------ 複数ファイル（U3）
+
+    async def _on_add_file(self, e: ft.Event[ft.Button]) -> None:
+        """いま開いているものを閉じずに、もう 1 件（複数選択可）を一覧に加える。"""
+        files = await self._picker.pick_files(dialog_title=texts.BTN_ADD_FILE, allow_multiple=True)
+        for picked in files:
+            vm = await self._p.add_path(picked.path)
+            if not vm.ok:
+                self._show_error(vm.error.message, vm.error.hint)
+        if files:
+            self._sync_active_document_view()
+            self._refresh_multi_file_ui()
+            await self._run()
+            await self._reload_candidates()
+        self._page.update()
+
+    def _on_eval_all(self, e: ft.Event[ft.Switch]) -> None:
+        self._state.eval_all = bool(e.control.value)
+        self._page.run_task(self._run_and_reload_candidates)
+
+    async def _on_select_document(self, index: int) -> None:
+        self._p.select_document(index)
+        self._sync_active_document_view()
+        self._refresh_multi_file_ui()
+        await self._run()
+        await self._reload_candidates()
+        self._page.update()
+
+    async def _on_close_document_at(self, index: int) -> None:
+        self._p.close_document_at(index)
+        if self._state.document.is_loaded:
+            self._sync_active_document_view()
+            self._refresh_multi_file_ui()
+            await self._run()
+            await self._reload_candidates()
+        else:
+            self._reset_ui_to_unloaded()
+        self._page.update()
+
+    def _sync_active_document_view(self) -> None:
+        """左ペイン・ファイル名の表示を、いま選ばれている文書に合わせる。"""
+        doc = self._state.document
+        self._show_loaded()
+        self._original.value = doc.original_text
+        self._file_label.value = f"{doc.name or texts.MSG_PASTED}  ({doc.byte_size:,} B)"
+        self._file_label.tooltip = doc.path or ""
+        self._refresh_format_badges()
+
+    def _refresh_multi_file_ui(self) -> None:
+        """ファイルの一覧（チップ）と「まとめて評価」スイッチを、いまの状態に合わせて作り直す。
+
+        1 件だけのときは v1 までと同じ見た目に戻す（2 件以上でだけ出す）。
+        """
+        documents = self._state.documents
+        multiple = len(documents) > 1
+        self._files_row.visible = multiple
+        self._eval_all_switch.visible = multiple
+        self._eval_all_switch.value = self._state.eval_all
+        chips: list[ft.Control] = []
+        for i, doc in enumerate(documents):
+            chips.append(ft.Chip(
+                label=doc.name or texts.MSG_PASTED,
+                selected=(i == self._state.active_index),
+                delete_icon=ft.Icon(ft.Icons.CLOSE, size=14),
+                on_click=self._chip_select_handler(i),
+                on_delete=self._chip_close_handler(i),
+            ))
+        self._files_row.controls = chips
+
+    def _chip_select_handler(self, index: int) -> Callable[[ft.Event[ft.Chip]], None]:
+        def handler(e: ft.Event[ft.Chip]) -> None:
+            self._page.run_task(self._on_select_document, index)
+        return handler
+
+    def _chip_close_handler(self, index: int) -> Callable[[ft.Event[ft.Chip]], None]:
+        def handler(e: ft.Event[ft.Chip]) -> None:
+            self._page.run_task(self._on_close_document_at, index)
+        return handler
 
     # ------------------------------------------------------------------ 貼り付け（G3）
 
@@ -294,7 +390,11 @@ class MainPage:
         self._page.update()
 
     def _on_close(self, e: ft.Event[ft.Button]) -> None:
+        """開いているものをすべて閉じる（一覧の 1 件だけを閉じるのは `_on_close_document_at`）。"""
         self._p.close_document()
+        self._reset_ui_to_unloaded()
+
+    def _reset_ui_to_unloaded(self) -> None:
         self._show_unloaded()
         self._converted.value = ""
         self._file_label.value = texts.MSG_NO_DOCUMENT
@@ -303,6 +403,7 @@ class MainPage:
         self._expr_field.error = None
         self._expr_error.visible = False
         self._close_button.disabled = True
+        self._add_file_button.disabled = True
         self._run_button.disabled = True
         self._truncated_note.visible = False
         self._save_button.disabled = True
@@ -319,6 +420,7 @@ class MainPage:
         self._format_text.value = ""
         self._settings_link.visible = False
         self._refresh_format_badges()
+        self._refresh_multi_file_ui()
 
     def _on_open_settings_click(self, e: ft.Event[ft.TextButton]) -> None:
         if self._on_open_settings is not None:
@@ -455,7 +557,9 @@ class MainPage:
         if not vm.ok:
             self._show_error(vm.error.message, vm.error.hint)
             return
-        self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_SAVED.format(path=vm.path))))
+        message = (texts.MSG_SAVED_WITH_BACKUP.format(path=vm.path, backup=vm.backup_path)
+                  if vm.backup_path else texts.MSG_SAVED.format(path=vm.path))
+        self._page.show_dialog(ft.SnackBar(ft.Text(message)))
 
     def _ask_overwrite(self, path: str) -> None:
         """元ファイルと同じパスを指されたときだけ出す。既定は「やめる」。"""

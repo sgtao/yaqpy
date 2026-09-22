@@ -21,7 +21,8 @@ SAMPLE = (
     "    price: 980\n"
 )
 BROKEN = "a: [1\n"
-FILES = {"/w/sample.yaml": SAMPLE, "/w/broken.yaml": BROKEN, "/w/data.json": '{"a": 1}'}
+FILES = {"/w/sample.yaml": SAMPLE, "/w/broken.yaml": BROKEN, "/w/data.json": '{"a": 1}',
+        "/w/other.yaml": "b: 2\n"}
 
 
 def make_presenter(environ: dict[str, str] | None = None) -> MainPresenter:
@@ -51,6 +52,118 @@ class OpenTests:
         await p.open_path("/w/sample.yaml")
         p.close_document()
         assert not p.state.document.is_loaded
+
+
+class MultiDocumentTests:
+    """複数ファイルを開いておける（U3）。"""
+
+    async def test_add_path_keeps_the_previous_document_open(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        vm = await p.add_path("/w/other.yaml")
+        assert vm.ok
+        assert [d.name for d in p.state.documents] == ["sample.yaml", "other.yaml"]
+        assert p.state.active_index == 1
+        assert p.state.document.name == "other.yaml"
+
+    async def test_add_path_keeps_the_expression(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        p.state.query.expression = ".server.port"
+        await p.add_path("/w/other.yaml")
+        assert p.state.query.expression == ".server.port"
+
+    async def test_add_path_reports_a_missing_file_without_closing_anything(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        vm = await p.add_path("/w/nope.yaml")
+        assert not vm.ok
+        assert len(p.state.documents) == 1
+
+    async def test_select_document_switches_the_active_one(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        await p.add_path("/w/other.yaml")
+        p.select_document(0)
+        assert p.state.document.name == "sample.yaml"
+
+    async def test_select_document_ignores_an_out_of_range_index(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        p.select_document(5)
+        assert p.state.active_index == 0
+
+    async def test_close_document_at_removes_just_that_one(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        await p.add_path("/w/other.yaml")
+        p.close_document_at(0)
+        assert [d.name for d in p.state.documents] == ["other.yaml"]
+        assert p.state.document.name == "other.yaml"
+
+    async def test_close_document_at_the_last_one_clears_everything(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        p.close_document_at(0)
+        assert p.state.documents == []
+        assert not p.state.document.is_loaded
+
+    async def test_closing_down_to_one_document_turns_off_eval_all(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        await p.add_path("/w/other.yaml")
+        p.state.eval_all = True
+        p.close_document_at(1)
+        assert not p.state.eval_all
+
+    async def test_opening_a_new_file_replaces_the_whole_list(self) -> None:
+        """既存の「ファイルを開く」は今までどおり一覧を作り直す。"""
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        await p.add_path("/w/other.yaml")
+        await p.open_path("/w/data.json")
+        assert [d.name for d in p.state.documents] == ["data.json"]
+
+
+class EvalAllTests:
+    """CLI の ``eval-all`` に相当する、複数文書をまとめた評価（U3）。"""
+
+    async def _with_two_documents(self) -> "MainPresenter":
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        await p.add_path("/w/other.yaml")
+        p.state.eval_all = True
+        return p
+
+    async def test_a_single_document_ignores_eval_all(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        p.state.eval_all = True                # 1 件しかないので効かない
+        vm = await p.run()
+        assert vm.ok
+        assert vm.document_count == 1
+
+    async def test_evaluates_every_open_document_together(self) -> None:
+        p = await self._with_two_documents()
+        p.state.query.expression = "select(fi == 0) * select(fi == 1)"
+        vm = await p.run()
+        assert vm.ok, str(vm.error)
+        assert vm.document_count == 2
+        # sample.yaml と other.yaml の内容が、1 通の文書に合体して出る
+        assert "port: 8080" in vm.full_text
+        assert "b: 2" in vm.full_text
+        assert vm.full_text.count("---") == 0          # 別々の文書としては出ない
+
+    async def test_fi_cannot_distinguish_files_without_eval_all(self) -> None:
+        """比較として：まとめない（既定）と fi は常に 0 で、越境した select は当たらない。"""
+        p = make_presenter()
+        await p.open_path("/w/sample.yaml")
+        await p.add_path("/w/other.yaml")
+        p.state.eval_all = False
+        p.state.query.expression = "select(fi == 0) * select(fi == 1)"
+        vm = await p.run()
+        assert vm.ok
+        assert vm.full_text == ""            # active な other.yaml (fi=0) 単体では何も一致しない
 
 
 class RunTests:
@@ -340,6 +453,42 @@ class SaveTests:
         vm = await p.save("/w/sample.yaml", confirmed=True)
         assert vm.ok
         assert p._fs.written["/w/sample.yaml"] == "8080\n"
+
+    async def test_overwriting_backs_up_the_original_content_first(self) -> None:
+        """G4 の緩和（U2）：上書きの直前に元の内容を .bak として残す。"""
+        p = await self._ready()
+        vm = await p.save("/w/sample.yaml", confirmed=True)
+        assert vm.ok
+        assert vm.backup_path == "/w/sample.yaml.bak"
+        assert p._fs.files["/w/sample.yaml.bak"] == SAMPLE     # 上書き前の中身
+        assert p._fs.files["/w/sample.yaml"] == "8080\n"       # 新しい中身
+
+    async def test_saving_elsewhere_makes_no_backup(self) -> None:
+        p = await self._ready()
+        vm = await p.save("/w/out.yaml")
+        assert vm.ok
+        assert vm.backup_path == ""
+        assert "/w/out.yaml.bak" not in p._fs.files
+
+    async def test_backup_failure_leaves_the_source_untouched(self) -> None:
+        """バックアップが作れなければ、元のファイルは書き換えない。"""
+
+        class _FailingBackupFs(InMemoryFileSystem):
+            def atomic_write(self, path: str, text: str) -> None:
+                if path.endswith(".bak"):
+                    raise OSError("disk full")
+                super().atomic_write(path, text)
+
+        fs = _FailingBackupFs(dict(FILES))
+        service = YqService(fs, StaticEnvironment({}))
+        p = MainPresenter(service=service, fs=fs, state=GuiState(),
+                          size_of=lambda path: len(fs.files[path].encode("utf-8")))
+        await p.open_path("/w/sample.yaml")
+        p.state.query.expression = ".server.port"
+        await p.run()
+        vm = await p.save("/w/sample.yaml", confirmed=True)
+        assert not vm.ok
+        assert fs.files["/w/sample.yaml"] == SAMPLE            # 書き換わっていない
 
     async def test_runs_again_when_there_is_no_fresh_result(self) -> None:
         p = make_presenter()

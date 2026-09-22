@@ -6,6 +6,7 @@ APP_TITLE = "yaqpy"
 
 # ボタン・ラベル
 BTN_OPEN = "ファイルを開く"
+BTN_ADD_FILE = "＋ファイルを追加"
 BTN_CLOSE = "閉じる"
 BTN_RUN = "実行"
 BTN_CANCEL = "中止"
@@ -21,6 +22,7 @@ LBL_EXPRESSION = "式"
 LBL_PROPERTY = "プロパティ"
 LBL_ORIGINAL = "オリジナル"
 LBL_CONVERTED = "変換結果"
+LBL_EVAL_ALL = "まとめて評価 (eval-all)"
 
 # プレースホルダ・案内
 PH_EXPRESSION = "例: .items[] | select(.price > 500)"
@@ -29,10 +31,11 @@ MSG_RUNNING = "実行中…"
 MSG_CANCELLING = "中止を要求しました。書き出しの途中は、その処理が終わってから止まります"
 MSG_TRUNCATED = "（以下 {n} 行を表示していません。保存すれば全量が得られます）"
 MSG_SAVED = "保存しました: {path}"
+MSG_SAVED_WITH_BACKUP = "保存しました: {path}（元の内容は {backup} に残しました）"
 DLG_OVERWRITE_TITLE = "元のファイルを上書きしますか？"
 DLG_OVERWRITE_BODY = (
     "保存先が、いま開いているファイルと同じです。\n"
-    "上書きすると元の内容は戻せません。\n\n{path}"
+    "上書きする前に、元の内容を「{path}.bak」として自動でバックアップします。\n\n{path}"
 )
 DLG_OVERWRITE_OK = "上書きする"
 DLG_OVERWRITE_CANCEL = "やめる"
@@ -72,6 +75,10 @@ HINT_SECURITY = "設定画面で「{capability} を許可」を有効にする�
 HINT_TIMEOUT = "設定画面でタイムアウトを延ばせます"
 HINT_CANCELLED = "中止しました"
 HINT_REPORT = "再現手順を添えて不具合として報告してください"
+HINT_EVAL_ALL = (
+    "開いているすべての文書を 1 回の評価にまとめます（fi や filename でファイルを区別できます。"
+    "CLI の eval-all と同じ）"
+)
 
 INSTALL_HINT = (
     "GUI を使うには flet が必要です。次のどちらかで導入してください:\n"

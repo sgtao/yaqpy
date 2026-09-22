@@ -94,12 +94,30 @@ def settings_from_dict(data: dict[str, object]) -> SettingsState:
 
 @dataclass(slots=True)
 class GuiState:
-    """画面をまたいで共有する唯一の状態。"""
+    """画面をまたいで共有する唯一の状態。
 
-    document: DocumentState = field(default_factory=DocumentState)
+    ``documents`` は開いている文書の一覧（U3。開いた順）。単一ファイルの操作（開く・貼り付け・
+    閉じる）は、これまでどおり 1 件だけの一覧として扱う。``document`` はいま選ばれている 1 件
+    （``active_index``）を指す読み取り専用のショートカットで、代入はできない
+    （``documents``／``active_index`` を操作すること）。
+    """
+
+    documents: list[DocumentState] = field(default_factory=list)
+    active_index: int = 0
+    eval_all: bool = False           # 2 件以上を「まとめて評価」する（CLI の eval-all 相当。U3）
     query: QueryState = field(default_factory=QueryState)
     settings: SettingsState = field(default_factory=SettingsState)
     running: bool = False
+
+    @property
+    def document(self) -> DocumentState:
+        if 0 <= self.active_index < len(self.documents):
+            return self.documents[self.active_index]
+        return DocumentState()
+
+    @property
+    def has_multiple_documents(self) -> bool:
+        return len(self.documents) > 1
 
 
 def build_options(state: GuiState) -> Options:

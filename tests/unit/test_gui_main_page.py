@@ -130,3 +130,88 @@ class OpenDialogTests:
         page._picker.pick_files = mock.AsyncMock(return_value=[picked])
         await page._on_open(mock.MagicMock())
         assert badge(page, "original") == (True, "toml")
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class MultiFileUiTests:
+    """複数ファイル UI（U3）：チップの一覧・まとめて評価のスイッチ。"""
+
+    async def test_the_files_row_is_hidden_with_a_single_document(self) -> None:
+        page, presenter, _ = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        assert page._files_row.visible is False
+        assert page._eval_all_switch.visible is False
+
+    async def test_adding_a_second_file_shows_the_chips(self) -> None:
+        page, presenter, _ = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        page._picker.pick_files = mock.AsyncMock(
+            return_value=[mock.MagicMock(path="/w/app.toml")])
+        await page._on_add_file(mock.MagicMock())
+        assert page._files_row.visible is True
+        assert page._eval_all_switch.visible is True
+        assert [c.label for c in page._files_row.controls] == ["shop.xml", "app.toml"]
+        assert page._files_row.controls[1].selected            # 追加した方が選ばれている
+        assert not page._files_row.controls[0].selected
+
+    async def test_selecting_a_chip_switches_the_active_document(self) -> None:
+        page, presenter, state = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        await presenter.add_path("/w/app.toml")
+        page._refresh_multi_file_ui()
+        await page._on_select_document(0)
+        assert state.document.name == "shop.xml"
+        assert page._files_row.controls[0].selected
+        assert not page._files_row.controls[1].selected
+
+    async def test_closing_a_chip_removes_just_that_document(self) -> None:
+        page, presenter, state = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        await presenter.add_path("/w/app.toml")
+        page._refresh_multi_file_ui()
+        await page._on_close_document_at(0)
+        assert [d.name for d in state.documents] == ["app.toml"]
+        assert page._files_row.visible is False                 # 1 件に戻ったので隠れる
+
+    async def test_closing_the_last_chip_returns_to_the_unloaded_screen(self) -> None:
+        from yaqpy.gui import texts
+
+        page, presenter, _ = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        await page._on_close_document_at(0)
+        assert page._drop_hint.visible is True
+        assert page._file_label.value == texts.MSG_NO_DOCUMENT
+
+    async def test_eval_all_switch_updates_state(self) -> None:
+        page, presenter, state = make_page()
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        await presenter.add_path("/w/app.toml")
+        page._refresh_multi_file_ui()
+        event = mock.MagicMock()
+        event.control.value = True
+        page._on_eval_all(event)
+        assert state.eval_all is True
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class StartupFileTests:
+    """``yaqpy --gui a.yaml`` で渡された 1 ファイルを、起動直後に開く（U2）。"""
+
+    async def test_opens_and_runs_the_given_file(self) -> None:
+        page, presenter, state = make_page()
+        await page.open_startup_file("/w/shop.xml")
+        assert state.document.is_loaded
+        assert badge(page, "original") == (True, "xml")
+        assert page._run_button.disabled is False
+
+    async def test_a_missing_file_shows_an_error_instead_of_crashing(self) -> None:
+        page, presenter, state = make_page()
+        await page.open_startup_file("/w/does-not-exist.yaml")
+        assert not state.document.is_loaded
+        assert page._status_icon.color == ft.Colors.ERROR
