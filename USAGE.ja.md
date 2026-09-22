@@ -40,7 +40,30 @@ uv run yaqpy -P -N -e '.items[] | select(.price > 500) | .name' examples/sample.
 Go 版と同じです：`-o/-p`（形式）、`-i`、`-n`、`-I`、`-r[=false]`、`-N`、`-e`、`-P`、`-0`、`-M`、`--from-file`、`--expression`、`--header-preprocess`、`-c`、`--yaml-fix-merge-anchor-to-spec`、`--security-disable-env-ops`、`-s` / `--split-exp` / `--split-exp-file`（結果ごとに別のファイルへ。[文書の分割](#文書の分割v030-で追加)）、`--string-interpolation[=false]`（文字列補間の切り替え）など。`-o=j -I=0` のような pflag 風の書き方も受け付けます。yaqpy 独自のフラグは、`--toon`（TOON で出力）と `--toon-delimiter {comma,tab,pipe}`、`--schema` 系（[スキーマの出力](#スキーマの出力schemago-版にはない拡張)）、`--prune-null` `--prune-empty`（[結果を整える](#結果を整えるprune_null-と-prune_emptygo-版にはない拡張)）、`--recipe` `--list-recipes` `--recipe-test` `--report` `--apply` `--out-dir`（[変換レシピ](#変換レシピapi-のリクエストを別の-api-用にするgo-版にはない拡張)）、`--print-spec` `--example` `--guide-prompt` `--skill-md`（[yaqpy が自分を説明する](#yaqpy-が自分を説明する--print-spec---example---guide-prompt---skill-md)）です。
 
 - 出力形式は `-o`（`yaml` / `json` / `props` / `toon` / `xml` / `csv` / `tsv` / `toml`）で指定します。**`-p`（入力形式）だけを指定した場合、出力は Go 版との互換のため YAML のまま**です（警告が出ます）
-- 入力形式は、ファイルの拡張子（`.yaml` `.yml` `.json` `.toon` `.xml` `.csv` `.tsv` `.properties` `.toml`）から自動判定します。拡張子が不明なとき、および標準入力は YAML として扱います
+- 入力形式は、ファイルの拡張子（`.yaml` `.yml` `.json` `.toon` `.xml` `.csv` `.tsv` `.properties` `.toml`）から自動判定します。拡張子で決まらないとき（次の節）は、中身を見て判定します
+
+---
+[toTop](#toreadme)
+## 入力形式の自動判定：拡張子で決まらないときは中身を見る（Go 版にはない拡張）
+
+Go 版 yq は、入力形式をファイルの拡張子だけで決めます（`-p auto`、既定）。拡張子が無い・見覚えがない・標準入力（パイプ）のときは、**Go 版は常に YAML 扱い**にします。yaqpy は、**そのときだけ**中身を見て、形式を推測します。拡張子が分かるときは、これまでどおり拡張子だけで決まります（振る舞いは変わりません）。
+
+```bash
+# 拡張子が無いファイル（中身は TOML）
+uv run yaqpy -o json -I 0 '.' app_noext
+# {"name":"yaqpy","version":"0.4.0"}
+
+# 標準入力（パイプ）。JSON の中身を判定
+echo '{"name": "yaqpy", "tags": ["a","b"]}' | uv run yaqpy -o json -I 0 '.'
+# {"name":"yaqpy","tags":["a","b"]}
+```
+
+- **拡張子が最優先**です。`.json` のファイルは、中身がどう見えても JSON として読みます。中身を見るのは、拡張子が形式を決められなかったとき（拡張子が無い・知らない拡張子・標準入力・貼り付け）だけです
+- 見るのは**先頭のごく一部**（コメントを除いた最初の 10 行程度）です。ファイル全体は読みません（巨大な JSON は、形の確認だけに切り替えます）
+- 見分けるのは `json` `xml` `toml` `props`（properties）`csv` `tsv` です。**`<` で始まれば XML**、**`{` か `[` で始まり、そのまま JSON として読めれば JSON**、**`[section]` の見出しや、引用符・配列・日付を持つ `key = value` の並びなら TOML**、**素の `key = value` の並びなら properties**、**同じ個数の `,` か `\t` が並ぶ複数行なら CSV/TSV** です
+- **一つに決められない、またはどの形式としても読めないときは、これまでどおり YAML 扱い**にします（エラーにはしません）。単純な `key: value` の YAML や配列は、もともと他の形式の見た目に当てはまらないので、そのまま YAML と判定されます
+- ライブラリでは `yaqpy.detect_format(text)` が同じ判定をする単体の関数です。ファイル名を持たないテキストの形式を知りたいときに使います（[ライブラリとしての使い方](#ライブラリとしての使い方)）
+- GUI では、**貼り付けたテキスト**と、**開くダイアログで選んだ、見覚えのない拡張子（または拡張子なし）のファイル**が、この判定の対象です（[GUI の使い方](#gui-の使い方)）
 
 ---
 [toTop](#toreadme)
@@ -699,6 +722,13 @@ yq.evaluate(expr, text)                                             # -> '{"port
 
 - ライブラリの既定は `SecurityPolicy.strict()`（`env`・`load`・`system` を禁止）。必要なら `Options(security=SecurityPolicy(allow_env=True))` を渡します。CLI は Go 版と同じ既定（env・file を許可、system は禁止）です
 - レシピ（[変換レシピ](#ライブラリから使う)）は `yaqpy.apply_recipe("openai-to-gemini", text)`、一覧は `yaqpy.list_recipes()` です。ライブラリはファイルを読まないので、レシピは名前か `Recipe` オブジェクトで渡します
+- `yaqpy.detect_format(text)` は、テキストの中身だけから形式を推測します（[入力形式の自動判定](#入力形式の自動判定拡張子で決まらないときは中身を見るgo-版にはない拡張)と同じ判定。ファイル名を持たないテキストの形式を知りたいときに使います）。`Options(input_format="auto")` を渡したときは、`evaluate` 系の呼び出しも同じ判定を自動でします（既定の `input_format="yaml"` は変えていません）
+
+  ```python
+  yaqpy.detect_format('{"a": 1}')                 # -> 'json'
+  yaqpy.detect_format('name = "x"\n')              # -> 'toml'
+  yaqpy.evaluate(".a", '{"a": 5}', options=yaqpy.Options(input_format="auto"))   # -> '5\n'
+  ```
 - 設定はすべて呼び出しごとの `Options`（変更不可の dataclass）で渡すため、設定の違う評価を同時に実行できます（グローバル状態なし）
 - `Limits(max_steps=..., timeout_seconds=..., max_depth=..., max_input_bytes=...)` で評価量に上限を掛けられます
 
@@ -844,7 +874,7 @@ yaqpy は Go 版 yq（v4.53.6）の**独立した再実装**です。
 
 | 分類 | 内容 |
 |---|---|
-| 追加した機能 | TOON 形式の入出力、**`schema` 演算子（JSON Schema の出力）**、**`prune_null` `prune_empty`**、**変換レシピ（`--recipe`。API のリクエストの相互変換）**、**自己説明（`--print-spec` `--example` `--guide-prompt` `--skill-md`）**、Python ライブラリ API、デスクトップ GUI（XML・CSV/TSV・properties・TOML は Go 版にもあり、同じ規則で実装） |
+| 追加した機能 | TOON 形式の入出力、**`schema` 演算子（JSON Schema の出力）**、**`prune_null` `prune_empty`**、**変換レシピ（`--recipe`。API のリクエストの相互変換）**、**自己説明（`--print-spec` `--example` `--guide-prompt` `--skill-md`）**、**入力形式の中身での自動判定**（拡張子で決まらないときだけ。Go 版は拡張子のみで、決まらなければ常に YAML）、Python ライブラリ API、デスクトップ GUI（XML・CSV/TSV・properties・TOML は Go 版にもあり、同じ規則で実装） |
 | **未実装の演算子** | `load` 系（`load` `load_str` `load_props` `load_xml` `load_base64` など）`eval` `envsubst` `system` `error`（[一覧](#まだ使えないもの)）。式としては解釈されますが、実行すると `Error: unknown operator ...` で終了します（ファイル・環境変数・外部コマンドに触れるため、安全性の設計をしてから入れる予定です） |
 | 未対応のフォーマット | INI・HCL・Lua・shell 変数・KYaml など、Go 版にあるその他の形式（base64・URI・`sh` は形式ではなく演算子 `@base64` `@uri` `@sh` として使えます）。TOML はコメントを保持しない（`-i` は既定で拒否） |
 | 未対応のオプション | `-f`（`--front-matter`）、`-C`（色付き出力） |

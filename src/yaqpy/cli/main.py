@@ -86,6 +86,10 @@ def main(argv: list[str] | None = None, *, stdout: TextIO | None = None,
     except InvocationError as e:
         err.write(f"Error: {e.message}\n")
         return EXIT_ERROR
+    except YqError as e:
+        # A bad -p/-o value (formats.get raises UnknownFormatError) surfaces here, not in evaluate().
+        err.write(f"Error: {e}\n")
+        return EXIT_ERROR
     except OSError as e:
         err.write(f"Error: {e}\n")
         return EXIT_ERROR

@@ -505,3 +505,41 @@ class DescribeTests(CliTestCase):
     def test_prune_flags_in_a_real_process(self) -> None:
         r = yq("-o", "json", "-I", "0", "--prune-null", "--prune-empty", stdin='{"a": null, "b": {}, "d": 1}')
         assert (r.returncode, r.stdout) == (0, '{"d":1}\n')
+
+
+class ContentDetectionTests(CliTestCase):
+    """-p auto (the default): the extension decides first; content only when it cannot - a real
+    process, so this also proves stdin is read exactly once (it can only be read once at all)."""
+
+    def test_a_file_with_no_extension_is_read_by_its_content(self) -> None:
+        path = self.write("app_noext", 'name = "yaqpy"\nversion = "1"\n')
+        r = yq("-o", "json", "-I", "0", ".", path)
+        assert (r.returncode, r.stdout) == (0, '{"name":"yaqpy","version":"1"}\n')
+
+    def test_an_unrecognised_extension_is_read_by_its_content(self) -> None:
+        path = self.write("data.log", "name,age\nAlice,30\n")
+        r = yq("-o", "json", "-I", "0", ".", path)
+        assert (r.returncode, r.stdout) == (0, '[{"name":"Alice","age":30}]\n')
+
+    def test_json_over_stdin_with_no_filename_to_go_by(self) -> None:
+        r = yq("-o", "json", "-I", "0", ".", stdin='{"a": 1, "b": [1, 2]}')
+        assert (r.returncode, r.stdout) == (0, '{"a":1,"b":[1,2]}\n')
+
+    def test_a_known_extension_is_still_trusted_over_misleading_content(self) -> None:
+        # a .csv file whose text looks like TOML: the extension wins, so it fails to parse *as csv*
+        # (a bare quote outside a quoted field) instead of silently succeeding as toml
+        path = self.write("a.csv", 'name = "not really csv"\n')
+        r = yq("-o", "json", "-I", "0", ".", path)
+        assert r.returncode == 1
+        assert "bare \" in non-quoted field" in r.stderr
+
+    def test_ambiguous_content_still_defaults_to_yaml(self) -> None:
+        r = yq("-o", "json", "-I", "0", ".", stdin="a: 1\nb: 2\n")
+        assert (r.returncode, r.stdout) == (0, '{"a":1,"b":2}\n')
+
+    def test_a_bad_dash_p_value_is_a_clean_error_not_a_traceback(self) -> None:
+        r = yq("-p", "bogus", ".", stdin="a: 1\n")
+        assert r.returncode == 1
+        assert r.stdout == ""
+        assert "unknown format 'bogus'" in r.stderr
+        assert "Traceback" not in r.stderr

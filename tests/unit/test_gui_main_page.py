@@ -110,3 +110,23 @@ class FormatBadgeTests:
         presenter.open_text("a: 1\n")
         page._after_open()
         assert badge(page, "original") == (True, "yaml")
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class OpenDialogTests:
+    """開くダイアログは拡張子で絞らない：開いたあと中身で形式を判定する（yaqpy 独自）。"""
+
+    async def test_the_file_picker_is_not_restricted_to_known_extensions(self) -> None:
+        page, _, _ = make_page()
+        page._picker.pick_files = mock.AsyncMock(return_value=[])
+        await page._on_open(mock.MagicMock())
+        _, kwargs = page._picker.pick_files.call_args
+        assert "allowed_extensions" not in kwargs
+
+    async def test_a_file_with_an_unfamiliar_extension_still_opens_and_is_read_by_content(self) -> None:
+        page, presenter, _ = make_page()
+        presenter._fs.files["/w/weird.dat"] = "[db]\nport = 1\n"
+        picked = mock.MagicMock(path="/w/weird.dat")
+        page._picker.pick_files = mock.AsyncMock(return_value=[picked])
+        await page._on_open(mock.MagicMock())
+        assert badge(page, "original") == (True, "toml")

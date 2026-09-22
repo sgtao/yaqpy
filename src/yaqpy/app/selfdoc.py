@@ -242,11 +242,14 @@ def render_spec(service: YqService, table: list[OperatorInfo] | None = None) -> 
              "## 3. 演算子", ""]
     lines += _operator_sections(table)
     lines += ["## 4. 入出力の形式", "", *_format_lines(service), "",
-              "形式は拡張子から判定します（`-p` で入力、`-o` で出力を指定）。", "",
+              "形式は拡張子から判定します（`-p` で入力、`-o` で出力を指定）。拡張子が無い・知らない・標準入力のときは、"
+              "中身を見て判定します（yaqpy 独自。見分けられなければ YAML。`yaqpy.detect_format(text)`）。", "",
               "## 5. yaqpy 独自の機能（Go 版にはありません）", "",
               "- `schema`：データの形を JSON Schema（Draft 2020-12）で出す。`yaqpy -o json schema データ`。"
               "`--schema-strict` `--schema-enum-max N` `--schema-per-doc`",
               "- `prune_null` `prune_empty`（`--prune-null` `--prune-empty`）：変換結果の null や空の入れ物を取り除く",
+              "- 入力形式の中身での自動判定（拡張子で決まらないときだけ）：`json` `xml` `toml` `props` `csv` `tsv` を"
+              "見分ける。ライブラリでは `yaqpy.detect_format(text)`",
               "- `--recipe 名前|ファイル`：名前を付けた変換（下の「レシピ」）。`--list-recipes` `--recipe-test` "
               "`--report` `--apply --out-dir`",
               "- `--print-spec` `--example` `--guide-prompt` `--skill-md`：この説明を出す", "",
@@ -317,6 +320,9 @@ def render_skill_md(service: YqService) -> str:
              "入っていなければ、利用者に導入を頼みます（勝手に入れません）。", "",
              "## 基本の使い方", "", COMMAND_FORMS, "", "## 式の記法", "", SYNTAX_TABLE, "",
              "## 形式", "", *_format_lines(service), "",
+             "入力形式は拡張子で決まります。拡張子が無い・知らない・標準入力（パイプ）のときは、"
+             "**中身を見て判定します**（yaqpy 独自。見分けられなければ YAML）。ライブラリでは "
+             "`yaqpy.detect_format(text)` が同じ判定を単体で行います。", "",
              "## 式を書くときの決まり（やってはいけないこと）", "", *_rules_lines(), "",
              "## データの形を知る（schema）", "",
              "```bash", "yaqpy -o json schema データ.yaml       # JSON Schema (Draft 2020-12) を出す", "```", "",

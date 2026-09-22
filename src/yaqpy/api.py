@@ -165,6 +165,18 @@ def dump(documents: Iterable[Node], *, format: str = "yaml", options: Options | 
     return _DEFAULT.dump(documents, format=format, options=options)
 
 
+def detect_format(text: str) -> str:
+    """Guess the format of ``text`` from its content alone (a yaqpy extension; Go yq has no such
+    thing - it only ever looks at a file's extension).
+
+    Meant for text with no filename to go by, or none whose extension names a format: the same
+    guess ``Options(input_format="auto")`` falls back to once a filename's extension gives no
+    answer. Returns a format name ``Options(input_format=...)`` accepts; "yaml" is the fallback
+    when nothing in the content looks confident enough (never an error).
+    """
+    return builtin_formats().guess("", text).name
+
+
 def list_recipes() -> dict[str, Recipe]:
     """The bundled recipes by name."""
     return dict(builtin_recipes())

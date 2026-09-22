@@ -19,6 +19,9 @@ FILES = {
     "/w/app.properties": "db.port = 5432\n",
     "/w/broken.toml": "a = \n",
     "/w/broken.csv": "a,b\n1\n",
+    "/w/unknown_ext.log": '{"a": 1}\n',
+    "/w/no_extension_at_all": '[db]\nport = 5432\n',
+    "/w/misleading.csv": 'name = "looks like toml, is named .csv"\n',
 }
 
 
@@ -132,3 +135,43 @@ class AdoptedFormatsTests:
         await p.open_path("/w/shop.xml")
         p.close_document()
         assert p.adopted_formats() == ("", "")
+
+
+class ContentDetectionTests:
+    """拡張子が決め手にならないとき（貼り付け・拡張子なし・未知の拡張子）は中身を見る（yaqpy 独自）。"""
+
+    @pytest.mark.parametrize("text, expected", (
+        ('{"a": 1}\n', "json"),
+        ('name = "x"\n', "toml"),
+        ("name,age\nAlice,30\n", "csv"),
+        ("<a><b>1</b></a>\n", "xml"),
+        ("db.port = 5432\n", "props"),
+    ))
+    async def test_pasted_text_is_detected_from_its_content(self, text, expected) -> None:
+        p = make_presenter()
+        p.open_text(text)
+        assert p.adopted_formats() == (expected, expected)
+
+    async def test_pasted_text_with_no_positive_signal_is_still_yaml(self) -> None:
+        p = make_presenter()
+        p.open_text("- a\n- b\n")
+        assert p.adopted_formats() == ("yaml", "yaml")
+
+    async def test_a_file_with_an_unrecognised_extension_is_read_by_content(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/unknown_ext.log")
+        assert p.adopted_formats() == ("json", "json")
+        vm = await p.run()
+        assert vm.ok, vm.error
+        assert (vm.input_format, vm.output_format) == ("json", "json")
+
+    async def test_a_file_with_no_extension_at_all_is_read_by_content(self) -> None:
+        p = make_presenter()
+        await p.open_path("/w/no_extension_at_all")
+        assert p.adopted_formats() == ("toml", "toml")
+
+    async def test_a_known_extension_still_wins_over_misleading_content(self) -> None:
+        """Guards the extension-first rule: a .csv name is trusted even if the text looks like TOML."""
+        p = make_presenter()
+        await p.open_path("/w/misleading.csv")
+        assert p.adopted_formats() == ("csv", "csv")

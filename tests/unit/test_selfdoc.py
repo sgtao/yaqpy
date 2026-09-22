@@ -316,3 +316,10 @@ class DocumentationTests:
         assert ours <= known
         for flag in ours:
             assert flag in text
+
+    def test_usage_and_the_gui_guide_describe_content_based_detection(self) -> None:
+        usage = self.read("USAGE.ja.md")
+        assert "入力形式の自動判定" in usage
+        assert "detect_format" in usage
+        gui = self.read("USAGE-GUI.ja.md")
+        assert "中身を見て判定" in gui

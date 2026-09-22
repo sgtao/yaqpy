@@ -232,9 +232,10 @@ class MainPresenter:
     def adopted_formats(self) -> tuple[str, str]:
         """いま採用される（入力形式, 出力形式）。プルダウンが auto でも指定でも実際の形式名を返す。
 
-        Service と同じ規則：入力 auto はファイル名の拡張子で判定（貼り付けは YAML）、
-        出力 auto は入力と同じ。実行結果に頼らないので、開いた直後やエラーのときも使える。
-        文書がなければ ("", "")。
+        Service と同じ規則：入力 auto はファイル名の拡張子で判定し、拡張子が決まらなければ
+        （貼り付け、または拡張子なし・未知の拡張子のファイル）内容を見る（yaqpy 独自の拡張。
+        FormatRegistry.guess）。出力 auto は入力と同じ。実行結果に頼らないので、開いた直後や
+        エラーのときも使える。文書がなければ ("", "")。
         """
         document, query = self.state.document, self.state.query
         if not document.is_loaded:
@@ -242,7 +243,7 @@ class MainPresenter:
         formats = self._service.formats
         input_name = query.input_format
         if input_name in ("", AUTO):
-            input_name = formats.from_filename(document.source_name).name
+            input_name = formats.guess(document.source_name, document.original_text).name
         output_name = query.output_format
         if output_name in ("", AUTO):
             output_name = input_name

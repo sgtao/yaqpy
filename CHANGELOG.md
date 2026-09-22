@@ -14,8 +14,9 @@
 | **変換レシピ** | `--recipe 名前` で、同梱の 6 つ（`openai-to-gemini` `gemini-to-openai` `openai-to-anthropic` `anthropic-to-openai` `gemini-to-anthropic` `anthropic-to-gemini`）か、自作のレシピ（`--recipe ./my.yaqpy`）を使う。`--list-recipes` `--recipe-test` |
 | **確かめる仕組み** | 結果は標準出力へ、**落とした項目（`dropped`）・レシピが知らない項目（`NOT HANDLED`）・補った項目（`added`）・変換先スキーマに合わない箇所（`target schema`）**は標準エラー出力へ。`--report` で詳細（変更のパス単位の差分つき）。**既定ではファイルを書かず**、`--apply --out-dir DIR` のときだけ書く（元のファイルは書き換えない）。複数ファイルは表で報告 |
 | **整える** | `prune_null` `prune_empty`（演算子と `--prune-null` `--prune-empty`）：変換で残った `null` や空の入れ物を取り除く |
+| **入力形式の自動判定** | `-p auto`（既定）で、**拡張子で決まらないとき**（標準入力、拡張子なし・未知の拡張子のファイル、GUI の貼り付け・見覚えのない拡張子のファイル）は、**中身を見て** `json` `xml` `toml` `props` `csv` `tsv` を見分ける。見分けられなければ、これまでどおり `yaml`。**拡張子が分かるときの挙動は変わりません**。ライブラリでは `yaqpy.detect_format(text)` |
 | **自己説明** | `--print-spec`（式の記法・**使える／使えない演算子の一覧**・形式・レシピ・やってはいけない書き方）、`--example`（別名 `--sample`。実行済みの例）、`--guide-prompt`（別名 `--prompts`。AI へのお願い文）、`--skill-md`（Claude Code のスキル） |
-| ライブラリ | `yaqpy.apply_recipe(名前 or Recipe, text)`、`yaqpy.list_recipes()`、`yaqpy.build_recipe(...)`、`RecipeError` |
+| ライブラリ | `yaqpy.apply_recipe(名前 or Recipe, text)`、`yaqpy.list_recipes()`、`yaqpy.build_recipe(...)`、`yaqpy.detect_format(text)`、`RecipeError` |
 
 - **レシピは式のファイル（`.yaqpy`）＋説明のファイル（`.recipe.yaml`）**です。説明には、運ぶ項目（`carries`）・落とす項目と理由（`drops`）・補う項目（`adds`）・目標スキーマ（`target_schema`）・テストケース（`tests`）を書けます。書き間違いのキーはエラーにします
 - **変換するのは**、テキストのメッセージ・system の指示・サンプリング設定（`temperature` `top_p` `top_k` 最大トークン数 `stop` `n` `seed` ペナルティ）・関数ツール・`tool_choice`・JSON 出力の指定（OpenAI ⇄ Gemini）です。**変換しないもの**（`model`・画像などテキスト以外・ツール呼び出しの履歴・変換先にない設定）は、**落として報告**します
@@ -24,24 +25,30 @@
 - **目標スキーマは各社の公式の定義から書いています**（OpenAI の OpenAPI 定義、Gemini の Discovery ドキュメント、Anthropic のドキュメントと SDK）。参照元は各スキーマファイルの `$comment` にあります。**実際の API は呼びません**
 - **レシピは、ファイル・環境変数・外部コマンドに触れません**（同梱のものも、自作のものも。`--security-*` に関係なく常に無効）。説明ファイルの `target_schema` `expression_file` が指せるのも、レシピと同じフォルダのファイルだけです
 - 実行例と出力は、実際に実行して確かめたものです。変換の往復（例：OpenAI → Gemini → OpenAI）で、会話・ツール・サンプリング設定が元に戻ることをテストで確かめています
+- **自動判定は、読むのは先頭のごく一部（コメントを除いた最初の 10 行程度）**で、判定できなければ `yaml` にします（エラーにしません）。JSON だけは全体を厳密に解析して確かめます（大きすぎるときは形だけで判定）。判定の内容が読み込む内容そのものなので、**同じ入力を 2 回読むことはありません**（標準入力は 1 回しか読めないため重要）
 
 ### 変更（挙動が変わるもの）
 
 - **`ascii_upcase` と `ascii_downcase` が使えるようになりました**（後述の「修正」）
 - `--help` の末尾に、`schema`・レシピ・自己説明の使用例を加えました
+- **`-p auto`（既定）が、拡張子で決まらないとき（標準入力、拡張子なし・未知の拡張子のファイル）に中身を見るようになりました。**拡張子が分かるときは、これまでどおり拡張子だけで決まります（振る舞いは変わりません）。判定できない中身は、これまでどおり `yaml` として読みます
 - 新しい引数（`--recipe` など）は、追加だけです。既存の式・フラグの挙動は変わりません
 
 ### ライブラリ・開発者向けの変更
 
 - 新しい層 **`yaqpy.recipes`**（データと、プレーンな Python の値への検査。`app` `cli` `gui` `api` を import しない。アーキテクチャ検査に追加）。レシピの実行は `yaqpy.app.recipe_service.RecipeService`（`SecurityPolicy.strict()` で固定）
 - `FormatRegistry.guess_from_filename(name)` を追加（拡張子から形式を求め、なければ `None`。`from_filename` はこれを使い、なければ YAML）
+- **`FormatRegistry.guess(filename, text)`** を追加（拡張子 → 中身 → `yaml` の順で決める、yaqpy 独自）。新しいモジュール `yaqpy.formats.sniff`（`detect_format(text) -> str | None`）が中身だけを見る側
+- `YqService._resolve_formats` が、内容判定で読んだテキストを `EvaluateRequest` に差し戻すようになりました（同じ入力を 2 回読まないため）。戻り値は 3 要素から 4 要素のタプルに変わりました（内部専用のメソッドです）
 - `EvalEnv` などの既存の型は変えていません。`FileSystemPort` も変えていません
 - **同梱データ**：`yaqpy/recipes/builtin/`（`*.yaqpy` `*.recipe.yaml` `*.schema.json`）は wheel に含まれます
-- 単体テスト 749 → **919**、CLI 受け入れテスト 63 → **73**（stdout/stderr の分離、パイプでの連鎖、`--apply` が入力に触れないこと、SKILL.md を置いて例を実行することを含む）
+- **テストを unittest から pytest（＋ pytest-cov・pytest-xdist・pytest-timeout。dev 依存に追加）へ移行**しました。テストクラスは `unittest.TestCase` の継承を外し、`subTest` は `pytest.mark.parametrize` に、`assertXxx` は `assert` に書き換えています。カバレッジは計測のみ（下限は設けていません）
+- 単体テスト 749 → **1,064**、CLI 受け入れテスト 63 → **83**（stdout/stderr の分離、パイプでの連鎖、`--apply` が入力に触れないこと、SKILL.md を置いて例を実行すること、自動判定が拡張子より優先されないことを含む）
 
 ### 修正
 
 - **`ascii_upcase` と `ascii_downcase` が、変数束縛の `as` の先頭 2 文字として読まれていた**のを修正（字句解析は最長一致ではなく最初に合った規則を取るため）。`as` と `ref` は、後ろに英数字・`_` が続くときは規則にしません。字句解析の全規則の綴りが、その規則で最後まで読まれることを確かめるテストを加えました
+- **`-p`／`-o` に知らない形式名を渡すと、`Error: ...` ではなく Python のトレースバックが出て終了していた**のを修正（`resolve_invocation` が投げる `UnknownFormatError` を CLI がキャッチしていなかった、既存の不具合）。今回の作業中に見つけました
 
 ### 互換性の見える化
 
@@ -54,13 +61,14 @@
 | 　既知の差異 | 4（`shuffle` の並び） | 4 |
 | 形式シナリオ（154 件）で一致 | 149 | 149 |
 
-- `prune_null` `prune_empty` `schema` と、レシピ、自己説明は Go 版にないため、互換テストの対象外です
+- `prune_null` `prune_empty` `schema` と、レシピ、入力形式の自動判定、自己説明は Go 版にないため、互換テストの対象外です
 
 ### 既知の制限（この版のもの）
 
 - **レシピはリクエストのみ**です（レスポンスの変換はありません）。**会話の中のツール呼び出しの履歴**（`tool_calls` `tool_use` `functionCall` など）と、**画像・音声・ファイル**は変換せず、落として報告します
 - 目標スキーマとの照合は、JSON Schema の完全な検証ではありません（`type` `enum` `const` `required` `properties` `additionalProperties` `items` `minItems` `maxItems` `minimum` `maximum` `anyOf` `oneOf` `allOf`、ローカルの `$ref` だけ）。完全な検証は、のちの版の予定です
 - Anthropic のドキュメントは、新しいモデルでは `temperature` が非推奨（1.0 のみ受け付ける）としています。Anthropic 向けの変換結果は、使うモデルで確かめてください
+- **自動判定は「推測」です**。TOML と properties は、どちらも素の `key = value` の並びで書けるため、型付きの値（引用符・配列・日付）が無いと properties 側に倒します。単一列の CSV/TSV や、値だけの文書などは見分けられず `yaml` になります。**判定に自信が持てないときは、`-p` で明示してください**
 - 自己説明（`--guide-prompt` `--skill-md` など）の文章は日本語です。GUI はレシピに対応していません
 - `prune_null` は配列の要素を消しません（`del(.. | select(. == null))` とは違います）
 - v0.3.0 までの制限（`load` などの未実装、TOML のコメントは保持されない、など）は変わりません

@@ -15,7 +15,7 @@ from collections.abc import Callable
 import flet as ft
 
 from yaqpy.gui import texts
-from yaqpy.gui._di import extension_for, input_format_choices, open_extensions, output_format_choices
+from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
 from yaqpy.gui.errors_ja import caret_line
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
 from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
@@ -204,10 +204,11 @@ class MainPage:
     # ------------------------------------------------------------------ 操作
 
     async def _on_open(self, e: ft.Event[ft.Button]) -> None:
+        # 拡張子で絞らない：開いたら内容で形式を判定する（yaqpy 独自の拡張）。ファイル名も
+        # 拡張子も自由（既知の拡張子は今までどおり最優先、未知・なしは中身を見る）。
         files = await self._picker.pick_files(
             dialog_title=texts.BTN_OPEN,
             allow_multiple=False,
-            allowed_extensions=open_extensions(),
         )
         if files:
             await self._load(files[0].path)

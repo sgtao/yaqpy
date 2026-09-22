@@ -8,7 +8,8 @@
 """
 
 from yaqpy.api import (
-    Yq, apply_recipe, compile, dump, evaluate, evaluate_all, list_recipes, load, query, update,
+    Yq, apply_recipe, compile, detect_format, dump, evaluate, evaluate_all, list_recipes, load,
+    query, update,
 )
 from yaqpy.app.recipe_service import RecipeRun
 from yaqpy.core.lang.parser import Expression
@@ -29,6 +30,7 @@ __version__ = "0.4.0"
 __all__ = [
     "Yq", "compile", "dump", "evaluate", "evaluate_all", "load", "query", "update",
     "apply_recipe", "list_recipes", "build_recipe", "Recipe", "RecipeReport", "RecipeRun",
+    "detect_format",
     "Expression", "Kind", "Node", "Style",
     "EvaluationError", "EvaluationLimitError", "ExpressionSyntaxError", "FormatError", "RecipeError",
     "SecurityError", "UnknownFormatError", "YamlSyntaxError", "YqError",

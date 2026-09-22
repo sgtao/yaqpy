@@ -27,6 +27,7 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
   | properties | ○ | ○ |
   | TOON（LLM に渡すためトークン数を減らす形式。Go 版にない拡張） | ○ | ○ |
 
+- **入力形式の自動判定**（Go 版にない拡張）：拡張子で決まらないとき（標準入力、拡張子なし・未知の拡張子のファイル、貼り付けたテキスト）は、中身を見て `json` `xml` `toml` `props` `csv` `tsv` を見分けます（見分けられなければ、これまでどおり YAML）。拡張子が分かるときの挙動は変わりません。ライブラリでは `yaqpy.detect_format(text)`
 - **スキーマの出力**（Go 版にない拡張）：`yaqpy --schema data.yaml` で、データを表す JSON Schema（Draft 2020-12）を JSON でも YAML でも出せます
 - **変換レシピ**（Go 版にない拡張）：`yaqpy --recipe openai-to-gemini request.json` で、OpenAI・Gemini・Anthropic の**リクエストボディを相互に変換**します。落とした項目・補った項目・変換先のスキーマに合わない箇所を**報告**します（既定では標準出力へ結果を出すだけ。ファイルに書くのは `--apply --out-dir` のときだけ。実際の API は呼びません）。[使い方](USAGE.ja.md#変換レシピapi-のリクエストを別の-api-用にするgo-版にはない拡張)
 - **yaqpy が自分を説明する**：`--print-spec`（使える・使えない演算子の一覧）`--example`（実行済みの例）`--guide-prompt`（AI に式を書かせるお願い文）`--skill-md`（Claude Code のスキル）。演算子の一覧は実装から自動生成です

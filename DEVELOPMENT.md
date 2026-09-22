@@ -26,23 +26,32 @@ uv run yaqpy '.server.port' examples/sample.yaml
 [toTop](#toreadme)
 ## テスト
 
+テストは **pytest**（`uv sync` が入れる dev 依存。設定は `pyproject.toml` の `[tool.pytest.ini_options]`）で走らせます。テストクラスは `unittest.TestCase` を継承しない素のクラス（`class XxxTests:`）で、`subTest` の代わりに `@pytest.mark.parametrize`、`assertXxx` の代わりに素の `assert` を使います。
+
 ```bash
-# ユニットテスト（919 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・GUI の Presenter など。実際にウィンドウは開きません）
-uv run python -m unittest discover -s tests/unit -t .
+# 全部まとめて（並列。pytest-xdist）
+uv run pytest -n auto
 
-# CLI 受け入れテスト（73 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明（実プロセスでの stdout/stderr の分離など））
-uv run python -m unittest tests.acceptance.test_cli
+# ユニットテスト（1,064 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・入力形式の自動判定・GUI の Presenter など。実際にウィンドウは開きません）
+uv run pytest tests/unit -n auto
 
-# Go 版シナリオのゴールデンテスト（1,091 件）
-uv run python -m unittest tests.golden.test_operators
+# CLI 受け入れテスト（83 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など））
+uv run pytest tests/acceptance -n auto
+
+# Go 版シナリオのゴールデンテスト（演算子 1,091 件・形式 154 件）
+uv run pytest tests/golden
 uv run python tools/golden_report.py            # 合格率の一覧。--fails で不一致の詳細
-
-# Go 版の形式シナリオ（XML・CSV/TSV・TOML・properties の 154 件）
-uv run python -m unittest tests.golden.test_formats
 uv run python tools/golden_report.py --formats  # 形式ごとの合格率。--file xml --fails で詳細
 
 # 依存ゼロ・レイヤ間の import 方向の検査
-uv run python -m unittest tests.unit.test_architecture
+uv run pytest tests/unit/test_architecture.py
+
+# マーカーで絞る（tests/conftest.py が golden・acceptance・gui を自動で付ける）
+uv run pytest -m "not acceptance and not golden"    # 速いテストだけ
+uv run pytest -m gui                                # GUI 関連だけ
+
+# カバレッジ（計測のみ。下限は設けていません）
+uv run pytest --cov=yaqpy --cov-report=term-missing
 
 # ゴールデンデータの再抽出（Go 版 yq のソースが手元にある場合）
 uv run python tools/extract_go_scenarios.py <yq のソース>/pkg/yqlib tests/golden/operators tests/golden/formats
@@ -70,6 +79,7 @@ src/yaqpy/
 ├── formats/
 │   ├── yaml/                       … 自前 YAML（parser / emitter / codec）
 │   ├── json_codec.py props_codec.py toon_codec.py registry.py
+│   ├── sniff.py                    … 入力形式の中身での判定（yaqpy 独自。FormatRegistry.guess が使う）
 │   ├── xml_tokens.py xml_codec.py  … XML（Go の encoding/xml と同じ寛容な字句解析。実体は展開しない）
 │   └── csv_codec.py toml_codec.py  … CSV/TSV、TOML（自前の TOML 1.0 パーサ）
 ├── recipes/                        … レシピ（データと、Python の値への検査。app/cli/gui/api を import しない）
@@ -80,7 +90,7 @@ src/yaqpy/
 ├── cli/                            … argparse、引数解釈（純粋関数）、main、recipe_cli（--recipe ほか）、describe_cli（--print-spec ほか）
 └── gui/                            … Flet の GUI（任意依存。presenter は Flet 非依存）
 tests/
-├── unit/  acceptance/  golden/     … unittest（標準ライブラリのみ）
+├── unit/  acceptance/  golden/     … pytest（tests/conftest.py が golden/acceptance/gui にマーカーを付ける）
 ├── golden/formats/                 … Go 版の形式シナリオ（抽出した JSON）と formats_manifest.json
 ├── data/testsets/                  … schema の試験に使う 10 個のデータ（23_testSets のコピー）
 └── support/golden.py golden_formats.py jsonschema_mini.py
