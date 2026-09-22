@@ -56,6 +56,19 @@ class LayoutTests:
         assert FILTER_ROW_SPACING >= 12        # 以前は 2
         assert filter_bar.spacing == FILTER_ROW_SPACING
 
+    def test_add_file_button_sits_to_the_right_of_the_file_name(self) -> None:
+        """要望：ファイル名の右に [＋ファイルを追加] を置く。"""
+        page, _, _ = make_page()
+        file_bar = next(c for c in page.control.controls
+                        if isinstance(c, ft.Row) and page._file_label in c.controls)
+        names = file_bar.controls
+        assert names.index(page._file_label) < names.index(page._add_file_button)
+
+    def test_indent_field_is_wide_enough_for_the_label_to_stay_on_one_line(self) -> None:
+        """要望：「インデント」ラベルが折り返さない幅にする。"""
+        page, _, _ = make_page()
+        assert page._indent_field.width >= 90
+
 
 @pytest.mark.skipif(ft is None, reason="flet is not installed")
 class FormatBadgeTests:

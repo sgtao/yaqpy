@@ -84,9 +84,27 @@ async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
                                  on_persist=persist_settings)
     pages = [main_page, settings_page]
 
-    async def quit_app(e: ft.Event) -> None:
-        # 窓の × と同じ経路（page.window.close() → prevent_close → on_window_event）で終了する。
-        await page.window.close()
+    def ask_quit(e: ft.Event) -> None:
+        """要望：終了ボタンはワンクリックで閉じず、確認を挟む。"""
+
+        def cancel(_: ft.Event) -> None:
+            page.pop_dialog()
+
+        async def confirm(_: ft.Event) -> None:
+            page.pop_dialog()
+            # 窓の × と同じ経路（page.window.close() → prevent_close → on_window_event）で終了する。
+            await page.window.close()
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text(texts.DLG_QUIT_TITLE),
+            actions=[
+                ft.TextButton(content=texts.DLG_QUIT_CANCEL, on_click=cancel, autofocus=True),
+                ft.TextButton(content=texts.DLG_QUIT_OK, on_click=confirm),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+        page.show_dialog(dialog)
 
     nav_bar = ft.Container(
         content=ft.Row([
@@ -94,7 +112,7 @@ async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
             ft.TextButton(content=nav_texts[1], on_click=lambda e: show(1)),
             ft.Container(expand=True),
             ft.IconButton(icon=ft.Icons.POWER_SETTINGS_NEW, icon_color=ft.Colors.ERROR,
-                         tooltip=texts.BTN_QUIT, on_click=quit_app),
+                         tooltip=texts.BTN_QUIT, on_click=ask_quit),
         ], alignment=ft.MainAxisAlignment.START),
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
         padding=ft.Padding.symmetric(horizontal=8, vertical=4),

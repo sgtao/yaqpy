@@ -84,7 +84,7 @@ class MainPage:
                                       on_select=self._on_output_format)
         # インデントは数字欄に直接打つほか、±ボタンでも操作できる（要望）。Flet に専用の
         # スピナー部品は無いので、IconButton を左右に添える形で組む。
-        self._indent_field = ft.TextField(label=texts.LBL_INDENT, width=64,
+        self._indent_field = ft.TextField(label=texts.LBL_INDENT, width=100,
                                           text_align=ft.TextAlign.CENTER,
                                           value=str(state.query.indent),
                                           input_filter=ft.NumbersOnlyInputFilter(),
@@ -187,8 +187,8 @@ class MainPage:
 
     def _build(self) -> ft.Control:
         file_bar = ft.Row([
-            self._add_file_button,
             self._file_label,
+            self._add_file_button,
             self._close_button,
         ], alignment=ft.MainAxisAlignment.START, spacing=12)
 

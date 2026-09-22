@@ -53,6 +53,9 @@ DLG_OVERWRITE_BODY = (
 )
 DLG_OVERWRITE_OK = "上書きする"
 DLG_OVERWRITE_CANCEL = "やめる"
+DLG_QUIT_TITLE = "アプリを閉じますか？"
+DLG_QUIT_OK = "閉じる"
+DLG_QUIT_CANCEL = "やめる"
 MSG_COPIED = "変換結果をクリップボードにコピーしました"
 SET_TITLE = "設定"
 SET_SECURITY = "セキュリティ"
@@ -153,6 +156,9 @@ _EN: dict[str, str] = {
     ),
     "DLG_OVERWRITE_OK": "Overwrite",
     "DLG_OVERWRITE_CANCEL": "Cancel",
+    "DLG_QUIT_TITLE": "Quit the app?",
+    "DLG_QUIT_OK": "Quit",
+    "DLG_QUIT_CANCEL": "Cancel",
     "MSG_COPIED": "Copied the result to the clipboard",
     "SET_TITLE": "Settings",
     "SET_SECURITY": "Security",
