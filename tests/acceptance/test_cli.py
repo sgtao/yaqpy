@@ -387,21 +387,35 @@ class BadArgsTests(CliTestCase):
 
 
 class GuiFlagTests(CliTestCase):
-    """`--gui` の入口だけを検査する（GUI 本体は起動しない: 起動前に必ず失敗する引数のみ使う）。"""
+    """`--gui` の入口だけを検査する（GUI 本体は起動しない: 起動前に必ず失敗する引数のみ使う）。
+
+    実在するファイルを 1 つだけ渡す組み合わせ（``yaqpy --gui a.yaml``）は、v0.5.0 から実際に
+    GUI を起動する側になった（改修計画 5-4 U2）ので、ここでは検査しない。その経路は
+    ``tests/unit/test_cli_gui_flag.py`` が ``gui.app.main_entry`` をモックして検査する。
+    """
 
     def test_gui_flag_is_listed_in_help(self) -> None:
         r = yq("--help")
         assert r.returncode == 0
         assert "--gui" in r.stdout
 
-    def test_gui_flag_rejects_an_expression(self) -> None:
+    def test_gui_flag_rejects_an_expression_looking_argument(self) -> None:
+        """存在しないパスは、打ち間違えた式かもしれないので開かずに断る。"""
         r = yq("--gui", ".a")
         assert r.returncode == 1
         assert "cannot be combined" in r.stderr
 
-    def test_gui_flag_rejects_a_file(self) -> None:
+    def test_gui_flag_rejects_two_files(self) -> None:
+        """複数ファイルは U3 まで見送り（今は 1 つだけ開ける）。"""
+        first = self.write("a.yaml", "a: 1\n")
+        second = self.write("b.yaml", "b: 1\n")
+        r = yq("--gui", first, second)
+        assert r.returncode == 1
+        assert "cannot be combined" in r.stderr
+
+    def test_gui_flag_rejects_a_file_with_an_expression(self) -> None:
         path = self.write("a.yaml", "a: 1\n")
-        r = yq("--gui", path)
+        r = yq("--gui", ".a", path)
         assert r.returncode == 1
         assert "cannot be combined" in r.stderr
 

@@ -34,7 +34,7 @@ def _terminate_process_tree() -> None:
     os._exit(0)                               # taskkill が間に合わなかったときの保険
 
 
-async def _main(page: ft.Page) -> None:
+async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
     page.title = texts.APP_TITLE
     page.padding = 12
     page.window.width = 1180
@@ -113,7 +113,13 @@ async def _main(page: ft.Page) -> None:
 
     show(0)
     page.add(content, nav_bar)
+    if initial_path:
+        # yaqpy --gui a.yaml（U2）。add() の後で走らせ、画面が組み上がってから開く。
+        page.run_task(main_page.open_startup_file, initial_path)
 
 
-def run_app() -> None:
-    ft.run(_main)
+def run_app(*, initial_path: str | None = None) -> None:
+    async def main(page: ft.Page) -> None:
+        await _main(page, initial_path=initial_path)
+
+    ft.run(main)
