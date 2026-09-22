@@ -35,7 +35,6 @@ LBL_EXPRESSION = "式"
 LBL_PROPERTY = "プロパティ"
 LBL_ORIGINAL = "オリジナル"
 LBL_CONVERTED = "変換結果"
-LBL_EVAL_ALL = "まとめて評価 (eval-all)"
 LBL_LANGUAGE = "表示言語"
 
 # プレースホルダ・案内
@@ -90,10 +89,6 @@ HINT_SECURITY = "設定画面で「{capability} を許可」を有効にする�
 HINT_TIMEOUT = "設定画面でタイムアウトを延ばせます"
 HINT_CANCELLED = "中止しました"
 HINT_REPORT = "再現手順を添えて不具合として報告してください"
-HINT_EVAL_ALL = (
-    "開いているすべての文書を 1 回の評価にまとめます（fi や filename でファイルを区別できます。"
-    "CLI の eval-all と同じ）"
-)
 
 # 許可の名前（gui/errors_ja.py の HINT_SECURITY に埋め込む。U4）
 CAP_ENV = "環境変数（env / strenv）"
@@ -129,7 +124,6 @@ _EN: dict[str, str] = {
     "LBL_PROPERTY": "Property",
     "LBL_ORIGINAL": "Original",
     "LBL_CONVERTED": "Result",
-    "LBL_EVAL_ALL": "Evaluate together (eval-all)",
     "LBL_LANGUAGE": "Display language",
     "PH_EXPRESSION": "e.g. .items[] | select(.price > 500)",
     "MSG_NO_DOCUMENT": "Open a file, or paste text here",
@@ -180,10 +174,6 @@ _EN: dict[str, str] = {
     "HINT_TIMEOUT": "You can extend the timeout in Settings",
     "HINT_CANCELLED": "Cancelled",
     "HINT_REPORT": "Please report this as a bug, with steps to reproduce it",
-    "HINT_EVAL_ALL": (
-        "Combines every open document into a single evaluation (use fi or filename to tell "
-        "files apart — same as the CLI's eval-all)"
-    ),
     "CAP_ENV": "environment variables (env / strenv)",
     "CAP_FILE": "file reading (load / loadstr)",
     "CAP_UNKNOWN": "this feature",

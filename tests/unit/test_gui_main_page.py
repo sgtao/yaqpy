@@ -134,14 +134,18 @@ class OpenDialogTests:
 
 @pytest.mark.skipif(ft is None, reason="flet is not installed")
 class MultiFileUiTests:
-    """複数ファイル UI（U3）：チップの一覧・まとめて評価のスイッチ。"""
+    """複数ファイル UI（U3）：チップで開き・切り替え・閉じる。
+
+    「まとめて評価 (eval-all)」のトグルは撤去した（形式が異なる組み合わせで変換に失敗する
+    ことがあり、ユースケースを精査してからにする。presenter 側のロジックは残っているので
+    ``test_gui_presenter.py`` の ``EvalAllTests`` で検査する）。
+    """
 
     async def test_the_files_row_is_hidden_with_a_single_document(self) -> None:
         page, presenter, _ = make_page()
         await presenter.open_path("/w/shop.xml")
         page._after_open()
         assert page._files_row.visible is False
-        assert page._eval_all_switch.visible is False
 
     async def test_adding_a_second_file_shows_the_chips(self) -> None:
         page, presenter, _ = make_page()
@@ -151,7 +155,6 @@ class MultiFileUiTests:
             return_value=[mock.MagicMock(path="/w/app.toml")])
         await page._on_add_file(mock.MagicMock())
         assert page._files_row.visible is True
-        assert page._eval_all_switch.visible is True
         assert [c.label for c in page._files_row.controls] == ["shop.xml", "app.toml"]
         assert page._files_row.controls[1].selected            # 追加した方が選ばれている
         assert not page._files_row.controls[0].selected
@@ -186,17 +189,6 @@ class MultiFileUiTests:
         await page._on_close_document_at(0)
         assert page._drop_hint.visible is True
         assert page._file_label.value == texts.MSG_NO_DOCUMENT
-
-    async def test_eval_all_switch_updates_state(self) -> None:
-        page, presenter, state = make_page()
-        await presenter.open_path("/w/shop.xml")
-        page._after_open()
-        await presenter.add_path("/w/app.toml")
-        page._refresh_multi_file_ui()
-        event = mock.MagicMock()
-        event.control.value = True
-        page._on_eval_all(event)
-        assert state.eval_all is True
 
 
 @pytest.mark.skipif(ft is None, reason="flet is not installed")

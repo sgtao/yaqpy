@@ -63,10 +63,10 @@ class MainPage:
         self._close_button = ft.Button(content=texts.BTN_CLOSE, icon=ft.Icons.CLOSE,
                                        on_click=self._on_close, disabled=True)
 
-        # --- 複数ファイル（U3）：2 件以上のときだけ出す ---
+        # --- 複数ファイル（U3）：2 件以上のときだけ出す。タブで切り替えるだけで、
+        # 「まとめて評価 (eval-all)」のトグルは撤去した（形式が違うと変換に失敗する組み合わせが
+        # ありえ、ユースケースを精査してからにする。ロジックは presenter 側に残したまま）。
         self._files_row = ft.Row([], spacing=6, wrap=True, visible=False)
-        self._eval_all_switch = ft.Switch(label=texts.LBL_EVAL_ALL, value=False, visible=False,
-                                          tooltip=texts.HINT_EVAL_ALL, on_change=self._on_eval_all)
 
         # --- 形式バー ---
         self._input_dd = ft.Dropdown(label=texts.LBL_INPUT_FORMAT, width=170,
@@ -171,7 +171,7 @@ class MainPage:
             self._close_button,
         ], alignment=ft.MainAxisAlignment.START, spacing=12)
 
-        files_bar = ft.Row([self._files_row, self._eval_all_switch], spacing=16)
+        files_bar = ft.Row([self._files_row], spacing=16)
 
         format_bar = ft.Row([self._input_dd, self._output_dd, self._indent_field,
                              self._pretty_switch], spacing=12)
@@ -280,10 +280,6 @@ class MainPage:
             await self._reload_candidates()
         self._page.update()
 
-    def _on_eval_all(self, e: ft.Event[ft.Switch]) -> None:
-        self._state.eval_all = bool(e.control.value)
-        self._page.run_task(self._run_and_reload_candidates)
-
     async def _on_select_document(self, index: int) -> None:
         self._p.select_document(index)
         self._sync_active_document_view()
@@ -313,15 +309,12 @@ class MainPage:
         self._refresh_format_badges()
 
     def _refresh_multi_file_ui(self) -> None:
-        """ファイルの一覧（チップ）と「まとめて評価」スイッチを、いまの状態に合わせて作り直す。
+        """ファイルの一覧（チップ）を、いまの状態に合わせて作り直す。
 
-        1 件だけのときは v1 までと同じ見た目に戻す（2 件以上でだけ出す）。
+        1 件だけのときは v1 までと同じ見た目に戻す（チップの一覧は 2 件以上でだけ出す）。
         """
         documents = self._state.documents
-        multiple = len(documents) > 1
-        self._files_row.visible = multiple
-        self._eval_all_switch.visible = multiple
-        self._eval_all_switch.value = self._state.eval_all
+        self._files_row.visible = len(documents) > 1
         chips: list[ft.Control] = []
         for i, doc in enumerate(documents):
             chips.append(ft.Chip(
