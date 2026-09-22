@@ -192,8 +192,8 @@ _EN: dict[str, str] = {
         '  pip install "flet>=1.0,<2"     (add it to an installed yaqpy)\n'
         "  uv sync --extra gui            (a development checkout of the repository)\n"
         "To reinstall with the GUI included from a GitHub release, see the install section "
-        "of the README:\n"
-        "  https://github.com/sgtao/yaqpy#installation\n"
+        "of the README (Japanese only):\n"
+        "  https://github.com/sgtao/yaqpy#インストール\n"
     ),
 }
 
