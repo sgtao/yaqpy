@@ -72,6 +72,7 @@ SET_DARK = "ダークテーマ"
 SET_LANGUAGE_NOTE = "変更は次回の起動から有効です"
 NAV_MAIN = "📄 メイン"
 NAV_SETTINGS = "⚙ 設定"
+NAV_ASK_AI = "🤖 AIに相談"
 MSG_DROP_UNSUPPORTED = "この環境ではファイルのドラッグ＆ドロップに対応していません"
 MSG_PASTE_HERE = "ここに YAML / JSON を貼り付けてください"
 MSG_PASTED = "（貼り付けたテキスト）"
@@ -79,14 +80,26 @@ MSG_NO_CANDIDATES = "この文書からはプロパティ候補を作れませ�
 MSG_TOO_MANY_CANDIDATES = "候補が多いため、絞り込んでください"
 MSG_COPIED_SHORT = "コピーしました！"
 
-# AI への相談文（--guide-prompt の GUI 版。追加要望）
-BTN_GUIDE_PROMPT = "AI に相談"
-DLG_GUIDE_PROMPT_TITLE = "AI への相談文"
-DLG_GUIDE_PROMPT_HINT = (
-    "この内容を ChatGPT や Claude などの AI にそのまま貼り付けてください。末尾の「## 依頼」の"
-    "行を、やりたいことに書き換えられます（この欄自体を編集してから貼り付けても構いません）。"
+# 「AIに相談」画面（--guide-prompt の GUI 版。v0.7.0）
+ASK_AI_TITLE = "AI に相談"
+ASK_AI_HINT = (
+    "左に、データの例とやりたい変換を書いて［＋プロンプトに反映］を押すと、右の相談文の"
+    "「## 依頼」に入ります。右の全文をコピーして、ChatGPT や Claude などの AI に貼り付けてください"
+    "（右の欄は自由に編集できます）。"
 )
-BTN_COPY_PROMPT = "プロンプトをコピー"
+LBL_ASK_AI_INPUT = "あなたの入力（データ例・やりたい変換）"
+LBL_ASK_AI_PROMPT = "AIへの相談文（コピーしてAIに貼り付け）"
+PH_ASK_AI_INPUT = "例: この JSON から、price が 500 を超える商品の name だけを取り出したい"
+BTN_PASTE = "貼り付け"
+BTN_CLEAR = "クリア"
+BTN_APPLY_TO_PROMPT = "＋プロンプトに反映"
+BTN_RESET_PROMPT = "初期状態に戻す"
+MSG_PROMPT_LOADING = "相談文を作っています…"
+MSG_APPLY_EMPTY = "左の欄に入力してから、［＋プロンプトに反映］を押してください"
+MSG_PASTE_FAILED = (
+    "クリップボードから貼り付けられませんでした（ブラウザや OS が許可していない可能性があります）。"
+    "欄をクリックして Ctrl + V で貼り付けてください"
+)
 MSG_COPY_FAILED = (
     "クリップボードにコピーできませんでした（ブラウザや OS が許可していない可能性があります）。"
     "欄の文字を選択してコピーしてください"
@@ -215,20 +228,30 @@ _EN: dict[str, str] = {
     "SET_LANGUAGE_NOTE": "Takes effect the next time you start the app",
     "NAV_MAIN": "📄 Main",
     "NAV_SETTINGS": "⚙ Settings",
+    "NAV_ASK_AI": "🤖 Ask AI",
     "MSG_DROP_UNSUPPORTED": "Drag-and-drop is not supported in this environment",
     "MSG_PASTE_HERE": "Paste YAML / JSON here",
     "MSG_PASTED": "(pasted text)",
     "MSG_NO_CANDIDATES": "No property suggestions could be made from this document",
     "MSG_TOO_MANY_CANDIDATES": "Too many suggestions — type to narrow them down",
     "MSG_COPIED_SHORT": "Copied!",
-    "BTN_GUIDE_PROMPT": "Ask AI",
-    "DLG_GUIDE_PROMPT_TITLE": "Prompt for AI",
-    "DLG_GUIDE_PROMPT_HINT": (
-        "Paste this as-is into ChatGPT, Claude, or another AI. You can rewrite the "
-        '"## 依頼" ("Request") line at the end with what you actually want to do '
-        "(or edit this box itself before pasting)."
+    "ASK_AI_TITLE": "Ask AI",
+    "ASK_AI_HINT": (
+        "Write your sample data and what you want to do on the left, then press [+ Add to prompt]: "
+        'it goes into the "## 依頼" ("Request") section of the prompt on the right. Copy the whole '
+        "prompt and paste it into ChatGPT, Claude, or another AI (the right box is freely editable)."
     ),
-    "BTN_COPY_PROMPT": "Copy Prompt",
+    "LBL_ASK_AI_INPUT": "Your input (sample data and what you want to do)",
+    "LBL_ASK_AI_PROMPT": "Prompt for the AI (copy it and paste it into the AI)",
+    "PH_ASK_AI_INPUT": "e.g. From this JSON, I want only the names of items whose price is over 500",
+    "BTN_PASTE": "Paste",
+    "BTN_CLEAR": "Clear",
+    "BTN_APPLY_TO_PROMPT": "+ Add to prompt",
+    "BTN_RESET_PROMPT": "Reset",
+    "MSG_PROMPT_LOADING": "Building the prompt…",
+    "MSG_APPLY_EMPTY": "Type something in the left box, then press [+ Add to prompt]",
+    "MSG_PASTE_FAILED": ("Could not paste from the clipboard (the browser or OS may not allow it). "
+                         "Click the box and press Ctrl + V instead"),
     "MSG_COPY_FAILED": ("Could not copy to the clipboard (the browser or OS may not allow it). "
                         "Select the text in the box and copy it instead"),
     "BTN_DOWNLOAD": "Download",

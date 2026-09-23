@@ -339,29 +339,13 @@ class IndentStepperTests:
 
 
 @pytest.mark.skipif(ft is None, reason="flet is not installed")
-class GuidePromptDialogTests:
-    """CLI の --guide-prompt を GUI からも呼べる（要望）。
+class GuideButtonRemovedTests:
+    """v0.7.0：式バーの 🤖 は「AI に相談」タブ（ask_ai_page）へ移した。"""
 
-    実際のクリップボード操作（``ft.Clipboard().set``）は、生きた page が無いと
-    ``RuntimeError`` になる（他の ``_on_copy`` も同様に未検査）。ここではダイアログの
-    中身が正しく組み立てられることだけを確かめる。
-    """
-
-    async def test_opens_a_dialog_with_the_guide_prompt_prefilled(self) -> None:
-        from yaqpy.app.selfdoc import render_guide_prompt
-
-        page, presenter, _state = make_page()
-        await page._on_open_guide_prompt(mock.MagicMock())
-        dialog = page._page.show_dialog.call_args.args[0]
-        assert isinstance(dialog, ft.AlertDialog)
-        assert dialog.title.value == "AI への相談文"
-        field = dialog.content.controls[-1]
-        assert field.value == render_guide_prompt(presenter._service)
-
-    async def test_works_without_a_document_open(self) -> None:
-        page, _presenter, _state = make_page()
-        await page._on_open_guide_prompt(mock.MagicMock())
-        page._page.show_dialog.assert_called_once()
+    def test_the_expression_bar_has_no_guide_button(self) -> None:
+        page, _, _ = make_page()
+        assert not hasattr(page, "_guide_button")
+        assert not hasattr(page, "_on_open_guide_prompt")
 
 
 @pytest.mark.skipif(ft is None, reason="flet is not installed")

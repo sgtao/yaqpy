@@ -47,6 +47,7 @@ GUI_FLET_FREE_MODULES = {
     "yaqpy.gui.web_config",
     "yaqpy.gui.logo",
     "yaqpy.gui.web_assets",
+    "yaqpy.gui.ask_ai",
     "yaqpy.gui.app",
 }
 

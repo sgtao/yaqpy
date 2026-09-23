@@ -18,6 +18,7 @@ from yaqpy.gui import texts
 from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
 from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.errors_ja import caret_line
+from yaqpy.gui.pages.clipboard import set_clipboard
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
 from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
 from yaqpy.gui.state import AUTO, GuiState
@@ -25,7 +26,6 @@ from yaqpy.gui.state import AUTO, GuiState
 VALIDATE_DEBOUNCE_SECONDS = 0.3
 PASTE_DEBOUNCE_SECONDS = 0.3
 EDIT_DEBOUNCE_SECONDS = 0.5      # 読み込み後の追加編集：打ち終わってから取り込むまでの間
-COPY_FEEDBACK_SECONDS = 1.5      # ボタン文字を「コピーしました！」に変えておく時間
 PASTE_MIN_LINES = 4              # 未読込のあいだの貼り付け欄の高さ（画面に収まるよう控えめに）
 PANE_HEADER_HEIGHT = 44         # 右見出しの保存ボタンに高さを合わせ、左右の枠の上端を揃える
 MONO = ft.TextStyle(font_family="Consolas", size=12)
@@ -53,20 +53,6 @@ def _output_format_options(names: list[str]) -> list[ft.DropdownOption]:
     """
     return [ft.DropdownOption(key=n, text=texts.LBL_AUTO_SAME_AS_INPUT if n == AUTO else n)
             for n in names]
-
-
-async def _set_clipboard(text: str) -> bool:
-    """クリップボードに書く。失敗したら False（例外で画面を止めない）。
-
-    W0 の実測で、ブラウザが ``clipboard-write`` を許可していないと
-    ``PlatformException(copy_fail, Clipboard.setData failed.)`` になった。デスクトップでも
-    OS 側の理由で失敗しうるので、どちらも同じく案内に切り替える。
-    """
-    try:
-        await ft.Clipboard().set(text)
-    except Exception:                          # noqa: BLE001 - 失敗は利用者への案内で扱う
-        return False
-    return True
 
 
 class MainPage:
@@ -155,11 +141,6 @@ class MainPage:
                                      on_click=self._on_run, disabled=True)
         self._cancel_button = ft.Button(content=texts.BTN_CANCEL, icon=ft.Icons.STOP,
                                         on_click=self._on_cancel, disabled=True)
-        # 式が難しいときに AI へ相談する文面を出す（CLI の --guide-prompt の GUI 版。要望）。
-        # 文書の有無に関わらず使えるので、無効化しない。
-        self._guide_button = ft.IconButton(icon=ft.Icons.SMART_TOY_OUTLINED,
-                                           tooltip=texts.BTN_GUIDE_PROMPT,
-                                           on_click=self._on_open_guide_prompt)
         self._progress = ft.ProgressBar(visible=False)
 
         # --- 2 ペイン ---
@@ -227,7 +208,7 @@ class MainPage:
         filter_bar = ft.Column([
             ft.Row([self._property_dd, self._add_button], spacing=8),
             self._candidate_note,
-            ft.Row([self._expr_field, self._guide_button, self._run_button, self._cancel_button],
+            ft.Row([self._expr_field, self._run_button, self._cancel_button],
                   spacing=8),
             self._expr_error,
         ], spacing=FILTER_ROW_SPACING)
@@ -673,54 +654,6 @@ class MainPage:
         self._cancel_button.disabled = True
         self._status_text.value = texts.MSG_CANCELLING
 
-    # ------------------------------------------------------------------ AI への相談文（要望）
-
-    async def _on_open_guide_prompt(self, e: ft.Event[ft.IconButton]) -> None:
-        prompt = await self._p.guide_prompt()
-        self._show_guide_prompt_dialog(prompt)
-        self._page.update()
-
-    def _show_guide_prompt_dialog(self, prompt: str) -> None:
-        """CLI の --guide-prompt の内容を、編集してコピーできるダイアログで出す（要望）。
-
-        MD Slide Studio の「AI プロンプト」画面を参考にした：全文を編集可能な 1 つの欄に入れ、
-        末尾の「## 依頼」をユーザーが書き換えてからコピーする、という使い方を想定している。
-        """
-        field = ft.TextField(value=prompt, multiline=True, min_lines=16, max_lines=16,
-                             text_style=MONO, expand=True)
-        copy_button = ft.TextButton(content=texts.BTN_COPY_PROMPT)
-
-        def close(_: ft.Event) -> None:
-            self._page.pop_dialog()
-
-        async def copy(_: ft.Event) -> None:
-            if not await _set_clipboard(field.value or ""):
-                self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_COPY_FAILED)))
-                self._page.update()
-                return
-            copy_button.content = texts.MSG_COPIED_SHORT
-            self._page.update()
-            await asyncio.sleep(COPY_FEEDBACK_SECONDS)
-            copy_button.content = texts.BTN_COPY_PROMPT
-            self._page.update()
-
-        copy_button.on_click = copy
-
-        dialog = ft.AlertDialog(
-            modal=True,
-            title=ft.Text(texts.DLG_GUIDE_PROMPT_TITLE),
-            content=ft.Column([
-                ft.Text(texts.DLG_GUIDE_PROMPT_HINT, size=12, color=ft.Colors.ON_SURFACE_VARIANT),
-                field,
-            ], width=640, height=460, spacing=8, tight=True),
-            actions=[
-                ft.TextButton(content=texts.BTN_CLOSE, on_click=close),
-                copy_button,
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-        self._page.show_dialog(dialog)
-
     # ------------------------------------------------------------------ 保存（G3）
 
     async def _on_save(self, e: ft.Event[ft.Button]) -> None:
@@ -794,7 +727,7 @@ class MainPage:
         run = self._p.last_run
         if run is None:
             return
-        copied = await _set_clipboard(run.full_text)   # 表示用ではなく全量をコピーする
+        copied = await set_clipboard(run.full_text)   # 表示用ではなく全量をコピーする
         message = texts.MSG_COPIED if copied else texts.MSG_COPY_FAILED
         self._page.show_dialog(ft.SnackBar(ft.Text(message)))
 

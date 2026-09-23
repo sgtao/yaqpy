@@ -14,11 +14,15 @@ from yaqpy.gui._di import make_presenter
 from yaqpy.gui._prefs import load_settings, save_settings
 from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.logo import WINDOW_ICON
+from yaqpy.gui.pages.ask_ai_page import AskAiPage
 from yaqpy.gui.pages.main_page import MainPage
 from yaqpy.gui.pages.settings_page import SettingsPage
 from yaqpy.gui.state import GuiState, clamp_settings_to_web_limits
 from yaqpy.gui.web_assets import is_drop_route
 from yaqpy.gui.web_config import WebRuntime
+
+# ページの番号（nav_labels / pages の並び）。末尾に足していくので、既存の番号は動かない
+MAIN, SETTINGS, ASK_AI = 0, 1, 2
 
 # 窓を閉じてから、クライアントの後始末を待つ時間（秒）
 CLOSE_GRACE_SECONDS = 0.3
@@ -78,7 +82,9 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
         page.run_task(_save)
 
     content = ft.Container(expand=True)
-    nav_labels = [texts.NAV_MAIN, texts.NAV_SETTINGS]
+    # ページの並びは pages / nav_labels（同じ順）。タブの数はここだけで決まる（Web 版とデスクトップ版で
+    # 数が違ってもよい）。ページ番号に頼るコードは MAIN / SETTINGS の定数を使う。
+    nav_labels = [texts.NAV_MAIN, texts.NAV_SETTINGS, texts.NAV_ASK_AI]
     # ft.ButtonStyle は Flet 1.0 で色を受け取れないので、押しているページは文字の色と太さで示す
     nav_texts = [ft.Text(label) for label in nav_labels]
 
@@ -88,9 +94,12 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
             active = i == index
             label.color = ft.Colors.PRIMARY if active else ft.Colors.ON_SURFACE_VARIANT
             label.weight = ft.FontWeight.BOLD if active else ft.FontWeight.NORMAL
+        on_show = getattr(pages[index], "on_show", None)
+        if on_show is not None:                 # 切り替わったときに用意するもの（AI に相談の相談文など）
+            page.run_task(on_show)
 
     def go_to_settings(capability: str = "") -> None:
-        show(1)
+        show(SETTINGS)
         if capability:
             settings_page.focus_capability(capability)
         page.update()
@@ -100,7 +109,8 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
     settings_page = SettingsPage(page=page, state=state,
                                  on_changed=lambda: page.run_task(main_page.rerun),
                                  on_persist=persist_settings)
-    pages = [main_page, settings_page]
+    ask_ai_page = AskAiPage(page=page, presenter=presenter)
+    pages = [main_page, settings_page, ask_ai_page]
 
     def ask_quit(e: ft.Event) -> None:
         """要望：終了ボタンはワンクリックで閉じず、確認を挟む。"""
@@ -125,8 +135,8 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
         page.show_dialog(dialog)
 
     nav_items: list[ft.Control] = [
-        ft.TextButton(content=nav_texts[0], on_click=lambda e: show(0)),
-        ft.TextButton(content=nav_texts[1], on_click=lambda e: show(1)),
+        ft.TextButton(content=label, on_click=lambda e, i=i: show(i))
+        for i, label in enumerate(nav_texts)
     ]
     if web is None:
         # Web 版には閉じる窓が無い（タブを閉じればよい。サーバーは起動した端末で Ctrl+C）
@@ -172,14 +182,14 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
             if not is_drop_route(e.route):
                 return
             await page.push_route("/")          # 通知用のルートを URL に残さない
-            show(0)
+            show(MAIN)
             page.update()
             await main_page.add_dropped_files()
 
         page.on_route_change = on_route_change
     page.theme_mode = ft.ThemeMode.DARK if state.settings.dark_theme else ft.ThemeMode.LIGHT
 
-    show(0)
+    show(MAIN)
     page.add(content, nav_bar)
     if initial_path:
         # yaqpy --gui a.yaml（U2）。add() の後で走らせ、画面が組み上がってから開く。
