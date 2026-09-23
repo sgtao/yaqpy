@@ -57,8 +57,7 @@ def web_entry(config: WebConfig, *, stderr: TextIO | None = None) -> int:
         return 1
     from yaqpy.gui._web import serve
 
-    serve(config, stderr=err)
-    return 0
+    return serve(config, stderr=err)
 
 
 _WEB_ONLY = ("host", "port", "lang", "no_browser", "no_cdn", "max_input_mib", "timeout",

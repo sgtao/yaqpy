@@ -106,7 +106,9 @@ class WsMaxSizeTests:
 class ServeTests:
     """serve() の前後処理：起動の案内・公開時の警告・終了時の一時フォルダの削除。"""
 
-    def _serve(self, monkeypatch, **config: object) -> tuple[str, list[str]]:
+    def _serve(self, monkeypatch, *, fail: bool = False,
+               **config: object) -> tuple[int, str, list[str]]:
+        import asyncio
         import io
 
         from yaqpy.gui import _web, texts
@@ -116,27 +118,43 @@ class ServeTests:
         class FakeServer:
             def __init__(self, runtime) -> None:
                 self.runtime = runtime
+                self.started = False
+                self.should_exit = False
 
             async def serve(self) -> None:
                 seen.append(self.runtime.upload_dir)
                 assert os.path.isdir(self.runtime.upload_dir)     # 動いている間はある
+                if fail:
+                    raise SystemExit(3)                           # uvicorn：待ち受けられない
+                self.started = True
+                await asyncio.sleep(0.5)                          # 案内が出るのを待つ
                 raise KeyboardInterrupt                           # Ctrl+C で止めた扱い
 
         monkeypatch.setattr(_web, "make_server", FakeServer)
         err = io.StringIO()
         try:
-            _web.serve(WebConfig(open_browser=False, **config), stderr=err)  # type: ignore[arg-type]
+            code = _web.serve(WebConfig(open_browser=False, **config),  # type: ignore[arg-type]
+                              stderr=err)
         finally:
             texts.select_language("ja")
-        return err.getvalue(), seen
+        return code, err.getvalue(), seen
 
     def test_announces_the_url_and_removes_the_upload_folder_on_exit(self, monkeypatch) -> None:
-        out, seen = self._serve(monkeypatch)
+        code, out, seen = self._serve(monkeypatch)
+        assert code == 0
         assert "http://127.0.0.1:8550/" in out
         assert "警告" not in out
         assert len(seen) == 1 and not os.path.exists(seen[0])
 
     def test_warns_when_reachable_from_other_machines(self, monkeypatch) -> None:
-        out, _ = self._serve(monkeypatch, host="0.0.0.0", language="en")
+        _, out, _ = self._serve(monkeypatch, host="0.0.0.0", language="en")
         assert "Warning: --host 0.0.0.0" in out
         assert "no authentication" in out
+
+    def test_a_failed_start_is_exit_1_and_never_claims_to_be_running(self, monkeypatch) -> None:
+        """ポートが使用中のとき、以前は先に「起動しました」と出ていた（実機で確認して修正）。"""
+        code, out, seen = self._serve(monkeypatch, fail=True)
+        assert code == 1
+        assert "起動できませんでした" in out
+        assert "起動しました" not in out
+        assert not os.path.exists(seen[0])

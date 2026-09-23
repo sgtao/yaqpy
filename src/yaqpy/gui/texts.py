@@ -142,6 +142,10 @@ WEB_INSTALL_HINT = (
     "  uv sync --extra web               （リポジトリを clone した開発環境）\n"
 )
 WEB_STARTED = "yaqpy の Web 版を起動しました: {url}\n（止めるには、この端末で Ctrl+C）\n"
+WEB_START_FAILED = (
+    "Web 版を起動できませんでした（{host}:{port}）。ポートが使用中なら、--port で別の番号を"
+    "指定してください\n"
+)
 WEB_EXPOSED_WARNING = (
     "警告: --host {host} は、この PC 以外からも接続できる待ち受けです。\n"
     "  yaqpy の Web 版には認証がありません。同じネットワークの誰でも画面を開けます。\n"
@@ -268,6 +272,8 @@ _EN: dict[str, str] = {
         "  uv sync --extra web               (a development checkout of the repository)\n"
     ),
     "WEB_STARTED": "yaqpy web version is running: {url}\n(press Ctrl+C in this terminal to stop it)\n",
+    "WEB_START_FAILED": ("Could not start the web version on {host}:{port}. If the port is in use, "
+                         "choose another one with --port\n"),
     "WEB_EXPOSED_WARNING": (
         "Warning: --host {host} accepts connections from other machines, not just this PC.\n"
         "  The yaqpy web version has no authentication; anyone on the network can open it.\n"

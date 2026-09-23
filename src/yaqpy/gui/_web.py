@@ -18,7 +18,6 @@ from __future__ import annotations
 import asyncio
 import secrets
 import shutil
-import socket
 import tempfile
 import threading
 import time
@@ -83,34 +82,42 @@ def new_runtime(config: WebConfig) -> WebRuntime:
                       upload_dir=tempfile.mkdtemp(prefix="yaqpy-web-"))
 
 
-def serve(config: WebConfig, *, stderr: TextIO) -> None:
-    """サーバーを起動し、Ctrl+C で止まるまで戻らない。"""
+def serve(config: WebConfig, *, stderr: TextIO) -> int:
+    """サーバーを起動し、Ctrl+C で止まるまで戻らない。戻り値は終了コード（0 / 1）。"""
     texts.select_language(config.language)      # 全セッション共通（タブごとには選ばない）
     runtime = new_runtime(config)
     upload_dir = runtime.upload_dir
     server = make_server(runtime)
     if config.exposed:
         stderr.write(texts.WEB_EXPOSED_WARNING.format(host=config.host))
-    stderr.write(texts.WEB_STARTED.format(url=config.url))
-    stderr.flush()
-    if config.open_browser:
-        threading.Thread(target=_open_browser_when_ready, args=(config,), daemon=True).start()
+        stderr.flush()
+    threading.Thread(target=_announce_when_started, args=(server, config, stderr),
+                     daemon=True).start()
     try:
         asyncio.run(server.serve())
     except KeyboardInterrupt:
         pass
+    except SystemExit:
+        # uvicorn は待ち受けられない（ポートが使用中など）と、理由をログに出して
+        # sys.exit(3) する。yaqpy の終了コードの規約（誤りは 1）にそろえる。
+        stderr.write(texts.WEB_START_FAILED.format(host=config.host, port=config.port))
+        return 1
     finally:
         shutil.rmtree(upload_dir, ignore_errors=True)
+    return 0
 
 
-def _open_browser_when_ready(config: WebConfig) -> None:
-    """待ち受けが始まってから既定のブラウザで開く（始まらなければ開かない）。"""
-    host = "127.0.0.1" if config.host in ("0.0.0.0", "::") else config.host
+def _announce_when_started(server: uvicorn.Server, config: WebConfig, stderr: TextIO) -> None:
+    """待ち受けが**始まってから**案内を出し、ブラウザを開く（始まらなければ何もしない）。
+
+    先に案内を出すと、ポートが使用中で起動できなかったときにも「起動しました」と出てしまう。
+    """
     deadline = time.monotonic() + BROWSER_WAIT_SECONDS
-    while time.monotonic() < deadline:
-        try:
-            with socket.create_connection((host, config.port), timeout=0.5):
-                webbrowser.open(config.url)
-                return
-        except OSError:
-            time.sleep(0.2)
+    while not server.started:
+        if time.monotonic() > deadline or server.should_exit:
+            return
+        time.sleep(0.1)
+    stderr.write(texts.WEB_STARTED.format(url=config.url))
+    stderr.flush()
+    if config.open_browser:
+        webbrowser.open(config.url)
