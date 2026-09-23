@@ -7,6 +7,8 @@
 
 **GUI をブラウザで使える版です。** `yaqpy-web`（または `yaqpy --web`）で、デスクトップ版と同じ画面を**自分の PC の小さな Web サーバー**から配り、ブラウザで開けます。ファイルはブラウザから**アップロード**し、変換結果は**ダウンロード**で受け取ります。既定では**この PC からしか開けず**（`127.0.0.1`）、環境変数・ファイルを読む演算子は**常に無効**で、評価はサーバーのファイル・環境変数に届かない仕組みの上で動きます。入れ方は `yaqpy[web]`、使い方は [USAGE-GUI.ja.md の 15 章](USAGE-GUI.ja.md#15-web-版ブラウザで使う)にあります。
 
+**この版から PyPI でも公開します**（`pip install yaqpy` ／ `uv tool install yaqpy`）。README は英語版（`README.md`。PyPI のページにも出ます）と日本語版（`README.ja.md`）に分かれました。
+
 ### 新しくできること
 
 | 分類 | 機能 |
@@ -18,6 +20,7 @@
 | **複数のブラウザ・タブ** | タブごとに別の画面（セッション）になり、開いたファイルや式は混ざらない。設定（タイムアウト・最大入力・表示行数・ダークテーマ）は**ブラウザ側**に保存される |
 | **`yaqpy-gui ファイル`** | デスクトップ版も、`yaqpy-gui a.yaml` でファイルを開いた状態で起動できる（`yaqpy --gui a.yaml` と同じ） |
 | **ヘルプ** | `yaqpy-gui --help`（デスクトップ版）と `yaqpy-web --help`（Web 版）は、それぞれ自分の使い方とオプションだけを出す。`yaqpy --help` に `--gui` と `--web` の説明を加え、詳しいオプションは各コマンドのヘルプを見るよう案内する（`yaqpy --web --help` は `yaqpy-web --help` と同じ内容） |
+| **PyPI** | `pip install yaqpy`（`"yaqpy[gui]"` `"yaqpy[web]"`）、`uv tool install yaqpy`、`uvx yaqpy`、`uv add yaqpy` で入れられる。GitHub のリリースからの入れ方も引き続き使える |
 | **ロゴ** | デスクトップ版の窓のアイコン（Windows）と、Web 版のブラウザのタブのアイコン・読み込み中の画面が、Flet のロゴから **yaqpy のロゴ**（リポジトリの `assets/images/`）に変わった |
 
 - Web 版のために、**`[web]` extra**（`flet[web]`：flet と flet-web。flet-web が FastAPI・uvicorn を連れてくる）を追加しました。本体（`pip install yaqpy`）の依存は増えません。デスクトップ版だけなら今までどおり `[gui]` で足ります
@@ -29,11 +32,14 @@
 - **`yaqpy-gui` が引数を解釈するようになりました。** 以前は何を渡しても無視して窓を開いていました。今は、ファイル名を 1 つだけ受け付け、知らないオプション・存在しないファイルはエラー（終了コード 1）になります。`yaqpy --gui` の挙動は変わりません
 - **`yaqpy` の引数に `--web` があると、ほかの引数はすべて `yaqpy-web` のオプションとして扱います**（`yaqpy --web --port 9000`）。式・ファイル・`yaqpy` 自身のオプションとは一緒に使えません。`--gui` と `--web` を同時に付けるとエラーです
 - `yaqpy --help` のオプションの一覧で、`--gui` が「misc」から新しい「GUI」の区分に移りました
+- **`README.md` が英語版になりました。** これまでの日本語の README は `README.ja.md` です（`git log --follow` で履歴をたどれます）。USAGE・USAGE-GUI・DEVELOPMENT・CHANGELOG は日本語のままで、各文書の先頭のリンクと「README のインストール」へのリンクは `README.ja.md` を指します
+- インストールの案内（README・USAGE-GUI、GUI／Web 版の部品が無いときの案内）は、**PyPI から入れる手順が先**になりました（GitHub のリリースから入れる方法は README に残しています）
 - **クリップボードへのコピーが失敗したとき**（ブラウザや OS が許可しないとき）、画面が例外で止まらず「コピーできませんでした。欄の文字を選択してコピーしてください」と案内するようになりました（デスクトップ版も同じ）
 
 ### ライブラリ・開発者向けの変更
 
 - `pyproject.toml` の `yaqpy-gui` の行き先を `yaqpy.gui.app:main_entry` から **`yaqpy.gui.app:cli_entry`** に変え（引数の解釈のため）、**`yaqpy-web`（`yaqpy.gui.app:web_cli_entry`）**を加えました。`main_entry` は今までどおり残り、`yaqpy --gui` から呼ばれます。`yaqpy --web` は `web_cli_entry` を `prog="yaqpy --web"` で呼びます
+- `pyproject.toml` に、PyPI のページ用の情報を足しました：説明文（正式名称「YAML and more—Query editor in Python」を含む）、`authors`、`keywords`、`classifiers`、`[project.urls]`。`uv build` と `twine check` が通り、LICENSE と NOTICE が wheel に入ることを確かめています
 - ロゴ：`gui/logo.py`（置き場所の定義。Flet 非依存）と `gui/assets/`（`yaqpy-logo.ico`、Web 用の `web/favicon.png` と `web/icons/loading-animation.png`）。**原本はリポジトリの `assets/images/`** で、wheel に入れるためにコピーしています（内容が同じことを `tests/unit/test_gui_logo.py` が確かめます。原本を差し替えたらコピーも差し替えてください）
 - 新しいモジュール：`gui/web_config.py`（Web 版の設定・上限・同時実行の関門。Flet 非依存）、`gui/_web.py`（`flet.fastapi.app` を uvicorn で起動する。**uvicorn を import してよいのはここだけ**とアーキテクチャ検査に追加）、`gui/_upload.py`（Web 版のアップロード受け取り）
 - **`ft.run(view=WEB_BROWSER)` は使っていません。** Flet 1.0 の `ft.run` は `host` を省くと全インターフェース（`0.0.0.0` と `::`）で待ち受け、アップロードに要る設定（`upload_endpoint_path`・`secret_key`）も渡せないためです（`docs/flet-1.0-api-notes.md` 7 章。W0 の実測）
