@@ -121,3 +121,52 @@
 - `ft.run` 初回の導入（`flet-desktop` の pip 導入とクライアントの展開）に**ネットワークが要るか・所要時間**、**オフライン環境での失敗の仕方**
 - `flet build` による独自クライアントで `flet-dropzone` が動くか
 - `yaqpy[gui]` の extra を **`flet[desktop]>=1.0,<2` にするか**の判断（`flet` 単体だと初回実行時に自動導入されるが、クリーン環境・オフライン環境での再現性が下がる。G1-T1 で決める）
+- Web ブラウザ表示の各挙動 → **7 章（W0）で確認した**
+
+## 7. Web 表示（Phase W0、v0.6.0）
+
+| 項目 | 内容 |
+|---|---|
+| 測定日 | 2026-09-23 |
+| 版 | `flet 1.0.0`、`flet-web 1.0.0`（`uv add --optional web "flet[web]>=1.0,<2"` で導入。`fastapi 0.141.1`・`uvicorn 0.53.0` が付いてくる） |
+| 測定方法 | リポジトリ外の最小アプリ 2 本（`ft.run(..., view=WEB_BROWSER)` 版と、`flet.fastapi.app` ＋ `uvicorn` を自分で組む版）を起動し、Claude Code デスクトップアプリの**組み込みブラウザ**で操作した。イベントはアプリ内のログファイルに記録。ファイル選択は、組み込みブラウザが OS のダイアログを出さないため、**ページ内の `<input type=file>` の `click` を JS で差し替え、`DataTransfer` で作った `File` を選ばせた**（ブラウザ → サーバーの受け渡しは本物の経路） |
+
+### 7-1. 結論
+
+| # | 確認項目（計画書 5-5 W0） | 結果 |
+|---|---|---|
+| 0 | **待ち受けアドレス** | `ft.run(main, host=None, view=WEB_BROWSER)` は **`0.0.0.0` と `::`（全インターフェース）で待ち受けた**（`Get-NetTCPConnection` で確認）。uvicorn の `Config(host=None)` がそのまま渡るため。**yaqpy は `127.0.0.1` を必ず明示する** |
+| 1 | ファイル選択 | `pick_files()` の `path` は **常に `None`**（`FilePickerFile.path` の docstring どおり）。中身の受け取り方は 2 通り（7-2）。**yaqpy はアップロード経路（B）を採る** |
+| 2 | 保存 | `save_file(file_name=…, src_bytes=…)` で**ブラウザのダウンロード**になった。中身はバイト単位で一致（UTF-8 の日本語を含む 12 バイト）。戻り値は `None`。`src_bytes`・`file_name` が無いと Web では `ValueError`（ソースで確認） |
+| 3 | クリップボード | 組み込みブラウザでは `ft.Clipboard().set()` が **`PlatformException(copy_fail, Clipboard.setData failed.)`** で失敗した。`navigator.permissions.query({name: "clipboard-write"})` が `denied`（`isSecureContext` は true、`document.hasFocus()` も true）で、**このブラウザの権限の方針**による。一般のブラウザでは未確認。**コピーは失敗しうる前提で、例外を受けて案内を出す** |
+| 4 | `SharedPreferences` | Web でも `set` / `get` が動いた。保存先は**ブラウザ側**で、同じブラウザの 2 つ目のタブでは前の値が読めた（タブ間で共有される） |
+| 5 | デスクトップ専用 API | `page.web` は `True`、`page.platform` は `WINDOWS`（ブラウザの OS）。`page.window.width`・`prevent_close`・`on_event` への代入は**例外にならない**（効果もない）。終了ボタン・窓のイベントは Web では出さない／登録しない |
+| 6 | 同時利用の分離 | 2 つのタブはそれぞれ**別の `Page`（別セッション）**で `main` が呼ばれ、入力が混ざらなかった。**同じタブの再読み込みは同じセッションに戻る**（前の状態が残る）。モジュールの大域変数はプロセスで共有されるので、アプリ側の大域変数（`texts.select_language` など）は分離されない |
+
+### 7-2. ファイルの受け渡し：2 つの経路
+
+| 経路 | 書き方 | 結果 |
+|---|---|---|
+| A. `with_data=True` | `files = await picker.pick_files(allow_multiple=True, with_data=True)` → `f.bytes` | 動く（2 件同時・10 MiB も可）。ただし中身は **WebSocket の 1 通**で送られ、**20 MiB では接続が切れた**（uvicorn の `ws_max_size` 既定 16 MiB）。切れたセッションは以後 `pick_files` が「invoke method listener」待ちのタイムアウトになり、**再読み込みまで使えない**。**サイズを確かめる前に全量が送られる**ので、上限で断れない |
+| B. アップロード | `pick_files()`（中身なし）で `name`・`size` を得る → 上限を超えるものは**送らずに断る** → `page.get_upload_url(保存名, 秒)` → `picker.upload([FilePickerUploadFile(upload_url=…, id=…, name=…)])` → `on_upload` の `progress == 1.0` を待ってサーバー側のファイルを読む | 動く。HTTP の PUT なので WebSocket の上限に当たらない。サーバー側の `max_upload_size` を超えると `on_upload` に **413 のエラー**が来る |
+
+経路 B の注意（すべて実測・ソースで確認）
+
+- **`ft.run` からは使えない**：`ft.run(upload_dir=…)` は内部の `flet_web.fastapi.app` に `upload_endpoint_path` と `secret_key` を渡さないため、`page.get_upload_url` が `upload_path should be specified to enable uploads` になる。**`flet.fastapi.app(main, upload_dir=…, upload_endpoint_path="upload", max_upload_size=…, secret_key=…)` を自分で組み、uvicorn で起動する**
+- `upload_endpoint_path` は**先頭の `/` を付けない**（`"upload"`）。ルートが `f"/{upload_endpoint_path}"` で組まれるため、`"/upload"` だと `//upload` になり **405** が返った
+- **複数ファイルは `id` の大きい順に**アップロードする。クライアント（Dart の `FilePicker.uploadFiles`）はアップロードが済んだファイルを選択一覧から `_files.remove(file)` で**取り除く**ため、`id`（＝一覧の添字）が前詰めにずれ、小さい順だと 2 件目以降が見つからない（`File '…' (id: 2) not found`。イベントも来ない）。`name` も渡すと、`id` で見つからないときに名前で探す
+- サーバー側の上限（413）で断られても、**上限までの途中のファイルがディスクに残る**（1 MiB 上限で 1,048,576 バイトが残った）。**エラーのときも自分で消す**
+- アップロード URL は署名つき（`secret_key`）で有効期限がある。ファイル名はセッションごとの一意な名前にする（元のファイル名はパスに使わない）
+
+### 7-3. そのほか
+
+- `flet-web` が無いと、`ft.run(view=WEB_BROWSER)` は実行時に pip で `flet-web` を入れようとする（`ensure_flet_web_package_installed`）。yaqpy は extra（`[web]`）で入れる
+- Web クライアント一式（`canvaskit` など、約 73 MB）は `flet_web/web/` に同梱されている。`no_cdn=True` で CDN を使わない（外部へ取りに行かない）
+- `view=WEB_BROWSER` は起動時に**既定のブラウザを開く**（`webbrowser`）。`FLET_FORCE_WEB_SERVER=1` なら開かない。自分で uvicorn を組む場合はどちらも関係しない
+- Linux で `DISPLAY` が無い（ヘッドレス）と、Flet は `ft.run` を強制的に Web サーバーにする（`is_linux_server()`）
+
+### 7-4. 未確認のまま残した項目
+
+- 一般のブラウザ（Chrome・Edge・Firefox）での実機操作。特に**クリップボード**（`localhost` は安全なコンテキストなので許可される見込みだが未確認）と、**OS のファイル選択ダイアログ**からの選択
+- `http://` で他の端末から開いたとき（安全なコンテキストでない）のクリップボード
+- 長時間放置したセッションの破棄（`page.on_close` の発火までの時間）
