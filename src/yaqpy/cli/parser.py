@@ -200,7 +200,9 @@ def build_parser() -> _Parser:
     i.add_argument("-n", "--null-input", action="store_true",
                    help="Don't read input, simply evaluate the expression given. "
                         "Useful for creating docs from scratch.")
-    i.add_argument("--from-file", default="", help="Load expression from specified file.")
+    i.add_argument("--from-file", default="",
+                   help="Load expression from specified file (e.g. a .yaqpy file saved by the GUI). "
+                        "An existing first argument ending in .yq or .yaqpy is read the same way.")
     i.add_argument("--expression", default="",
                    help="forcibly set the expression argument. Useful when yq argument detection "
                         "thinks your expression is a file.")
