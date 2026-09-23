@@ -30,6 +30,7 @@ import uvicorn
 
 from yaqpy.gui import texts
 from yaqpy.gui._run import _main
+from yaqpy.gui.logo import WEB_ASSETS_DIR
 from yaqpy.gui.web_config import RunGate, WebConfig, WebRuntime
 
 UPLOAD_ENDPOINT = "upload"          # 先頭に "/" を付けない（付けると "//upload" になり 405。W0）
@@ -60,6 +61,8 @@ def build_app(runtime: WebRuntime):
         # CDN。オフライン向けに --no-cdn（その場合は --lang en を勧める）。
         no_cdn=not runtime.config.use_cdn,
         app_name=texts.APP_TITLE,
+        # yaqpy のロゴ（favicon・読み込み中の画面）。Flet は同梱のクライアントより先にここを見る
+        assets_dir=str(WEB_ASSETS_DIR),
     )
 
 

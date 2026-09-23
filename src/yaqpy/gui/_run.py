@@ -13,6 +13,7 @@ from yaqpy.gui import texts
 from yaqpy.gui._di import make_presenter
 from yaqpy.gui._prefs import load_settings, save_settings
 from yaqpy.gui._upload import WebUploader
+from yaqpy.gui.logo import WINDOW_ICON
 from yaqpy.gui.pages.main_page import MainPage
 from yaqpy.gui.pages.settings_page import SettingsPage
 from yaqpy.gui.state import GuiState, clamp_settings_to_web_limits
@@ -49,6 +50,7 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
         page.window.height = 880      # 未読込の画面（案内＋貼り付け欄）が収まるように少し広げた
         page.window.min_width = 820
         page.window.min_height = 620
+        page.window.icon = str(WINDOW_ICON)     # yaqpy のロゴ（Flet 1.0 では Windows でだけ効く）
 
     sp = ft.SharedPreferences()             # Web 版ではブラウザ側に保存される（W0）
     page.services.append(sp)

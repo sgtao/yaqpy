@@ -77,6 +77,16 @@ class WebServerTests:
         assert status == 200
         assert b"flutter" in body.lower()
 
+    @pytest.mark.parametrize("path", ["/favicon.png", "/icons/loading-animation.png"])
+    def test_serves_the_yaqpy_logo_instead_of_flets(self, path: str) -> None:
+        """要望：ブラウザのタブのアイコン（と読み込み中の画面）を yaqpy のロゴに。"""
+        from yaqpy.gui.logo import FAVICON
+
+        with RunningServer() as running:
+            status, body = running.request("GET", path)
+        assert status == 200
+        assert body == FAVICON.read_bytes()
+
     def test_an_unsigned_upload_is_refused(self) -> None:
         """アップロードは署名つき URL だけ（ブラウザを開いた誰かが勝手に置けない）。"""
         with RunningServer() as running:

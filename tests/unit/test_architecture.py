@@ -45,6 +45,7 @@ GUI_FLET_FREE_MODULES = {
     "yaqpy.gui.texts",
     "yaqpy.gui._di",
     "yaqpy.gui.web_config",
+    "yaqpy.gui.logo",
     "yaqpy.gui.app",
 }
 
