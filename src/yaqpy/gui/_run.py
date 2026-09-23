@@ -108,7 +108,7 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
                          on_open_settings=go_to_settings, uploader=uploader)
     settings_page = SettingsPage(page=page, state=state,
                                  on_changed=lambda: page.run_task(main_page.rerun),
-                                 on_persist=persist_settings)
+                                 on_persist=persist_settings, picker=picker)
     ask_ai_page = AskAiPage(page=page, presenter=presenter)
     pages = [main_page, settings_page, ask_ai_page]
 

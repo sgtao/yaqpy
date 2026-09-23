@@ -89,6 +89,21 @@ SET_TIMEOUT = "タイムアウト（秒）"
 SET_MAX_INPUT = "最大入力（MiB）"
 SET_MAX_LINES = "表示行数の上限"
 SET_VIEW = "表示"
+SET_LOG = "実行ログ"
+SET_LOG_ENABLED = "実行ログを記録する"
+SET_LOG_DIR = "保存先"
+SET_LOG_DIR_HINT = "空欄なら既定の保存先：{path}"
+SET_LOG_MAX_FILES = "保存する件数の上限"
+SET_LOG_MAX_ENTRY = "1件あたりの本文の上限（MiB）"
+SET_LOG_NOTE = (
+    "［実行］ボタンで変換に成功したときだけ、1 回につき 1 ファイルを記録します（ログ画面で見られます）。"
+    "ログには入力データと変換結果が平文で保存されます。機密情報を扱うときは記録をオフにしてください。"
+    "env を許可している場合、環境変数の値が結果に含まれることがあります。"
+    "保存先を変えても、これまでのログは移動しません"
+)
+BTN_BROWSE = "参照…"
+BTN_RESET_DEFAULT = "既定に戻す"
+MSG_FOLDER_PICK_FAILED = "フォルダを選べませんでした。保存先のパスを直接入力してください"
 SET_DARK = "ダークテーマ"
 SET_LANGUAGE_NOTE = "変更は次回の起動から有効です"
 NAV_MAIN = "📄 メイン"
@@ -266,6 +281,21 @@ _EN: dict[str, str] = {
     "SET_MAX_INPUT": "Max input (MiB)",
     "SET_MAX_LINES": "Max lines shown",
     "SET_VIEW": "Display",
+    "SET_LOG": "Run log",
+    "SET_LOG_ENABLED": "Record the run log",
+    "SET_LOG_DIR": "Folder",
+    "SET_LOG_DIR_HINT": "Leave empty for the default folder: {path}",
+    "SET_LOG_MAX_FILES": "Max number of logs to keep",
+    "SET_LOG_MAX_ENTRY": "Max body size per log (MiB)",
+    "SET_LOG_NOTE": (
+        "Only when a conversion succeeds with the [Run] button, one file per run is recorded "
+        "(you can browse them on the Log tab). Logs keep your input data and results as plain text; "
+        "turn recording off when you handle confidential data. If env is allowed, environment "
+        "variable values may appear in the results. Changing the folder does not move existing logs"
+    ),
+    "BTN_BROWSE": "Browse…",
+    "BTN_RESET_DEFAULT": "Reset",
+    "MSG_FOLDER_PICK_FAILED": "Could not pick a folder. Type the folder path instead",
     "SET_DARK": "Dark theme",
     "SET_LANGUAGE_NOTE": "Takes effect the next time you start the app",
     "NAV_MAIN": "📄 Main",
