@@ -102,7 +102,7 @@ class MainPresenter:
         try:
             item = await asyncio.to_thread(
                 intake.from_path, self._fs, path,
-                max_bytes=self.state.settings.max_input_bytes,
+                max_bytes=self.state.max_input_bytes,
                 size_of=self._size_of,
                 origin=intake.DIALOG,
             )
@@ -150,7 +150,7 @@ class MainPresenter:
         try:
             item = await asyncio.to_thread(
                 intake.from_path, self._fs, path,
-                max_bytes=self.state.settings.max_input_bytes,
+                max_bytes=self.state.max_input_bytes,
                 size_of=self._size_of,
                 origin=intake.DIALOG,
             )

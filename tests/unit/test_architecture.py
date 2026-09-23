@@ -42,6 +42,7 @@ GUI_FLET_FREE_MODULES = {
     "yaqpy.gui.errors_ja",
     "yaqpy.gui.texts",
     "yaqpy.gui._di",
+    "yaqpy.gui.web_config",
 }
 
 

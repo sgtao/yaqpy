@@ -102,6 +102,19 @@ def settings_from_dict(data: dict[str, object]) -> SettingsState:
     )
 
 
+@dataclass(frozen=True, slots=True)
+class WebLimits:
+    """Web 版（v0.6.0）でサーバーが強制する上限。ブラウザ側の設定値はこれを超えられない。
+
+    設定画面の値（``SettingsState``）はブラウザに保存されるので、利用者が書き換えられる。
+    上限はサーバーの起動引数で決まり、``GuiState`` の実効値（``max_input_bytes`` など）と
+    ``build_options`` で、どちらか小さい方が効く。
+    """
+
+    max_input_bytes: int
+    timeout_seconds: float
+
+
 @dataclass(slots=True)
 class GuiState:
     """画面をまたいで共有する唯一の状態。
@@ -118,6 +131,22 @@ class GuiState:
     query: QueryState = field(default_factory=QueryState)
     settings: SettingsState = field(default_factory=SettingsState)
     running: bool = False
+    web: WebLimits | None = None     # Web 版のセッションなら上限が入る（デスクトップは None）
+
+    @property
+    def is_web(self) -> bool:
+        return self.web is not None
+
+    @property
+    def max_input_bytes(self) -> int:
+        """実際に効く入力サイズの上限（設定値と、Web 版ならサーバーの上限の小さい方）。"""
+        limit = self.settings.max_input_bytes
+        return min(limit, self.web.max_input_bytes) if self.web else limit
+
+    @property
+    def timeout_seconds(self) -> float:
+        limit = self.settings.timeout_seconds
+        return min(limit, self.web.timeout_seconds) if self.web else limit
 
     @property
     def document(self) -> DocumentState:
@@ -134,9 +163,13 @@ def build_options(state: GuiState) -> Options:
     """GuiState から、その 1 回の評価に使う不変の Options を作る。
 
     Options は frozen なので使い回さず、実行のたびに作り直す。
+
+    Web 版では ``env`` / ``load`` を設定に関係なく**強制的に無効**にする（計画書 5-5 節の 2。
+    ブラウザを開いた誰かに、サーバー側の環境変数・ファイルを読ませないため）。
     """
     q, s = state.query, state.settings
     indent = max(q.indent, 0)
+    web = state.is_web
     return Options(
         input_format=q.input_format or AUTO,
         output_format=q.output_format or AUTO,
@@ -146,13 +179,13 @@ def build_options(state: GuiState) -> Options:
         json=JsonOptions(indent=indent),
         toon=ToonOptions(indent=indent if indent >= 1 else 2),
         security=SecurityPolicy(
-            allow_env=s.allow_env,
-            allow_file=s.allow_file,
+            allow_env=s.allow_env and not web,
+            allow_file=s.allow_file and not web,
             allow_system=False,      # GUI からは決して許可しない（設計書 10 章）
         ),
         limits=Limits(
-            max_input_bytes=s.max_input_bytes,
-            timeout_seconds=s.timeout_seconds,
+            max_input_bytes=state.max_input_bytes,
+            timeout_seconds=state.timeout_seconds,
         ),
     )
 
