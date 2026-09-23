@@ -367,21 +367,23 @@ class MainPresenter:
             items = [c for c in items if text in c.expression.lower()]
         return items[:limit]
 
-    def apply_candidate(self, expression: str, *, append: bool = False) -> str:
-        """候補を式欄へ反映する。append=True ならパイプで連結する。
+    def apply_candidate(self, expression: str) -> str:
+        """候補を式欄へ反映する（式欄を候補で置き換える）。"""
+        self.state.query.expression = expression
+        return expression
 
-        すでに式がその候補そのもの、またはその候補で終わっているときは連結しない
-        （候補を選ぶと式欄が置き換わるため、直後の「追加」で ``A | A`` になるのを防ぐ）。
+    def append_pipe(self) -> str:
+        """式の末尾に `` | `` を足す（「+ パイプを追加」。v0.7.0）。戻り値は新しい式。
+
+        Flet 1.0 の TextField にはカーソル位置を取る API が無いので、挿入位置はいつも末尾。
+        式が空のとき、またはすでにパイプで終わっているときは何もしない。
         """
-        current = self.state.query.expression.strip()
-        if append and current and current != ".":
-            if current == expression or current.endswith(f"| {expression}"):
-                return current
-            merged = f"{current} | {expression}"
-        else:
-            merged = expression
-        self.state.query.expression = merged
-        return merged
+        current = self.state.query.expression
+        stripped = current.rstrip()
+        if not stripped or stripped.endswith("|"):
+            return current
+        self.state.query.expression = f"{stripped} | "
+        return self.state.query.expression
 
     def adopted_formats(self) -> tuple[str, str]:
         """いま採用される（入力形式, 出力形式）。プルダウンが auto でも指定でも実際の形式名を返す。

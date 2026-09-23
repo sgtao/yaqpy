@@ -137,11 +137,11 @@ class MainPage:
             on_select=self._on_property_select,
             disabled=True,
         )
-        self._add_button = ft.Button(content=texts.BTN_ADD_TO_EXPR, icon=ft.Icons.ADD,
-                                     on_click=self._on_add_to_expression, disabled=True)
+        # 式欄の末尾に「 | 」を足すだけのボタン（プロパティの選択とは独立。v0.7.0）
+        self._add_button = ft.Button(content=texts.BTN_ADD_PIPE, on_click=self._on_add_pipe,
+                                     disabled=not state.query.expression.strip())
         self._candidate_note = ft.Text("", size=11, color=ft.Colors.ON_SURFACE_VARIANT,
                                        visible=False)
-        self._selected_candidate = ""
 
         # --- 式バー ---
         self._expr_field =ft.TextField(label=texts.LBL_EXPRESSION, value=state.query.expression,
@@ -548,9 +548,8 @@ class MainPage:
         self._property_dd.options = []
         self._property_dd.value = None
         self._property_dd.disabled = True
-        self._add_button.disabled = True
+        self._add_button.disabled = False
         self._candidate_note.visible = False
-        self._selected_candidate = ""
         self._status_icon.icon = ft.Icons.INFO_OUTLINE
         self._status_icon.color = None
         self._status_text.value = ""
@@ -594,6 +593,7 @@ class MainPage:
     def _on_expression_change(self, e: ft.Event[ft.TextField]) -> None:
         """入力中は検証だけ（再実行はしない）。最後の打鍵から 300 ms 後に 1 回だけ走る。"""
         self._state.query.expression = e.control.value or ""
+        self._add_button.disabled = not self._state.query.expression.strip()
         self._validate_token += 1
         token = self._validate_token
 
@@ -628,9 +628,7 @@ class MainPage:
         vm = await self._p.build_candidates()
         self._set_candidates(self._p.filter_candidates(limit=DEFAULT_MAX_ITEMS))
         self._property_dd.value = None
-        self._selected_candidate = ""
         self._property_dd.disabled = vm.is_empty
-        self._add_button.disabled = vm.is_empty
         if vm.note:
             self._candidate_note.value = vm.note
             self._candidate_note.visible = True
@@ -650,20 +648,18 @@ class MainPage:
         expression = e.control.value or ""
         if not expression:
             return
-        self._selected_candidate = expression
         self._expr_field.value = self._p.apply_candidate(expression)
+        self._add_button.disabled = False
         self._expr_field.error = None
         self._expr_error.visible = False
         self._page.run_task(self._run)
 
-    def _on_add_to_expression(self, e: ft.Event[ft.Button]) -> None:
-        expression = self._selected_candidate or (self._property_dd.value or "")
-        if not expression:
-            return
-        self._expr_field.value = self._p.apply_candidate(expression, append=True)
-        self._expr_field.error = None
+    def _on_add_pipe(self, e: ft.Event[ft.Button]) -> None:
+        """式欄の末尾に `` | `` を足す。実行はしない（続きを書いてから実行する）。"""
+        self._expr_field.value = self._p.append_pipe()
+        self._expr_field.error = None            # 書きかけの式なので、検証の赤枠は出さない
         self._expr_error.visible = False
-        self._page.run_task(self._run)
+        self._page.update()
 
     async def _on_run(self, e: ft.Event) -> None:
         self._validate_token += 1            # 走りかけのデバウンスを無効化

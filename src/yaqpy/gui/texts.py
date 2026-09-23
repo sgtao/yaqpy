@@ -25,7 +25,7 @@ BTN_CANCEL = "中止"
 BTN_SAVE = "保存"
 BTN_COPY = "コピー"
 BTN_OPEN_SETTINGS = "設定を開く"
-BTN_ADD_TO_EXPR = "式に追加"
+BTN_ADD_PIPE = "+ パイプを追加"
 BTN_QUIT = "終了"
 LBL_INPUT_FORMAT = "入力形式"
 LBL_OUTPUT_FORMAT = "出力形式"
@@ -168,7 +168,7 @@ _EN: dict[str, str] = {
     "BTN_SAVE": "Save",
     "BTN_COPY": "Copy",
     "BTN_OPEN_SETTINGS": "Open Settings",
-    "BTN_ADD_TO_EXPR": "Add to Expression",
+    "BTN_ADD_PIPE": "+ Add Pipe",
     "BTN_QUIT": "Quit",
     "LBL_INPUT_FORMAT": "Input Format",
     "LBL_OUTPUT_FORMAT": "Output Format",

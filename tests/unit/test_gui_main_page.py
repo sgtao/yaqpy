@@ -528,3 +528,39 @@ class OutputFormatDefaultTests:
         assert output["auto"] == texts.LBL_AUTO_SAME_AS_INPUT
         assert input_["auto"] == "auto"                       # 入力の auto は自動判定の意味のまま
         assert output["json"] == "json"
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class AddPipeTests:
+    """v0.7.0：「+ パイプを追加」は式欄の末尾に ` | ` を足すだけ（プロパティの選択と独立）。"""
+
+    def test_the_button_label_is_the_new_one(self) -> None:
+        from yaqpy.gui import texts
+
+        page, _, _ = make_page()
+        assert page._add_button.content == texts.BTN_ADD_PIPE == "+ パイプを追加"
+
+    def test_it_appends_a_pipe_to_the_expression_field(self) -> None:
+        page, presenter, state = make_page()
+        state.query.expression = ".items[]"
+        page._expr_field.value = ".items[]"
+        page._on_add_pipe(mock.MagicMock())
+        assert page._expr_field.value == ".items[] | "
+        assert state.query.expression == ".items[] | "
+
+    def test_it_does_not_run(self) -> None:
+        page, _, state = make_page()
+        state.query.expression = ".a"
+        page._on_add_pipe(mock.MagicMock())
+        page._page.run_task.assert_not_called()
+
+    def test_it_is_enabled_only_while_the_expression_is_not_empty(self) -> None:
+        page, _, _ = make_page()
+        empty = mock.MagicMock()
+        empty.control.value = "  "
+        page._on_expression_change(empty)
+        assert page._add_button.disabled
+        typed = mock.MagicMock()
+        typed.control.value = ".a"
+        page._on_expression_change(typed)
+        assert not page._add_button.disabled
