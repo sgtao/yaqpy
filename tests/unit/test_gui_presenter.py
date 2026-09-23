@@ -7,7 +7,7 @@ import json
 from yaqpy.app.ports import InMemoryFileSystem, StaticEnvironment
 from yaqpy.app.service import YqService
 from yaqpy.gui.presenter import MainPresenter
-from yaqpy.gui.state import GuiState
+from yaqpy.gui.state import GuiState, WebLimits
 
 SAMPLE = (
     "# サーバー設定\n"
@@ -642,3 +642,144 @@ class ValidateTests:
         vm = make_presenter().validate(".server.(")
         assert not vm.valid
         assert vm.message
+
+
+class WebSessionTests:
+    """Web 版（v0.6.0）：アップロードで開き、ダウンロードで受け取る。サーバー側には触れない。"""
+
+    MIB = 1024 * 1024
+
+    def make_web(self, *, max_mib: int = 1, gate: object = None) -> MainPresenter:
+        """本番と同じ組み立て（_di.make_presenter）で作る。サービスはファイル・環境変数に届かない。"""
+        from yaqpy.gui._di import make_presenter as make_real_presenter
+
+        state = GuiState(web=WebLimits(max_input_bytes=max_mib * self.MIB, timeout_seconds=5.0))
+        return make_real_presenter(state, run_gate=gate)      # type: ignore[arg-type]
+
+    async def test_open_upload_uses_the_browser_file_name_and_no_path(self) -> None:
+        p = self.make_web()
+        vm = await p.open_upload("sample.yaml", SAMPLE.encode("utf-8"))
+        assert vm.ok
+        assert vm.path is None
+        assert p.state.document.name == "sample.yaml"
+        assert p.state.document.original_text == SAMPLE
+        run = await p.run()
+        assert run.ok
+        assert run.input_format == "yaml"             # 拡張子（元のファイル名）で判定される
+
+    async def test_open_upload_reads_utf8_with_a_bom(self) -> None:
+        p = self.make_web()
+        vm = await p.open_upload("a.json", b"\xef\xbb\xbf" + '{"a": "あ"}'.encode())
+        assert vm.ok
+        assert p.state.document.original_text == '{"a": "あ"}'
+
+    async def test_non_utf8_is_refused(self) -> None:
+        p = self.make_web()
+        vm = await p.open_upload("a.yaml", "a: あ".encode("cp932"))
+        assert not vm.ok
+        assert vm.error.code == "intake"
+        assert not p.state.document.is_loaded
+
+    async def test_too_large_is_refused_before_and_after_upload(self) -> None:
+        p = self.make_web(max_mib=1)
+        assert p.check_upload_size(self.MIB) is None
+        assert p.check_upload_size(self.MIB + 1).code == "intake"
+        vm = await p.open_upload("big.yaml", b"a" * (self.MIB + 1))
+        assert not vm.ok
+
+    async def test_the_server_cap_wins_over_the_saved_setting(self) -> None:
+        p = self.make_web(max_mib=1)
+        p.state.settings.max_input_mib = 50          # ブラウザに保存されていた値
+        assert p.check_upload_size(2 * self.MIB) is not None
+
+    async def test_add_upload_keeps_the_first_document(self) -> None:
+        p = self.make_web()
+        await p.open_upload("sample.yaml", SAMPLE.encode("utf-8"))
+        vm = await p.add_upload("data.json", b'{"a": 1}')
+        assert vm.ok
+        assert [d.name for d in p.state.documents] == ["sample.yaml", "data.json"]
+        assert p.state.active_index == 1
+
+    async def test_download_is_the_full_result_as_utf8(self) -> None:
+        p = self.make_web()
+        p.state.settings.max_display_lines = 1        # 表示は丸めても
+        await p.open_upload("sample.yaml", SAMPLE.encode("utf-8"))
+        p.state.query.output_format = "json"
+        run = await p.run()
+        assert run.truncated_lines > 0
+        vm = await p.prepare_download()
+        assert vm.ok
+        assert vm.file_name == "sample.json"
+        assert vm.data == run.full_text.encode("utf-8")    # ダウンロードは全量
+        assert json.loads(vm.data)["server"]["port"] == 8080
+
+    async def test_download_runs_again_when_the_result_is_stale(self) -> None:
+        p = self.make_web()
+        await p.open_upload("sample.yaml", SAMPLE.encode("utf-8"))
+        p.state.query.expression = ".server.port"
+        vm = await p.prepare_download()
+        assert vm.ok
+        assert vm.data == b"8080\n"
+
+    async def test_download_reports_a_failed_run(self) -> None:
+        p = self.make_web()
+        await p.open_upload("sample.yaml", SAMPLE.encode("utf-8"))
+        p.state.query.expression = ".a | error"
+        vm = await p.prepare_download()
+        assert not vm.ok
+
+    async def test_env_is_refused_even_if_the_settings_allow_it(self) -> None:
+        p = self.make_web()
+        p.state.settings.allow_env = True
+        p.open_text("a: 1\n")
+        p.state.query.expression = 'env("PATH")'
+        vm = await p.run()
+        assert not vm.ok
+        assert vm.error.is_security
+        assert "Web" in vm.error.hint                 # 「設定で許可」とは案内しない
+
+    async def test_load_is_refused_even_if_the_settings_allow_it(self) -> None:
+        """``load`` 自体は未実装（O3）だが、実装されても Web ではファイルに届かないこと。"""
+        p = self.make_web()
+        p.state.settings.allow_file = True
+        p.open_text("a: 1\n")
+        p.state.query.expression = 'load("pyproject.toml")'
+        vm = await p.run()
+        assert not vm.ok
+        from yaqpy.gui.state import build_options
+
+        assert not build_options(p.state).security.allow_file
+        assert type(p._fs).__name__ == "SandboxFileSystem"
+
+    async def test_saving_to_the_server_disk_is_impossible(self) -> None:
+        """Web 版の画面は save を呼ばないが、呼ばれてもサーバーのディスクには書けない。"""
+        p = self.make_web()
+        p.open_text("a: 1\n")
+        vm = await p.save("out.yaml")
+        assert not vm.ok
+
+    async def test_a_busy_server_refuses_without_running(self) -> None:
+        class FullGate:
+            def try_enter(self) -> bool:
+                return False
+
+            def leave(self) -> None:                  # pragma: no cover - 入れていないので呼ばれない
+                raise AssertionError("leave without enter")
+
+        p = self.make_web(gate=FullGate())
+        p.open_text("a: 1\n")
+        vm = await p.run()
+        assert not vm.ok
+        assert vm.error.code == "busy"
+        assert not p.state.running
+
+    async def test_the_gate_is_released_after_success_and_failure(self) -> None:
+        from yaqpy.gui.web_config import RunGate
+
+        gate = RunGate(1)
+        p = self.make_web(gate=gate)
+        p.open_text("a: 1\n")
+        assert (await p.run()).ok
+        p.state.query.expression = ".a | error"
+        assert not (await p.run()).ok
+        assert gate.try_enter()                      # どちらのあとも空いている

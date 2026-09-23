@@ -6,6 +6,7 @@ import asyncio
 import os
 from collections.abc import Callable
 from dataclasses import dataclass, replace
+from typing import Protocol
 
 from yaqpy.app.dto import EvalMode, EvaluateRequest, EvaluateResult, InputSource
 from yaqpy.app.ports import FileSystemPort
@@ -83,15 +84,37 @@ class SaveViewModel:
         return self.error is None and not self.needs_overwrite_confirmation
 
 
+@dataclass(frozen=True, slots=True)
+class DownloadViewModel:
+    """Web 版の保存（ブラウザのダウンロード）に渡すもの。v0.6.0。"""
+
+    file_name: str = ""
+    data: bytes = b""
+    error: ErrorViewModel | None = None
+
+    @property
+    def ok(self) -> bool:
+        return self.error is None
+
+
+class RunGatePort(Protocol):
+    """サーバー全体の同時実行数の関門（``yaqpy.gui.web_config.RunGate``）。"""
+
+    def try_enter(self) -> bool: ...
+    def leave(self) -> None: ...
+
+
 class MainPresenter:
     """View（Flet）から呼ばれる唯一の窓口。"""
 
     def __init__(self, *, service: YqService, fs: FileSystemPort, state: GuiState,
-                 size_of: Callable[[str], int] | None = None) -> None:
+                 size_of: Callable[[str], int] | None = None,
+                 run_gate: RunGatePort | None = None) -> None:
         self._service = service
         self._fs = fs
         self.state = state
         self._size_of = size_of or os.path.getsize
+        self._run_gate = run_gate            # Web 版だけ（全セッションで共有。v0.6.0）
         self._budget: StepBudget | None = None
         self._last_run: RunViewModel | None = None
         self._candidates: list[PathCandidate] = []
@@ -158,6 +181,9 @@ class MainPresenter:
             return OpenViewModel(error=ErrorViewModel("intake", str(e)))
         except Exception as e:                      # noqa: BLE001 - 画面を落とさない
             return OpenViewModel(error=to_view_model(e))
+        return self._append(item)
+
+    def _append(self, item: intake.IntakeItem) -> OpenViewModel:
         self.state.documents.append(DocumentState(path=item.path, name=item.name,
                                                    original_text=item.text,
                                                    byte_size=item.byte_size))
@@ -166,6 +192,40 @@ class MainPresenter:
         self._candidates = []
         return OpenViewModel(name=item.name, path=item.path, original_text=item.text,
                              byte_size=item.byte_size)
+
+    # ------------------------------------------------------------------ Web 版のアップロード（v0.6.0）
+
+    async def open_upload(self, name: str, data: bytes) -> OpenViewModel:
+        """ブラウザから届いた中身を、最初の文書として開く（``open_path`` の Web 版）。
+
+        サーバー側のパスは持たない（``path=None``）。上書き保存の対象にもならない。
+        """
+        item, error = await self._intake_upload(name, data)
+        return error or self._accept(item)
+
+    async def add_upload(self, name: str, data: bytes) -> OpenViewModel:
+        """ブラウザから届いた中身を、開いている一覧に加える（``add_path`` の Web 版）。"""
+        item, error = await self._intake_upload(name, data)
+        return error or self._append(item)
+
+    def check_upload_size(self, size: int) -> ErrorViewModel | None:
+        """アップロードの**前に**大きさで断る（中身をサーバーへ送らせない）。"""
+        try:
+            intake.ensure_size(size, max_bytes=self.state.max_input_bytes)
+        except intake.IntakeError as e:
+            return ErrorViewModel("intake", str(e))
+        return None
+
+    async def _intake_upload(self, name: str,
+                             data: bytes) -> tuple[intake.IntakeItem, OpenViewModel | None]:
+        try:
+            item = await asyncio.to_thread(intake.from_bytes, name, data,
+                                           max_bytes=self.state.max_input_bytes)
+        except intake.IntakeError as e:
+            return intake.from_text(""), OpenViewModel(error=ErrorViewModel("intake", str(e)))
+        except Exception as e:                      # noqa: BLE001 - 画面を落とさない
+            return intake.from_text(""), OpenViewModel(error=to_view_model(e))
+        return item, None
 
     def select_document(self, index: int) -> None:
         """一覧の 1 件を「いま表示している文書」にする（式は変えない）。"""
@@ -239,19 +299,32 @@ class MainPresenter:
                                                      position=validation.position))
 
         request = self._build_request()
+        gate = self._run_gate
+        if gate is not None and not gate.try_enter():
+            return RunViewModel(error=ErrorViewModel("busy", texts.ERR_SERVER_BUSY))
         budget = self._service.new_budget(request.options)
         self._budget = budget
         self.state.running = True
         try:
             result = await asyncio.to_thread(self._evaluate_sync, request, budget)
         except Exception as e:                      # noqa: BLE001 - 画面を落とさない
-            return RunViewModel(error=to_view_model(e))
+            return RunViewModel(error=self._for_this_mode(to_view_model(e)))
         finally:
             self.state.running = False
             self._budget = None
+            if gate is not None:
+                gate.leave()
         vm = self._success(result)
         self._last_run = vm
         return vm
+
+    def _for_this_mode(self, error: ErrorViewModel) -> ErrorViewModel:
+        """Web 版では「設定で許可すれば実行できます」と案内しない（許可の手段が無いため）。"""
+        if self.state.is_web and error.is_security:
+            name = texts.CAP_ENV if error.capability == "env" else (
+                texts.CAP_FILE if error.capability == "file" else texts.CAP_UNKNOWN)
+            return replace(error, hint=texts.HINT_SECURITY_WEB.format(capability=name))
+        return error
 
     def cancel(self) -> None:
         budget = self._budget
@@ -386,6 +459,20 @@ class MainPresenter:
         except Exception as e:                # noqa: BLE001 - 画面を落とさない
             return SaveViewModel(path=path, error=to_view_model(e))
         return SaveViewModel(path=path, byte_size=len(text.encode("utf-8")), backup_path=backup_path)
+
+    async def prepare_download(self) -> DownloadViewModel:
+        """Web 版の保存：変換結果の**全量**を UTF-8 のバイト列にして、ファイル名と一緒に返す。
+
+        サーバーのディスクには何も書かない（ブラウザがダウンロードとして受け取る）。
+        表示が古ければ実行し直してから渡す（``save`` と同じ。表示と保存をずらさない）。
+        """
+        run = self._last_run
+        if run is None:
+            run = await self.run()
+            if not run.ok:
+                return DownloadViewModel(error=run.error)
+        return DownloadViewModel(file_name=self.default_save_name(),
+                                 data=run.full_text.encode("utf-8"))   # ← display_text ではない（S1）
 
     async def _backup_before_overwrite(self, path: str) -> tuple[str, ErrorViewModel | None]:
         """``path`` の**今の中身**を ``{path}.bak`` に退避する。戻り値は (バックアップ先, エラー)。

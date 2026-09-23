@@ -87,6 +87,25 @@ DLG_GUIDE_PROMPT_HINT = (
     "行を、やりたいことに書き換えられます（この欄自体を編集してから貼り付けても構いません）。"
 )
 BTN_COPY_PROMPT = "プロンプトをコピー"
+MSG_COPY_FAILED = (
+    "クリップボードにコピーできませんでした（ブラウザや OS が許可していない可能性があります）。"
+    "欄の文字を選択してコピーしてください"
+)
+
+# Web 版（yaqpy-gui --web。v0.6.0）
+BTN_DOWNLOAD = "ダウンロード"
+MSG_DOWNLOADED = "ダウンロードを開始しました: {name}"
+MSG_UPLOADING = "アップロード中…"
+MSG_WEB_HINT = "ファイルはこのブラウザからサーバーへ送られ、変換結果はダウンロードで受け取ります"
+ERR_UPLOAD_FAILED = "アップロードできませんでした（{name}）"
+ERR_SERVER_BUSY = "サーバーが混み合っています。少し待ってからもう一度実行してください"
+HINT_SECURITY_WEB = "Web 版では {capability} は使えません（サーバー側の情報を読ませないため）"
+SET_WEB_SECURITY_NOTE = (
+    "Web 版では env / strenv・load / loadstr・system の演算子は常に無効です"
+    "（ブラウザからサーバー側の環境変数やファイルを読ませないため）"
+)
+SET_WEB_LIMITS_NOTE = "Web 版の上限（サーバーの起動時に決まります）：最大入力 {mib} MiB・タイムアウト {seconds} 秒"
+SET_WEB_LANGUAGE_NOTE = "Web 版の表示言語は、サーバーの起動時（--lang）に決まります"
 
 # エラー
 ERR_BUSY = "実行中です。終わるまでお待ちください"
@@ -189,6 +208,24 @@ _EN: dict[str, str] = {
         "(or edit this box itself before pasting)."
     ),
     "BTN_COPY_PROMPT": "Copy Prompt",
+    "MSG_COPY_FAILED": ("Could not copy to the clipboard (the browser or OS may not allow it). "
+                        "Select the text in the box and copy it instead"),
+    "BTN_DOWNLOAD": "Download",
+    "MSG_DOWNLOADED": "Download started: {name}",
+    "MSG_UPLOADING": "Uploading…",
+    "MSG_WEB_HINT": ("Files are sent from this browser to the server; you get the result back "
+                     "as a download"),
+    "ERR_UPLOAD_FAILED": "Could not upload ({name})",
+    "ERR_SERVER_BUSY": "The server is busy. Wait a moment and run it again",
+    "HINT_SECURITY_WEB": ("{capability} is not available in the web version (so that the "
+                          "server's own data cannot be read)"),
+    "SET_WEB_SECURITY_NOTE": (
+        "In the web version the env / strenv, load / loadstr and system operators are always "
+        "off (so that a browser cannot read the server's environment variables or files)"
+    ),
+    "SET_WEB_LIMITS_NOTE": ("Web version limits (set when the server starts): max input {mib} MiB, "
+                            "timeout {seconds} s"),
+    "SET_WEB_LANGUAGE_NOTE": "In the web version the display language is set when the server starts (--lang)",
     "ERR_BUSY": "Still running. Please wait for it to finish",
     "ERR_NO_DOCUMENT": "Open a file first",
     "ERR_TOO_LARGE": "The file is too large ({size} / limit {limit})",

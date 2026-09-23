@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import pytest
 from yaqpy.app.ports import InMemoryFileSystem
+from yaqpy.gui import intake
 from yaqpy.gui.intake import IntakeError, from_path, from_text
 
 SAMPLE = "server:\n  port: 8080\n"
@@ -71,3 +72,32 @@ class FromTextTests:
         assert item.name == ""
         assert item.path is None
         assert item.byte_size == len(SAMPLE.encode())
+
+
+class FromBytesTests:
+    """Web 版：ブラウザから届いた中身（v0.6.0）。"""
+
+    def test_keeps_only_the_base_name_and_no_path(self) -> None:
+        item = intake.from_bytes("dir/a.yaml", "a: あ\n".encode(), max_bytes=100)
+        assert item.name == "a.yaml"
+        assert item.path is None
+        assert item.origin == intake.UPLOAD
+        assert item.text == "a: あ\n"
+        assert item.byte_size == len("a: あ\n".encode())
+
+    def test_strips_a_utf8_bom(self) -> None:
+        item = intake.from_bytes("a.json", b"\xef\xbb\xbf{}", max_bytes=100)
+        assert item.text == "{}"
+
+    def test_too_large(self) -> None:
+        with pytest.raises(intake.IntakeError):
+            intake.from_bytes("a.yaml", b"x" * 11, max_bytes=10)
+
+    def test_not_utf8(self) -> None:
+        with pytest.raises(intake.IntakeError):
+            intake.from_bytes("a.yaml", b"\xff\xfe\x00", max_bytes=10)
+
+    def test_ensure_size_boundary(self) -> None:
+        intake.ensure_size(10, max_bytes=10)
+        with pytest.raises(intake.IntakeError):
+            intake.ensure_size(11, max_bytes=10)
