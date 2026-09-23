@@ -57,14 +57,19 @@ class WebUploader:
         picker.on_upload = self._on_upload
 
     async def pick(self, *, check_size: Callable[[int], str],
-                   on_start: Callable[[], None] | None = None) -> list[Uploaded]:
+                   on_start: Callable[[], None] | None = None,
+                   dialog_title: str | None = None, allow_multiple: bool = True,
+                   allowed_extensions: list[str] | None = None) -> list[Uploaded]:
         """ファイルを選ばせ、上限内のものをアップロードさせて中身を返す（選んだ順）。
 
         ``check_size`` はバイト数を受け取り、断る理由（空なら受け付ける）を返す。
-        キャンセルなら空のリスト。
+        キャンセルなら空のリスト。式のファイル（``.yaqpy``。v0.7.0）を 1 件だけ受け取るときは、
+        ``allow_multiple=False`` と ``allowed_extensions`` を渡す。
         """
-        files = await self._picker.pick_files(dialog_title=texts.BTN_ADD_FILE,
-                                              allow_multiple=True)
+        custom = {"file_type": ft.FilePickerFileType.CUSTOM,
+                  "allowed_extensions": allowed_extensions} if allowed_extensions else {}
+        files = await self._picker.pick_files(dialog_title=dialog_title or texts.BTN_ADD_FILE,
+                                              allow_multiple=allow_multiple, **custom)
         if not files:
             return []
         if on_start is not None:

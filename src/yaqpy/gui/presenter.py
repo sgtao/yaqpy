@@ -15,7 +15,7 @@ from yaqpy.app.selfdoc import render_guide_prompt
 from yaqpy.app.service import YqService
 from yaqpy.core.engine.limits import StepBudget
 from yaqpy.errors import UnknownFormatError
-from yaqpy.gui import intake, texts
+from yaqpy.gui import expression_file, intake, texts
 from yaqpy.gui.errors_ja import ErrorViewModel, to_view_model
 from yaqpy.gui.paths import DEFAULT_MAX_DEPTH, DEFAULT_MAX_ITEMS, PathCandidate, collect_paths
 from yaqpy.gui.state import AUTO, DocumentState, GuiState, build_options, truncate_for_display
@@ -82,6 +82,19 @@ class SaveViewModel:
     @property
     def ok(self) -> bool:
         return self.error is None and not self.needs_overwrite_confirmation
+
+
+@dataclass(frozen=True, slots=True)
+class ExpressionFileViewModel:
+    """式のファイル（``.yaqpy``）を読んだ結果。v0.7.0。"""
+
+    name: str = ""
+    expression: str = ""
+    error: ErrorViewModel | None = None
+
+    @property
+    def ok(self) -> bool:
+        return self.error is None
 
 
 @dataclass(frozen=True, slots=True)
@@ -152,11 +165,16 @@ class MainPresenter:
         self._candidates = []
 
     def _accept(self, item: intake.IntakeItem) -> OpenViewModel:
+        # 何も開いていない状態から開くときは、式欄の式を残す（先に「式を読み込む」で用意した式が
+        # 消えないように。閉じたときは close_document が「.」に戻している）。開いている文書を
+        # 置き換えるときだけ、新しい文書として恒等式から始める。
+        was_unloaded = not self.state.documents
         self.state.documents = [DocumentState(path=item.path, name=item.name,
                                               original_text=item.text, byte_size=item.byte_size)]
         self.state.active_index = 0
         self.state.eval_all = False
-        self.state.query.expression = "."          # 新しい文書は恒等式から始める
+        if not was_unloaded:
+            self.state.query.expression = "."
         self._last_run = None
         self._candidates = []
         return OpenViewModel(name=item.name, path=item.path, original_text=item.text,
@@ -410,6 +428,74 @@ class MainPresenter:
             return self._service.formats.get(name).name
         except UnknownFormatError:
             return name
+
+    # ------------------------------------------------------------------ 式のファイル（.yaqpy。v0.7.0）
+
+    async def load_expression_file(self, path: str) -> ExpressionFileViewModel:
+        """``.yaqpy`` / ``.yq`` を読んで式欄の式にする。実行はしない（検証は画面側）。
+
+        式に誤りがあっても読み込む（赤枠で知らせる）。現在の式は確認なしで置き換える。
+        """
+        name = os.path.basename(path)
+        try:
+            if not self._fs.exists_file(path):
+                return ExpressionFileViewModel(
+                    name=name, error=ErrorViewModel("intake", texts.ERR_NOT_A_FILE))
+            try:
+                size = self._size_of(path)
+            except OSError:
+                size = 0
+            expression_file.ensure_size(size)
+            text = await asyncio.to_thread(self._fs.read_text, path)
+            expression_file.ensure_size(len(text.encode("utf-8")))
+            expression = expression_file.decode_expression(text)
+        except expression_file.ExpressionFileError as e:
+            return ExpressionFileViewModel(name=name, error=ErrorViewModel("expression_file", str(e)))
+        except UnicodeDecodeError:
+            return ExpressionFileViewModel(
+                name=name, error=ErrorViewModel("expression_file", texts.ERR_EXPR_FILE_NOT_UTF8))
+        except Exception as e:                      # noqa: BLE001 - 画面を落とさない
+            return ExpressionFileViewModel(name=name, error=to_view_model(e))
+        self.state.query.expression = expression
+        return ExpressionFileViewModel(name=name, expression=expression)
+
+    def check_expression_upload_size(self, size: int) -> ErrorViewModel | None:
+        """Web 版：式のファイルをアップロードする**前に**、大きさで断る。"""
+        try:
+            expression_file.ensure_size(size)
+        except expression_file.ExpressionFileError as e:
+            return ErrorViewModel("expression_file", str(e))
+        return None
+
+    def load_expression_bytes(self, name: str, data: bytes) -> ExpressionFileViewModel:
+        """Web 版：アップロードされた中身を式欄の式にする（``load_expression_file`` の Web 版）。"""
+        try:
+            expression_file.ensure_size(len(data))
+            expression = expression_file.decode_expression(data)
+        except expression_file.ExpressionFileError as e:
+            return ExpressionFileViewModel(name=name, error=ErrorViewModel("expression_file", str(e)))
+        self.state.query.expression = expression
+        return ExpressionFileViewModel(name=name, expression=expression)
+
+    def default_expression_file_name(self) -> str:
+        """式の保存ダイアログの初期ファイル名（``sample.yaqpy``。貼り付け・文書なしなら ``expression.yaqpy``）。"""
+        return expression_file.default_expression_file_name(self.state.document.name)
+
+    async def save_expression_file(self, path: str) -> SaveViewModel:
+        """式欄の式を ``.yaqpy`` に保存する。既存ファイルの上書き確認は OS のダイアログに任せる。"""
+        path = expression_file.ensure_extension(path)
+        text = expression_file.encode_expression(self.state.query.expression)
+        try:
+            await asyncio.to_thread(self._fs.atomic_write, path, text)
+        except Exception as e:                      # noqa: BLE001 - 画面を落とさない
+            return SaveViewModel(path=path, error=to_view_model(e))
+        return SaveViewModel(path=path, byte_size=len(text.encode("utf-8")))
+
+    def expression_download(self) -> DownloadViewModel:
+        """Web 版：式のダウンロード（ファイル名とバイト列）。サーバーのディスクには書かない。"""
+        text = expression_file.encode_expression(self.state.query.expression)
+        return DownloadViewModel(file_name=self.default_expression_file_name(),
+                                 data=text.encode("utf-8"))
 
     # ------------------------------------------------------------------ AI への相談文（追加要望）
 

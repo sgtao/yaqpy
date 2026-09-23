@@ -14,13 +14,15 @@ from collections.abc import Callable
 
 import flet as ft
 
-from yaqpy.gui import texts
+from yaqpy.gui import expression_file, texts
 from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
 from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.errors_ja import caret_line
 from yaqpy.gui.pages.clipboard import get_clipboard, set_clipboard
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
-from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
+from yaqpy.gui.presenter import (
+    ExpressionFileViewModel, MainPresenter, RunViewModel, ValidationViewModel,
+)
 from yaqpy.gui.state import AUTO, GuiState
 
 VALIDATE_DEBOUNCE_SECONDS = 0.3
@@ -125,8 +127,7 @@ class MainPage:
             disabled=True,
         )
         # 式欄の末尾に「 | 」を足すだけのボタン（プロパティの選択とは独立。v0.7.0）
-        self._add_button = ft.Button(content=texts.BTN_ADD_PIPE, on_click=self._on_add_pipe,
-                                     disabled=not state.query.expression.strip())
+        self._add_button = ft.Button(content=texts.BTN_ADD_PIPE, on_click=self._on_add_pipe)
         self._candidate_note = ft.Text("", size=11, color=ft.Colors.ON_SURFACE_VARIANT,
                                        visible=False)
 
@@ -142,8 +143,12 @@ class MainPage:
                                      on_click=self._on_run, disabled=True)
         self._cancel_button = ft.Button(content=texts.BTN_CANCEL, icon=ft.Icons.STOP,
                                         on_click=self._on_cancel, disabled=True)
-        # 式欄の右：貼り付け・コピー・クリア（v0.7.0）。カーソル位置は取れないので、貼り付けは
-        # 式の全体を置き換える
+        # 式欄の右：貼り付け・コピー・クリア、式ファイル（.yaqpy）の読み込み・保存（v0.7.0）。
+        # カーソル位置は取れないので、貼り付けは式の全体を置き換える。読み込みは常に有効
+        # （文書を開く前に式だけ用意できる）。保存は式が空でないときだけ
+        self._save_expr_button = ft.IconButton(icon=ft.Icons.SAVE_ALT,
+                                               tooltip=texts.TIP_EXPR_SAVE,
+                                               on_click=self._on_save_expression)
         self._expr_tools = ft.Row([
             ft.IconButton(icon=ft.Icons.CONTENT_PASTE, tooltip=texts.TIP_EXPR_PASTE,
                           on_click=self._on_expr_paste),
@@ -151,7 +156,11 @@ class MainPage:
                           on_click=self._on_expr_copy),
             ft.IconButton(icon=ft.Icons.CLEAR, tooltip=texts.TIP_EXPR_CLEAR,
                           on_click=self._on_expr_clear),
+            ft.IconButton(icon=ft.Icons.FILE_OPEN, tooltip=texts.TIP_EXPR_LOAD,
+                          on_click=self._on_load_expression),
+            self._save_expr_button,
         ], spacing=0)
+        self._refresh_expression_buttons()
         self._progress = ft.ProgressBar(visible=False)
 
         # --- 2 ペイン ---
@@ -582,7 +591,7 @@ class MainPage:
         self._property_dd.options = []
         self._property_dd.value = None
         self._property_dd.disabled = True
-        self._add_button.disabled = False
+        self._refresh_expression_buttons()
         self._candidate_note.visible = False
         self._status_icon.icon = ft.Icons.INFO_OUTLINE
         self._status_icon.color = None
@@ -639,7 +648,7 @@ class MainPage:
     def _on_expression_change(self, e: ft.Event[ft.TextField]) -> None:
         """入力中は検証だけ（再実行はしない）。最後の打鍵から 300 ms 後に 1 回だけ走る。"""
         self._state.query.expression = e.control.value or ""
-        self._add_button.disabled = not self._state.query.expression.strip()
+        self._refresh_expression_buttons()
         self._validate_token += 1
         token = self._validate_token
 
@@ -695,7 +704,7 @@ class MainPage:
         if not expression:
             return
         self._expr_field.value = self._p.apply_candidate(expression)
-        self._add_button.disabled = False
+        self._refresh_expression_buttons()
         self._expr_field.error = None
         self._expr_error.visible = False
         self._page.run_task(self._run)
@@ -729,13 +738,82 @@ class MainPage:
         self._set_expression_text("")
         self._page.update()
 
+    def _refresh_expression_buttons(self) -> None:
+        """式が空のあいだは、「+ パイプを追加」と「式を保存」を無効にする。"""
+        empty = not (self._state.query.expression or "").strip()
+        self._add_button.disabled = empty
+        self._save_expr_button.disabled = empty
+
     def _set_expression_text(self, text: str) -> None:
         """式欄を外から書き換える（貼り付け・クリア）。式欄が唯一の真実なので、状態と検証も合わせる。"""
         self._expr_field.value = text
         self._state.query.expression = text
-        self._add_button.disabled = not text.strip()
+        self._refresh_expression_buttons()
         self._validate_token += 1                 # 走りかけのデバウンスを無効化
         self._apply_validation(self._p.validate(text))
+
+    # ------------------------------------------------------------------ 式ファイル（.yaqpy）
+
+    async def _on_load_expression(self, e: ft.Event[ft.IconButton]) -> None:
+        """式のファイル（``.yaqpy`` / ``.yq``）を読んで式欄に入れる。検証だけして、実行はしない。"""
+        if self._uploader is not None:
+            await self._load_expression_upload()
+            return
+        files = await self._picker.pick_files(
+            dialog_title=texts.TIP_EXPR_LOAD, allow_multiple=False,
+            file_type=ft.FilePickerFileType.CUSTOM,
+            allowed_extensions=list(expression_file.OPEN_EXTENSIONS))
+        if files:
+            self._apply_loaded_expression(await self._p.load_expression_file(files[0].path))
+        self._page.update()
+
+    async def _load_expression_upload(self) -> None:
+        """Web 版：ブラウザから式のファイルを送らせて読む（データのアップロードとは別の入口）。"""
+        assert self._uploader is not None
+
+        def check_size(size: int) -> str:
+            error = self._p.check_expression_upload_size(size)
+            return error.message if error else ""
+
+        items = await self._uploader.pick(
+            check_size=check_size, dialog_title=texts.TIP_EXPR_LOAD, allow_multiple=False,
+            allowed_extensions=list(expression_file.OPEN_EXTENSIONS))
+        if items:
+            item = items[0]
+            if item.ok:
+                assert item.data is not None
+                self._apply_loaded_expression(self._p.load_expression_bytes(item.name, item.data))
+            else:
+                self._show_error(item.error)
+        self._page.update()
+
+    def _apply_loaded_expression(self, vm: ExpressionFileViewModel) -> None:
+        if not vm.ok:
+            self._show_error(vm.error.message, vm.error.hint)
+            return
+        self._set_expression_text(vm.expression)      # 誤った式でも読み込む（赤枠で知らせる）
+        self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_EXPR_LOADED.format(name=vm.name))))
+
+    async def _on_save_expression(self, e: ft.Event[ft.IconButton]) -> None:
+        """式欄の式を ``.yaqpy`` に保存する（Web 版はダウンロード）。上書きの確認は OS に任せる。"""
+        if self._web:
+            vm = self._p.expression_download()
+            await self._picker.save_file(dialog_title=texts.TIP_EXPR_SAVE, file_name=vm.file_name,
+                                         src_bytes=vm.data)
+            self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_DOWNLOADED.format(name=vm.file_name))))
+            self._page.update()
+            return
+        path = await self._picker.save_file(
+            dialog_title=texts.TIP_EXPR_SAVE, file_name=self._p.default_expression_file_name(),
+            file_type=ft.FilePickerFileType.CUSTOM,
+            allowed_extensions=[expression_file.EXTENSION.lstrip(".")])
+        if path:
+            saved = await self._p.save_expression_file(path)
+            if saved.ok:
+                self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_EXPR_SAVED.format(path=saved.path))))
+            else:
+                self._show_error(saved.error.message, saved.error.hint)
+        self._page.update()
 
     async def _on_run(self, e: ft.Event) -> None:
         self._validate_token += 1            # 走りかけのデバウンスを無効化

@@ -26,6 +26,12 @@ TIP_EXPR_PASTE = "クリップボードの内容を式欄に貼り付け（式�
 TIP_EXPR_COPY = "式をコピー"
 TIP_EXPR_CLEAR = "式をクリア"
 MSG_EXPR_COPIED = "式をクリップボードにコピーしました"
+TIP_EXPR_LOAD = "式を読み込む（.yaqpy）"
+TIP_EXPR_SAVE = "式を保存（.yaqpy）"
+MSG_EXPR_LOADED = "式を読み込みました: {name}"
+MSG_EXPR_SAVED = "式を保存しました: {path}"
+ERR_EXPR_FILE_TOO_LARGE = "式のファイルが大きすぎます（{size} バイト / 上限 {limit} バイト）"
+ERR_EXPR_FILE_NOT_UTF8 = "UTF-8 のテキストとして読めませんでした（式のファイルではないようです）"
 MENU_CLOSE_FILE = "閉じる: {name}"
 BTN_RUN = "実行"
 BTN_CANCEL = "中止"
@@ -196,6 +202,12 @@ _EN: dict[str, str] = {
     "TIP_EXPR_COPY": "Copy the expression",
     "TIP_EXPR_CLEAR": "Clear the expression",
     "MSG_EXPR_COPIED": "Copied the expression to the clipboard",
+    "TIP_EXPR_LOAD": "Load an expression (.yaqpy)",
+    "TIP_EXPR_SAVE": "Save the expression (.yaqpy)",
+    "MSG_EXPR_LOADED": "Loaded the expression: {name}",
+    "MSG_EXPR_SAVED": "Saved the expression: {path}",
+    "ERR_EXPR_FILE_TOO_LARGE": "The expression file is too large ({size} bytes / limit {limit} bytes)",
+    "ERR_EXPR_FILE_NOT_UTF8": "Could not read this as UTF-8 text (it does not look like an expression file)",
     "MENU_CLOSE_FILE": "Close: {name}",
     "BTN_RUN": "Run",
     "BTN_CANCEL": "Cancel",
