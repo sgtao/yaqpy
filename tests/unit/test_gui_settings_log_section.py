@@ -56,7 +56,7 @@ class LogSectionTests:
         page, state, _ = make_page()
         assert page._log_enabled.value is True
         assert page._log_dir.value == ""
-        assert page._log_dir.hint_text == texts.SET_LOG_DIR_HINT.format(
+        assert page._log_dir.helper == texts.SET_LOG_DIR_HINT.format(
             path=run_log.default_log_dir())
         assert (page._log_max_files.value, page._log_max_entry.value) == ("500", "1")
 

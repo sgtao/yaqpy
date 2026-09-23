@@ -61,7 +61,7 @@ class SettingsPage:
         self._log_enabled = ft.Switch(label=texts.SET_LOG_ENABLED, value=s.log_enabled,
                                       on_change=self._on_log_enabled)
         self._log_dir = ft.TextField(label=texts.SET_LOG_DIR, value=s.log_dir, expand=True,
-                                     hint_text=texts.SET_LOG_DIR_HINT.format(path=default_dir),
+                                     helper=texts.SET_LOG_DIR_HINT.format(path=default_dir),
                                      on_change=self._on_log_dir)
         self._log_max_files = ft.TextField(label=texts.SET_LOG_MAX_FILES, width=220,
                                            value=str(s.log_max_files),
