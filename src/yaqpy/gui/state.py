@@ -37,7 +37,6 @@ class QueryState:
     input_format: str = AUTO
     output_format: str = "yaml"      # 既定は YAML（v0.7.0）。「auto」は入力と同じ形式（GUI の表示だけの既定）
     indent: int = 2
-    pretty_print: bool = False
 
 
 @dataclass(slots=True)
@@ -188,7 +187,7 @@ def build_options(state: GuiState) -> Options:
         input_format=q.input_format or AUTO,
         output_format=q.output_format or AUTO,
         indent=indent,
-        pretty_print=q.pretty_print,
+        pretty_print=False,          # 整形 (-P) の切り替えは v0.7.0 で GUI から外した（式の style="" で同じ効果）
         yaml=YamlOptions(indent=indent),
         json=JsonOptions(indent=indent),
         toon=ToonOptions(indent=indent if indent >= 1 else 2),

@@ -31,7 +31,6 @@ LBL_INPUT_FORMAT = "入力形式"
 LBL_OUTPUT_FORMAT = "出力形式"
 LBL_AUTO_SAME_AS_INPUT = "auto（入力と同じ）"
 LBL_INDENT = "インデント"
-LBL_PRETTY = "整形 (-P)"
 LBL_EXPRESSION = "式"
 LBL_PROPERTY = "プロパティ"
 LBL_ORIGINAL = "オリジナル"
@@ -175,7 +174,6 @@ _EN: dict[str, str] = {
     "LBL_OUTPUT_FORMAT": "Output Format",
     "LBL_AUTO_SAME_AS_INPUT": "auto (same as input)",
     "LBL_INDENT": "Indent",
-    "LBL_PRETTY": "Pretty-print (-P)",
     "LBL_EXPRESSION": "Expression",
     "LBL_PROPERTY": "Property",
     "LBL_ORIGINAL": "Original",

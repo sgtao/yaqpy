@@ -123,8 +123,6 @@ class MainPage:
                                           on_click=self._on_indent_plus)
         self._indent_stepper = ft.Row([self._indent_minus, self._indent_field, self._indent_plus],
                                       spacing=0, vertical_alignment=ft.CrossAxisAlignment.END)
-        self._pretty_switch = ft.Switch(label=texts.LBL_PRETTY, value=state.query.pretty_print,
-                                        on_change=self._on_pretty)
 
         # --- プロパティ行（G2）---
         # 絞り込みは Flet 組み込みの enable_filter に任せる（G0 の実測）。
@@ -224,8 +222,7 @@ class MainPage:
 
         files_bar = ft.Row([self._files_row], spacing=16)
 
-        format_bar = ft.Row([self._input_dd, self._output_dd, self._indent_stepper,
-                             self._pretty_switch], spacing=12)
+        format_bar = ft.Row([self._input_dd, self._output_dd, self._indent_stepper], spacing=12)
 
         filter_bar = ft.Column([
             ft.Row([self._property_dd, self._add_button], spacing=8),
@@ -592,10 +589,6 @@ class MainPage:
         """±ボタンからの変更。数字欄の表示も合わせて書き換える。"""
         self._state.query.indent = value
         self._indent_field.value = str(value)
-        self._page.run_task(self._run)
-
-    def _on_pretty(self, e: ft.Event[ft.Switch]) -> None:
-        self._state.query.pretty_print = bool(e.control.value)
         self._page.run_task(self._run)
 
     def _on_expression_change(self, e: ft.Event[ft.TextField]) -> None:
