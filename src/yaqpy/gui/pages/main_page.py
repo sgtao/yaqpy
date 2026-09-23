@@ -18,7 +18,7 @@ from yaqpy.gui import texts
 from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
 from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.errors_ja import caret_line
-from yaqpy.gui.pages.clipboard import set_clipboard
+from yaqpy.gui.pages.clipboard import get_clipboard, set_clipboard
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
 from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
 from yaqpy.gui.state import AUTO, GuiState
@@ -142,6 +142,16 @@ class MainPage:
                                      on_click=self._on_run, disabled=True)
         self._cancel_button = ft.Button(content=texts.BTN_CANCEL, icon=ft.Icons.STOP,
                                         on_click=self._on_cancel, disabled=True)
+        # 式欄の右：貼り付け・コピー・クリア（v0.7.0）。カーソル位置は取れないので、貼り付けは
+        # 式の全体を置き換える
+        self._expr_tools = ft.Row([
+            ft.IconButton(icon=ft.Icons.CONTENT_PASTE, tooltip=texts.TIP_EXPR_PASTE,
+                          on_click=self._on_expr_paste),
+            ft.IconButton(icon=ft.Icons.CONTENT_COPY, tooltip=texts.TIP_EXPR_COPY,
+                          on_click=self._on_expr_copy),
+            ft.IconButton(icon=ft.Icons.CLEAR, tooltip=texts.TIP_EXPR_CLEAR,
+                          on_click=self._on_expr_clear),
+        ], spacing=0)
         self._progress = ft.ProgressBar(visible=False)
 
         # --- 2 ペイン ---
@@ -163,6 +173,14 @@ class MainPage:
                 ft.Text(texts.MSG_NO_DOCUMENT, size=13),
                 ft.Text(texts.MSG_WEB_HINT if self._web else texts.MSG_DROP_UNSUPPORTED,
                         size=11, color=ft.Colors.ON_SURFACE_VARIANT),
+                # 案内の文字だけでなく、ボタンでも開ける／貼り付けられる（v0.7.0）。
+                # 枠全体のクリックも従来どおり残す（開く導線を二重にして見つけやすくする）
+                ft.Row([
+                    ft.Button(content=texts.BTN_OPEN_FILE, icon=ft.Icons.FOLDER_OPEN,
+                              on_click=self._on_add_file),
+                    ft.Button(content=texts.BTN_PASTE, icon=ft.Icons.CONTENT_PASTE,
+                              on_click=self._on_paste_button),
+                ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
             alignment=ft.Alignment.CENTER, padding=10, on_click=self._on_add_file,
         )
@@ -209,7 +227,7 @@ class MainPage:
         filter_bar = ft.Column([
             ft.Row([self._property_dd, self._add_button], spacing=8),
             self._candidate_note,
-            ft.Row([self._expr_field, self._run_button, self._cancel_button],
+            ft.Row([self._expr_field, self._expr_tools, self._run_button, self._cancel_button],
                   spacing=8),
             self._expr_error,
         ], spacing=FILTER_ROW_SPACING)
@@ -574,6 +592,18 @@ class MainPage:
         self._refresh_format_badges()
         self._refresh_multi_file_ui()
 
+    async def _on_paste_button(self, e: ft.Event[ft.Button]) -> None:
+        """未読込の画面の［貼り付け］：クリップボードの内容を 1 つの文書として開く。"""
+        text = await get_clipboard()
+        if text is None:
+            self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_PASTE_FAILED)))
+            self._page.update()
+            return
+        if not text.strip():
+            return
+        self._original.value = text
+        await self._open_pasted()
+
     def _on_open_settings_click(self, e: ft.Event[ft.TextButton]) -> None:
         if self._on_open_settings is not None:
             self._on_open_settings(self._pending_capability)
@@ -676,6 +706,36 @@ class MainPage:
         self._expr_field.error = None            # 書きかけの式なので、検証の赤枠は出さない
         self._expr_error.visible = False
         self._page.update()
+
+    # ------------------------------------------------------------------ 式欄の貼り付け・コピー・クリア
+
+    async def _on_expr_paste(self, e: ft.Event[ft.IconButton]) -> None:
+        text = await get_clipboard()
+        if text is None:
+            self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_PASTE_FAILED)))
+            self._page.update()
+            return
+        if not text.strip():
+            return
+        self._set_expression_text(text)
+        self._page.update()
+
+    async def _on_expr_copy(self, e: ft.Event[ft.IconButton]) -> None:
+        copied = await set_clipboard(self._expr_field.value or "")
+        message = texts.MSG_EXPR_COPIED if copied else texts.MSG_COPY_FAILED
+        self._page.show_dialog(ft.SnackBar(ft.Text(message)))
+
+    def _on_expr_clear(self, e: ft.Event[ft.IconButton]) -> None:
+        self._set_expression_text("")
+        self._page.update()
+
+    def _set_expression_text(self, text: str) -> None:
+        """式欄を外から書き換える（貼り付け・クリア）。式欄が唯一の真実なので、状態と検証も合わせる。"""
+        self._expr_field.value = text
+        self._state.query.expression = text
+        self._add_button.disabled = not text.strip()
+        self._validate_token += 1                 # 走りかけのデバウンスを無効化
+        self._apply_validation(self._p.validate(text))
 
     async def _on_run(self, e: ft.Event) -> None:
         self._validate_token += 1            # 走りかけのデバウンスを無効化

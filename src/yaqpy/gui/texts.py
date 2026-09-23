@@ -21,6 +21,11 @@ APP_TITLE = "yaqpy"
 BTN_ADD_FILE = "＋ファイルを追加"
 BTN_CLOSE = "閉じる"
 BTN_MORE_FILES = "＋ファイル {n}件"
+BTN_OPEN_FILE = "ファイルを開く"
+TIP_EXPR_PASTE = "クリップボードの内容を式欄に貼り付け（式を置き換えます）"
+TIP_EXPR_COPY = "式をコピー"
+TIP_EXPR_CLEAR = "式をクリア"
+MSG_EXPR_COPIED = "式をクリップボードにコピーしました"
 MENU_CLOSE_FILE = "閉じる: {name}"
 BTN_RUN = "実行"
 BTN_CANCEL = "中止"
@@ -186,6 +191,11 @@ _EN: dict[str, str] = {
     "BTN_ADD_FILE": "+ Add File",
     "BTN_CLOSE": "Close",
     "BTN_MORE_FILES": "+ {n} more",
+    "BTN_OPEN_FILE": "Open File",
+    "TIP_EXPR_PASTE": "Paste the clipboard into the expression box (replaces the expression)",
+    "TIP_EXPR_COPY": "Copy the expression",
+    "TIP_EXPR_CLEAR": "Clear the expression",
+    "MSG_EXPR_COPIED": "Copied the expression to the clipboard",
     "MENU_CLOSE_FILE": "Close: {name}",
     "BTN_RUN": "Run",
     "BTN_CANCEL": "Cancel",
