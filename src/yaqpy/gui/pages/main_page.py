@@ -27,6 +27,7 @@ VALIDATE_DEBOUNCE_SECONDS = 0.3
 PASTE_DEBOUNCE_SECONDS = 0.3
 EDIT_DEBOUNCE_SECONDS = 0.5      # 読み込み後の追加編集：打ち終わってから取り込むまでの間
 PASTE_MIN_LINES = 4              # 未読込のあいだの貼り付け欄の高さ（画面に収まるよう控えめに）
+VISIBLE_FILE_CHIPS = 2           # ファイルのチップは先頭のこれだけ並べ、残りは「＋ファイル N件」にまとめる
 PANE_HEADER_HEIGHT = 44         # 右見出しの保存ボタンに高さを合わせ、左右の枠の上端を揃える
 MONO = ft.TextStyle(font_family="Consolas", size=12)
 BUTTON_TEXT_SIZE = 14           # Flet のボタン文字（labelLarge）と同じ大きさ。ファイル名の表示に使う
@@ -413,7 +414,7 @@ class MainPage:
         documents = self._state.documents
         self._files_row.visible = len(documents) > 1
         chips: list[ft.Control] = []
-        for i, doc in enumerate(documents):
+        for i, doc in enumerate(documents[:VISIBLE_FILE_CHIPS]):
             chips.append(ft.Chip(
                 label=doc.name or texts.MSG_PASTED,
                 selected=(i == self._state.active_index),
@@ -421,7 +422,41 @@ class MainPage:
                 on_click=self._chip_select_handler(i),
                 on_delete=self._chip_close_handler(i),
             ))
+        if len(documents) > VISIBLE_FILE_CHIPS:
+            chips.append(self._more_files_menu())
         self._files_row.controls = chips
+
+    def _more_files_menu(self) -> ft.Control:
+        """3 件目以降を、「＋ファイル N件」の 1 つのボタンにまとめて、押すとプルダウンで選ばせる。
+
+        表示は開いた順のまま（アクティブな文書が 3 件目以降でも、チップ側へは繰り上げない）。
+        アクティブな文書がここにあるときは、ボタンを選択中の色にし、メニューにチェックを付ける。
+        """
+        documents = self._state.documents
+        hidden = range(VISIBLE_FILE_CHIPS, len(documents))
+        select_items: list[ft.PopupMenuItem] = [
+            ft.PopupMenuItem(content=documents[i].name or texts.MSG_PASTED,
+                             checked=(i == self._state.active_index),
+                             on_click=self._chip_select_handler(i))
+            for i in hidden
+        ]
+        close_items: list[ft.PopupMenuItem] = [
+            ft.PopupMenuItem(content=texts.MENU_CLOSE_FILE.format(
+                                name=documents[i].name or texts.MSG_PASTED),
+                             icon=ft.Icons.CLOSE, on_click=self._chip_close_handler(i))
+            for i in hidden
+        ]
+        active_hidden = self._state.active_index >= VISIBLE_FILE_CHIPS
+        label = ft.Text(texts.BTN_MORE_FILES.format(n=len(documents) - VISIBLE_FILE_CHIPS),
+                        size=13, weight=ft.FontWeight.BOLD if active_hidden else None)
+        trigger = ft.Container(
+            content=ft.Row([label, ft.Icon(ft.Icons.ARROW_DROP_DOWN, size=18)], spacing=2,
+                           tight=True),
+            padding=ft.Padding.symmetric(horizontal=10, vertical=6), border_radius=8,
+            border=ft.Border.all(1, ft.Colors.OUTLINE),
+            bgcolor=ft.Colors.SECONDARY_CONTAINER if active_hidden else None)
+        return ft.PopupMenuButton(content=trigger,
+                                  items=[*select_items, ft.PopupMenuItem(), *close_items])
 
     def _chip_select_handler(self, index: int) -> Callable[[ft.Event[ft.Chip]], None]:
         def handler(e: ft.Event[ft.Chip]) -> None:

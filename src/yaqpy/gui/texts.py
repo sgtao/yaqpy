@@ -20,6 +20,8 @@ APP_TITLE = "yaqpy"
 # ボタン・ラベル
 BTN_ADD_FILE = "＋ファイルを追加"
 BTN_CLOSE = "閉じる"
+BTN_MORE_FILES = "＋ファイル {n}件"
+MENU_CLOSE_FILE = "閉じる: {name}"
 BTN_RUN = "実行"
 BTN_CANCEL = "中止"
 BTN_SAVE = "保存"
@@ -176,6 +178,8 @@ _EN: dict[str, str] = {
     "APP_TITLE": "yaqpy",
     "BTN_ADD_FILE": "+ Add File",
     "BTN_CLOSE": "Close",
+    "BTN_MORE_FILES": "+ {n} more",
+    "MENU_CLOSE_FILE": "Close: {name}",
     "BTN_RUN": "Run",
     "BTN_CANCEL": "Cancel",
     "BTN_SAVE": "Save",

@@ -16,7 +16,9 @@ from yaqpy.app.service import YqService
 from yaqpy.gui.presenter import MainPresenter, RunViewModel
 from yaqpy.gui.state import GuiState
 
-FILES = {"/w/shop.xml": "<shop><item>pen</item></shop>\n", "/w/app.toml": "[db]\nport = 1\n"}
+FILES = {"/w/shop.xml": "<shop><item>pen</item></shop>\n", "/w/app.toml": "[db]\nport = 1\n",
+         "/w/items.csv": "a,b\n1,2\n", "/w/app.properties": "db.port = 1\n",
+         "/w/b.json": '{"b": 1}\n'}
 
 
 def make_page(output_format: str = "auto"):
@@ -548,3 +550,68 @@ class AddPipeTests:
         typed.control.value = ".a"
         page._on_expression_change(typed)
         assert not page._add_button.disabled
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class FileChipFoldingTests:
+    """v0.7.0：ファイルのチップは先頭 2 件だけ。3 件目以降は「＋ファイル N件」のプルダウンにまとめる。"""
+
+    async def _open(self, count: int):
+        page, presenter, state = make_page()
+        names = ["/w/app.toml", "/w/shop.xml", "/w/items.csv", "/w/app.properties", "/w/b.json"]
+        for i, path in enumerate(names[:count]):
+            vm = await (presenter.open_path(path) if i == 0 else presenter.add_path(path))
+            assert vm.ok, vm.error
+        page._refresh_multi_file_ui()
+        return page, presenter, state
+
+    async def test_up_to_two_files_are_all_chips(self) -> None:
+        page, _, _ = await self._open(2)
+        assert [type(c) for c in page._files_row.controls] == [ft.Chip, ft.Chip]
+
+    async def test_a_third_file_goes_into_the_menu(self) -> None:
+        page, _, state = await self._open(3)
+        controls = page._files_row.controls
+        assert [type(c) for c in controls] == [ft.Chip, ft.Chip, ft.PopupMenuButton]
+        assert [c.label for c in controls[:2]] == [d.name for d in state.documents[:2]]
+        assert controls[2].content.content.controls[0].value == "＋ファイル 1件"
+
+    async def test_the_count_is_the_number_beyond_two(self) -> None:
+        page, _, _ = await self._open(5)
+        menu = page._files_row.controls[-1]
+        assert menu.content.content.controls[0].value == "＋ファイル 3件"
+        selects = [i for i in menu.items if i.content and not str(i.content).startswith("閉じる")]
+        assert len(selects) == 3
+
+    async def test_the_display_order_stays_the_order_opened_even_when_a_hidden_one_is_active(self) -> None:
+        """決定 D：3 件目以降がアクティブになっても、チップ側には繰り上げない。"""
+        page, presenter, state = await self._open(4)
+        presenter.select_document(3)
+        page._refresh_multi_file_ui()
+        controls = page._files_row.controls
+        assert [c.label for c in controls[:2]] == [d.name for d in state.documents[:2]]
+        assert not any(c.selected for c in controls[:2])          # チップ側は選択中でなくなる
+        menu = controls[2]
+        assert menu.content.bgcolor == ft.Colors.SECONDARY_CONTAINER   # ボタンが選択中を示す
+        checked = [i.checked for i in menu.items if i.content and i.checked is not None
+                   and not str(i.content).startswith("閉じる")]
+        assert checked == [False, True]
+
+    async def test_menu_items_select_and_close_the_right_document(self) -> None:
+        page, presenter, state = await self._open(4)
+        menu = page._files_row.controls[-1]
+        select_third = menu.items[0]
+        close_fourth = menu.items[-1]
+        assert "閉じる" in close_fourth.content
+        page._page.run_task = mock.MagicMock()
+        select_third.on_click(mock.MagicMock())
+        page._page.run_task.assert_called_once_with(page._on_select_document, 2)
+        page._page.run_task.reset_mock()
+        close_fourth.on_click(mock.MagicMock())
+        page._page.run_task.assert_called_once_with(page._on_close_document_at, 3)
+
+    async def test_the_menu_disappears_when_files_are_closed_down_to_two(self) -> None:
+        page, presenter, _ = await self._open(3)
+        presenter.close_document_at(2)
+        page._refresh_multi_file_ui()
+        assert [type(c) for c in page._files_row.controls] == [ft.Chip, ft.Chip]
