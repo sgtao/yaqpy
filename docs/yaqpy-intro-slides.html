@@ -1,0 +1,3359 @@
+<!doctype html>
+<html lang="ja" data-view="list" data-theme="light" data-palette="ocean">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>yaqpy 入門｜YAML の設定を、コメントを消さずに一行で書き換える</title>
+<style>/* ==== theme-vars.css ==== */
+/* theme-vars.css
+ * ライト/ダークテーマ × カラーパレットのCSS変数定義。
+ * slide-core.css より前に読み込む（変数の先行定義が必要）。
+ *
+ * 2軸構成（v0.6.0）:
+ *   テーマ:   :root（ライト） / [data-theme="dark"]（ダーク）
+ *   パレット: html[data-palette="ocean|forest|sunset|plum|graphite"]
+ *             未指定 = ocean 相当（既定値は :root / [data-theme="dark"] に定義済み）
+ *
+ * 設計判断（v0.6.0）:
+ *   パレットが差し替えるのは --accent / --accent-light / --accent-dim の 3 変数のみ。
+ *   --chart-2〜5 は全パレット共通（多系列グラフの可読性を安定させ、
+ *   5パレット × 2テーマ × 5系列 = 50 値の管理爆発を避ける）。
+ *   --chart-1 は var(--accent) 参照のため、パレットに自動追従する。
+ */
+
+:root {
+  --bg-body: #f0f2f5;
+  --bg-slide: #ffffff;
+  --bg-surface: #f8f9fa;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b7280;
+  --accent: #2563eb;
+  --accent-light: #eff6ff;
+  --accent-dim: #dbeafe;
+  --border: #e5e7eb;
+  --nav-bg: rgba(0, 0, 0, 0.6);
+  --nav-text: #ffffff;
+  --progress-track: rgba(255, 255, 255, 0.2);
+
+  /* ─── チャート系列色（ライト） ───
+   * --chart-1 は --accent と一致させ、単系列グラフでアクセントと揃える。
+   * 2〜5 系列は Tailwind 系の調和色を採用。
+   */
+  --chart-1: var(--accent);
+  --chart-2: #10b981;
+  --chart-3: #f59e0b;
+  --chart-4: #ef4444;
+  --chart-5: #8b5cf6;
+  --chart-grid: var(--border);
+  --chart-label: var(--text-secondary);
+
+  /* feature-showcase 用（ライト時のみ使用・ダーク時は上書き） */
+  --bg-surface-dark: #161b22;
+  --text-on-dark: #e6edf3;
+  --text-on-dark-2: #8b949e;
+}
+
+[data-theme='dark'] {
+  --bg-body: #0d1117;
+  --bg-slide: #161b22;
+  --bg-surface: #21262d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --accent: #58a6ff;
+  --accent-light: #1c2d3f;
+  --accent-dim: #1f3a57;
+  --border: #30363d;
+  --nav-bg: rgba(255, 255, 255, 0.1);
+  --nav-text: #e6edf3;
+  --progress-track: rgba(255, 255, 255, 0.1);
+
+  /* ─── チャート系列色（ダーク） ───
+   * GitHub Primer 系の彩度を抑えた色を採用。
+   * --accent (#58A6FF) との調和を優先。
+   */
+  --chart-1: var(--accent);
+  --chart-2: #3fb950;
+  --chart-3: #d29922;
+  --chart-4: #f85149;
+  --chart-5: #a371f7;
+  --chart-grid: var(--border);
+  --chart-label: var(--text-secondary);
+
+  /* feature-showcase 用（ライト時のみ使用・ダーク時は上書き） */
+  --bg-surface-dark: #161b22;
+  --text-on-dark: #e6edf3;
+  --text-on-dark-2: #8b949e;
+}
+
+/* ==========================================================================
+ * カラーパレット定義（v0.6.0）
+ * ==========================================================================
+ * 特異度の設計:
+ *   [data-palette="x"]                    (0,1,0) … :root と同特異度・後勝ちでライト値が有効
+ *   [data-palette="x"][data-theme="dark"] (0,2,0) … [data-theme="dark"] に勝ちダーク値が有効
+ * ライト側は Tailwind 50/100 系の淡色、ダーク側は各 accent と調和する深色面。
+ * ========================================================================== */
+
+/* ─── 🌊 Ocean（既定と同値・明示指定用） ─── */
+[data-palette='ocean'] {
+  --accent: #2563eb;
+  --accent-light: #eff6ff;
+  --accent-dim: #dbeafe;
+}
+[data-palette='ocean'][data-theme='dark'] {
+  --accent: #58a6ff;
+  --accent-light: #1c2d3f;
+  --accent-dim: #1f3a57;
+}
+
+/* ─── 🌲 Forest（成長・サステナ） ─── */
+[data-palette='forest'] {
+  --accent: #059669;
+  --accent-light: #ecfdf5;
+  --accent-dim: #d1fae5;
+}
+[data-palette='forest'][data-theme='dark'] {
+  --accent: #34d399;
+  --accent-light: #14291e;
+  --accent-dim: #1b3d2b;
+}
+
+/* ─── 🌅 Sunset（情熱・提案） ─── */
+[data-palette='sunset'] {
+  --accent: #ea580c;
+  --accent-light: #fff7ed;
+  --accent-dim: #ffedd5;
+}
+[data-palette='sunset'][data-theme='dark'] {
+  --accent: #fb923c;
+  --accent-light: #2f1d0e;
+  --accent-dim: #45290f;
+}
+
+/* ─── 🍇 Plum（創造・AI系） ─── */
+[data-palette='plum'] {
+  --accent: #7c3aed;
+  --accent-light: #f5f3ff;
+  --accent-dim: #ede9fe;
+}
+[data-palette='plum'][data-theme='dark'] {
+  --accent: #a78bfa;
+  --accent-light: #221a38;
+  --accent-dim: #322659;
+}
+
+/* ─── ⬛ Graphite（ミニマル・モノトーン） ─── */
+[data-palette='graphite'] {
+  --accent: #334155;
+  --accent-light: #f1f5f9;
+  --accent-dim: #e2e8f0;
+}
+[data-palette='graphite'][data-theme='dark'] {
+  --accent: #94a3b8;
+  --accent-light: #202834;
+  --accent-dim: #2b3648;
+}
+
+/* ─── 🔶 Ruby（情熱・警告に寄らない鮮やかな赤） ─── */
+[data-palette='ruby'] {
+  --accent: #dc2626;
+  --accent-light: #fef2f2;
+  --accent-dim: #fee2e2;
+}
+[data-palette='ruby'][data-theme='dark'] {
+  --accent: #f87171;
+  --accent-light: #341414;
+  --accent-dim: #4a1c1c;
+}
+
+/* ─── ✨ Gold（高級感・信頼） ─── */
+[data-palette='gold'] {
+  --accent: #d97706;
+  --accent-light: #fffbeb;
+  --accent-dim: #fef3c7;
+}
+[data-palette='gold'][data-theme='dark'] {
+  --accent: #fbbf24;
+  --accent-light: #372910;
+  --accent-dim: #4f3a17;
+}
+
+/* ==== slide-core.css ==== */
+/* slide-core.css
+ * 16:9固定サイズのスライドビューポートと、
+ * hero モード時のスケーリング・レイアウト。
+ * theme-vars.css の読み込み後に適用すること。
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-body);
+  color: var(--text-primary);
+  font-family: 'Noto Sans JP', sans-serif;
+}
+
+/* ─── スケーラー（hero時: 絶対中央配置） ─── */
+.slide-scaler {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  /* JS: transform: translate(-50%, -50%) scale(ratio) */
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+  width: 960px;
+  height: 540px;
+}
+
+/* ─── スライド本体（960×540px 固定） ─── */
+.slide {
+  position: absolute;
+  inset: 0;
+  width: 960px;
+  height: 540px;
+  background: var(--bg-slide);
+  border-radius: 8px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+.slide.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ─── スライド内コンテンツラッパ ─── */
+/* list時にJS側でscale変換するためのラッパ。hero時はそのまま表示。 */
+.slide-inner {
+  width: 100%;
+  height: 100%;
+  padding: 52px 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+/* ==== nav-controls.css ==== */
+/* nav-controls.css
+ * 右上コントロールクラスタ（テーマ・ビュー切替・エクスポートボタン）、
+ * 左右ナビ矢印、プログレスバー、スライド番号。
+ *
+ * Phase 3 改修:
+ *   - .export-menu (ドロップダウンの親コンテナ) を追加
+ *   - .export-dropdown (ドロップダウン本体) を追加
+ *   - .kbd (キーボードショートカット表示) を追加
+ */
+
+/* ─── 右上コントロールクラスタ ─── */
+/* v0.4.10: .preview-pane 内部へ移設したため fixed → absolute
+   （.preview-pane は position: relative 済み・app.css）。 */
+.control-cluster {
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  display: flex;
+  gap: 8px;
+  z-index: 100;
+}
+
+.control-cluster button {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 8px;
+  background: var(--nav-bg);
+  color: var(--nav-text);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.control-cluster button:hover {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+[data-theme='dark'] .control-cluster button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+/* ─── モバイル幅でのControlCluster調整（v0.4.10） ─── */
+@media (max-width: 600px) {
+  .control-cluster {
+    top: 8px;
+    right: 8px;
+    gap: 4px;
+  }
+  .control-cluster button {
+    width: 32px;
+    height: 32px;
+    font-size: 15px;
+  }
+}
+
+/* ─── エクスポートメニュー（Phase 3 追加） ─── */
+/* .control-cluster 内の他のボタンと同じ形状を保ちつつ、
+   ドロップダウンメニューを抱える親コンテナ。 */
+.export-menu {
+  position: relative;
+  display: inline-block;
+}
+
+/* ─── エクスポートドロップダウン（Phase 3 追加） ─── */
+/* #export-toggle ボタンの下に表示されるメニューパネル。
+   hidden 属性で開閉する。 */
+.export-dropdown {
+  position: absolute;
+  top: 44px; /* control-cluster のボタン高さ 36px + gap 8px */
+  right: 0;
+  background: var(--bg-slide);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 6px;
+  min-width: 240px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 150;
+}
+
+.export-dropdown[hidden] {
+  display: none;
+}
+
+/* ─── ドロップダウン内のボタン（Phase 3 追加） ─── */
+/* control-cluster の他のボタンとは異なるスタイル（横長・左寄せテキスト）。
+   !important は使わず、より具体的なセレクタで上書きする。 */
+.control-cluster .export-dropdown button {
+  width: 100%;
+  height: auto;
+  background: transparent;
+  color: var(--text-primary);
+  border: none;
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  transition: background 0.15s;
+}
+
+.control-cluster .export-dropdown button:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+[data-theme='dark'] .control-cluster .export-dropdown button:hover {
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ─── キーボードショートカット表示（Phase 3 追加） ─── */
+/* ドロップダウン内のボタン右端に表示される [P] [Shift+S] などの小バッジ。 */
+.export-dropdown .kbd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.control-cluster .export-dropdown button:hover .kbd {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ─── 左右ナビ矢印 ─── */
+.nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 80px;
+  background: var(--nav-bg);
+  color: var(--nav-text);
+  border: none;
+  border-radius: 4px;
+  font-size: 32px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.nav-arrow:hover {
+  opacity: 0.85;
+}
+.nav-arrow.nav-prev {
+  left: 8px;
+}
+.nav-arrow.nav-next {
+  right: 8px;
+}
+.nav-arrow[hidden] {
+  display: none;
+}
+
+/* ─── プログレスバー（最上部） ─── */
+#progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+  z-index: 200;
+}
+
+/* ─── スライド番号（右下） ─── */
+#slide-counter {
+  position: absolute;
+  bottom: 16px;
+  right: 20px;
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
+  z-index: 10;
+}
+
+/* ─── カラーパレットメニュー ─── */
+/* export-menu と同じドロップダウン規約（hidden 属性で開閉・外側クリックで閉じる）。 */
+.palette-menu {
+  position: relative;
+  display: inline-block;
+}
+.palette-dropdown {
+  position: absolute;
+  top: 44px;
+  right: 0;
+  background: var(--bg-slide);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  padding: 6px;
+  min-width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  z-index: 150;
+}
+.palette-dropdown[hidden] {
+  display: none;
+}
+.control-cluster .palette-dropdown button {
+  width: 100%;
+  height: auto;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 13px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 8px;
+  transition: background 0.15s;
+}
+/* 絵文字アイコン */
+.control-cluster .palette-dropdown .palette-ico {
+  flex-shrink: 0;
+  width: 1.3em;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1;
+}
+/* 各項目の文字色＝そのパレット固有色（アクティブパレット非依存の固定色）。
+ * 注: 下記の色は theme-vars.css のパレット accent 値と重複管理。
+ *     パレットの色を変える場合は両ファイルを更新すること（意図的な例外）。 */
+.control-cluster .palette-dropdown button.pal-ocean {
+  color: #2563eb;
+}
+.control-cluster .palette-dropdown button.pal-forest {
+  color: #059669;
+}
+.control-cluster .palette-dropdown button.pal-sunset {
+  color: #ea580c;
+}
+.control-cluster .palette-dropdown button.pal-plum {
+  color: #7c3aed;
+}
+.control-cluster .palette-dropdown button.pal-graphite {
+  color: #334155;
+}
+.control-cluster .palette-dropdown button.pal-ruby {
+  color: #dc2626;
+}
+.control-cluster .palette-dropdown button.pal-gold {
+  color: #d97706;
+}
+[data-theme='dark'] .control-cluster .palette-dropdown button.pal-ocean {
+  color: #58a6ff;
+}
+[data-theme='dark'] .control-cluster .palette-dropdown button.pal-forest {
+  color: #34d399;
+}
+[data-theme='dark'] .control-cluster .palette-dropdown button.pal-sunset {
+  color: #fb923c;
+}
+[data-theme='dark'] .control-cluster .palette-dropdown button.pal-plum {
+  color: #a78bfa;
+}
+[data-theme='dark'] .control-cluster .palette-dropdown button.pal-graphite {
+  color: #94a3b8;
+}
+[data-theme='dark'] .control-cluster .palette-dropdown button.pal-ruby {
+  color: #f87171;
+}
+[data-theme='dark'] .control-cluster .palette-dropdown button.pal-gold {
+  color: #fbbf24;
+}
+/* ホバーは背景のみ変更（固有色を保持するため color は指定しない） */
+.control-cluster .palette-dropdown button:hover {
+  background: var(--accent-light);
+}
+[data-theme='dark'] .control-cluster .palette-dropdown button:hover {
+  background: var(--accent-dim);
+}
+.control-cluster .palette-dropdown button.is-active {
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 600;
+}
+/* スワッチ（各パレットの accent 見本）。
+   UI 備品のため直接色指定を許容（スライド内 SVG の色直書き禁止ルールとは別扱い）。 */
+.palette-swatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+}
+.swatch-ocean {
+  background: #2563eb;
+}
+.swatch-forest {
+  background: #059669;
+}
+.swatch-sunset {
+  background: #ea580c;
+}
+.swatch-plum {
+  background: #7c3aed;
+}
+.swatch-graphite {
+  background: #334155;
+}
+.swatch-ruby {
+  background: #dc2626;
+}
+.swatch-gold {
+  background: #d97706;
+}
+
+/* ==== figure.css ==== */
+/* figure.css
+ * スライド内の画像フィギュア（.slide-figure）スタイル。
+ * 統合順の正は SKILL.md（参照ファイルガイド／Step 4）を参照。
+ */
+
+/* ─── フィギュアコンテナ ─── */
+.slide-figure {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+/* ─── 画像本体 ─── */
+.slide-figure img {
+  max-width: 100%;
+  max-height: 200px;
+  /* スライド高さ 540px に対して余白を確保 */
+  object-fit: contain;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  display: block;
+}
+
+/* ─── 出典キャプション ─── */
+.slide-figure figcaption {
+  font-size: 0.68rem;
+  color: var(--text-secondary);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.slide-figure figcaption a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.slide-figure figcaption a:hover {
+  text-decoration: underline;
+}
+
+/* ─── フォールバックプレースホルダー ─── */
+.slide-figure-fallback {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  max-height: 200px;
+  min-height: 80px;
+  border-radius: 6px;
+  border: 1px dashed var(--border);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  padding: 12px;
+  box-sizing: border-box;
+  text-align: center;
+}
+
+.slide-figure-fallback .fallback-icon {
+  font-size: 1.8rem;
+  line-height: 1;
+}
+
+.slide-figure-fallback a {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.7rem;
+}
+
+/* ─── 画像右配置（リスト系スライドとの併用） ─── */
+.slide-with-figure {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.slide-with-figure .slide-figure {
+  width: 220px;
+  flex-shrink: 0;
+}
+
+/* ==== chart.css ==== */
+/* chart.css
+ * SVG グラフ要素のスタイル。
+ * 統合順の正は SKILL.md（参照ファイルガイド／Step 4）を参照。
+ *
+ * 設計原則:
+ *   1. 色のハードコード禁止。すべて theme-vars.css の --chart-* を参照する。
+ *   2. SVG はインライン展開のみ（<img src="*.svg"> 不可）。CSS 変数を効かせるため。
+ *   3. font-family は継承（本文の Noto Sans JP を引き継ぐ）。
+ */
+
+/* ─── チャートコンテナ ─── */
+.slide-chart {
+  width: 100%;
+  max-height: 320px;
+  display: block;
+  margin: 0 auto;
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+  max-height: 320px;
+  overflow: visible;
+  display: block;
+}
+
+/* ─── 系列色クラス（塗り：バー・ドーナツ・散布図点） ─── */
+.chart-series-1 {
+  fill: var(--chart-1);
+}
+.chart-series-2 {
+  fill: var(--chart-2);
+}
+.chart-series-3 {
+  fill: var(--chart-3);
+}
+.chart-series-4 {
+  fill: var(--chart-4);
+}
+.chart-series-5 {
+  fill: var(--chart-5);
+}
+
+/* ─── 系列色クラス（線：折れ線） ─── */
+.chart-line-1 {
+  stroke: var(--chart-1);
+  fill: none;
+  stroke-width: 2.5;
+}
+.chart-line-2 {
+  stroke: var(--chart-2);
+  fill: none;
+  stroke-width: 2.5;
+}
+.chart-line-3 {
+  stroke: var(--chart-3);
+  fill: none;
+  stroke-width: 2.5;
+}
+.chart-line-4 {
+  stroke: var(--chart-4);
+  fill: none;
+  stroke-width: 2.5;
+}
+.chart-line-5 {
+  stroke: var(--chart-5);
+  fill: none;
+  stroke-width: 2.5;
+}
+
+/* ─── 軸・グリッド ─── */
+.chart-axis {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+  fill: none;
+}
+
+.chart-grid-line {
+  stroke: var(--chart-grid);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  fill: none;
+}
+
+/* ─── ラベル・テキスト ─── */
+.chart-label {
+  fill: var(--chart-label);
+  font-size: 11px;
+  font-family: inherit;
+}
+
+.chart-axis-label {
+  fill: var(--text-secondary);
+  font-size: 10px;
+  font-family: inherit;
+}
+
+.chart-value {
+  fill: var(--text-primary);
+  font-size: 11px;
+  font-weight: 600;
+  font-family: inherit;
+}
+
+.chart-title {
+  fill: var(--text-primary);
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+}
+
+/* ─── 凡例 ─── */
+.chart-legend {
+  fill: var(--text-secondary);
+  font-size: 10px;
+  font-family: inherit;
+}
+
+/* ─── 出典 ─── */
+.chart-source {
+  fill: var(--text-secondary);
+  font-size: 9px;
+  font-family: inherit;
+  font-style: italic;
+}
+
+/* ─── ドット（折れ線頂点・散布図点） ─── */
+.chart-dot {
+  stroke: var(--bg-slide);
+  stroke-width: 1.5;
+}
+
+/* ==== diagram.css ==== */
+/* ============================================================
+ * diagram.css  —  インラインSVG図解スタイル
+ * 統合順の正は SKILL.md（参照ファイルガイド／Step 4）を参照。
+ * 原則: 色はすべて CSS変数経由（SVG属性への直書き #色 は禁止）。外部参照ゼロ。
+ *       アクセントは常に --accent（chart-1 と同思想）。
+ * ============================================================ */
+
+/* 図の外枠（slide-chart と同列の配置コンテナ） */
+.slide-diagram {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.diagram-svg {
+  width: 100%;
+  height: auto;
+  max-height: 420px;
+  overflow: visible;
+}
+
+/* ノード（矩形 / 円 共通） */
+.diagram-node {
+  fill: var(--bg-surface);
+  stroke: var(--border);
+  stroke-width: 1.5;
+}
+
+/* 強調ノード（1図につき主役を1つ程度） */
+.diagram-node-accent {
+  fill: var(--accent-dim);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+/* ノード内テキスト */
+.diagram-label {
+  fill: var(--text-primary);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 17px;
+  font-weight: 600;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* 補足テキスト（小） */
+.diagram-sublabel {
+  fill: var(--text-secondary);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+  text-anchor: middle;
+  dominant-baseline: central;
+}
+
+/* 接続線・矢印 */
+.diagram-edge {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+/* 矢印の頭（marker 内の path に付与） */
+.diagram-arrowhead {
+  fill: var(--accent);
+}
+
+/* 図の出典 */
+.diagram-source {
+  fill: var(--text-secondary);
+  font-family: 'Noto Sans JP', sans-serif;
+  font-size: 13px;
+}
+
+/* 印刷時もコントラストを保つ（色はテーマ変数任せ） */
+@media print {
+  .diagram-svg {
+    max-height: none;
+  }
+}
+
+/* ==== list-view.css ==== */
+/* list-view.css
+ * 一覧表示モード（body[data-view="list"]）のスタイル。
+ * hero モードのスタイルを上書きするため、!important を多用している。
+ * slide-core.css の後に読み込むこと。
+ */
+
+/* ─── html・body: スクロール有効化 ─── */
+/* hero時は overflow:hidden のため、両方に !important で上書きが必要 */
+html[data-view='list'],
+body[data-view='list'] {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  height: auto !important;
+  min-height: 100vh;
+}
+
+/* ─── スケーラー: 縦並びフレックスに変換 ─── */
+body[data-view='list'] .slide-scaler {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 100%;
+  height: auto;
+  transform: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 72px 5vw 64px;
+}
+
+/* ─── スライド枠: レスポンシブ幅 + 16:9比率維持 ─── */
+body[data-view='list'] .slide {
+  position: relative;
+  inset: auto;
+  width: min(90vw, 960px);
+  height: auto;
+  aspect-ratio: 16 / 9;
+  padding: 0 !important;
+  overflow: hidden;
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+
+body[data-view='list'] .slide:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 28px 70px rgba(0, 0, 0, 0.4);
+}
+
+/* ─── 内部コンテンツラッパ: 960×540px 固定 + scale変換 ─── */
+/* JS側で slide.clientWidth / 960 を ratio として scale() を設定する */
+body[data-view='list'] .slide-inner {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 960px;
+  height: 540px;
+  padding: 52px 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  transform-origin: top left;
+  box-sizing: border-box;
+}
+
+/* ─── スライド番号バッジ（右上） ─── */
+body[data-view='list'] .slide::after {
+  content: attr(data-num);
+  position: absolute;
+  top: 12px;
+  right: 16px;
+  font-size: 11px;
+  font-family: 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  padding: 3px 8px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  z-index: 5;
+}
+
+/* ─── ナビ矢印・カウンター・プログレスバーを非表示 ─── */
+body[data-view='list'] .nav-arrow,
+body[data-view='list'] #slide-counter,
+body[data-view='list'] #progress-bar {
+  display: none;
+}
+
+/* ─── チャート: list モードでもスライド枠からはみ出さないようにする ─── */
+/* .chart-svg は overflow:visible だが、親 .slide-chart で抑制する */
+body[data-view='list'] .slide-inner .slide-chart {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+ * 高さ可変スライド — .slide-fit（Phase 5 追加）
+ * ==========================================================================
+ *
+ * 一覧テーブル・長いリストなど、960×540px に収まらないコンテンツ用。
+ * hero モードでは通常の 960×540 固定を維持（下部は非表示）。
+ * list モードでのみ高さをコンテンツに追従させる。
+ *
+ * 使い方: <section class="slide slide-fit" id="sN">
+ *
+ * 注意:
+ *   - hero モードの slide-core.css は変更不要（height:540px + overflow:hidden が防御）
+ *   - このクラスは「参照用の一覧表」に限定し、メインコンテンツには使わない
+ *   - print.css の @media print でも同様の高さ可変が必要なため、
+ *     print.css 側にも .slide-fit 対応ルールを追加すること
+ * ========================================================================== */
+
+/* ─── スライド枠: aspect-ratio を解除して高さ可変に ─── */
+body[data-view='list'] .slide.slide-fit {
+  height: fit-content;
+  aspect-ratio: auto;
+  min-height: 200px;
+  overflow: visible;
+}
+
+/* ─── 内部コンテンツラッパ: absolute → relative に変更 ─── */
+/* 通常スライドは absolute + scale() で 960×540 を縮小表示するが、
+   slide-fit では relative + 親幅追従にしてコンテンツ全体を表示する。
+   scaleListSlides() の transform: scale() も無効化する。 */
+body[data-view='list'] .slide.slide-fit .slide-inner {
+  position: relative;
+  width: 100%;
+  height: auto;
+  min-height: 200px;
+  transform: none !important;
+  /* padding は通常スライドと同じ値を維持 */
+  padding: 32px 48px;
+}
+
+/* ─── slide-fit 内のテーブル: 横スクロール対応 ─── */
+/* テーブル幅がスライド幅を超える場合にも対応 */
+body[data-view='list'] .slide.slide-fit table {
+  width: 100%;
+  font-size: 0.82rem;
+  border-collapse: collapse;
+}
+
+body[data-view='list'] .slide.slide-fit td,
+body[data-view='list'] .slide.slide-fit th {
+  padding: 4px 8px;
+}
+
+/* ==== print.css ==== */
+/* print.css
+ * 印刷・PDF エクスポート用スタイル。
+ * 統合順の正は SKILL.md（参照ファイルガイド／Step 4）を参照。
+ * （必ず最後に読み込む。他の CSS を @media print で上書きするため）
+ *
+ * 設計原則:
+ *   1. hero / list どちらのモードから印刷しても 1 ページ = 1 スライドになる。
+ *      → @media print 内で hero モードの opacity/position/transform をすべて上書き。
+ *      → exportPDF() 経由でも Ctrl+P 直接押下でも同じ結果になる「二重防御」。
+ *   2. 印刷時はライトテーマ強制（インク節約・コントラスト確保）。
+ *   3. コントロール類・ナビ矢印・プログレスバーは非表示。
+ *   4. 用紙サイズは 16:9（1280×720px）固定、余白ゼロでスライドを全面表示。
+ *   5. .slide-fit スライドは印刷時も高さ可変（Phase 5 追加）。
+ */
+
+/* ==========================================================================
+ * 1. 画面表示時のエクスポート準備状態
+ *    exportPDF() が body に .exporting-pdf を付与する。
+ *    Ctrl+P 直接押下ルートでは付与されないため、@media print 側でも保険を入れる。
+ * ========================================================================== */
+body.exporting-pdf .slide {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+/* ==========================================================================
+ * 2. 印刷時のスタイル（@media print）
+ *    Ctrl+P 直接押下ルートでも 1 ページ = 1 スライドが成立するよう、
+ *    hero モードの CSS をここですべて上書きする。
+ * ========================================================================== */
+@media print {
+  /* ─── 2-1. ライトテーマ強制（CSS 変数の上書き） ─── */
+  /* :root と [data-theme="dark"] の両方を上書きする必要がある。
+       [data-theme="dark"] の方が特異度が高いため明示的に再定義。 */
+  :root,
+  [data-theme='dark'] {
+    --bg-body: #ffffff;
+    --bg-slide: #ffffff;
+    --bg-surface: #f8f9fa;
+    --text-primary: #000000;
+    --text-secondary: #4b5563;
+    --accent: #2563eb;
+    --accent-light: #eff6ff;
+    --accent-dim: #dbeafe;
+    --border: #d1d5db;
+    /* チャート系列色はライトテーマの値を維持 */
+    --chart-1: var(--accent);
+    --chart-2: #10b981;
+    --chart-3: #f59e0b;
+    --chart-4: #ef4444;
+    --chart-5: #8b5cf6;
+    --chart-grid: var(--border);
+    --chart-label: var(--text-secondary);
+  }
+
+  /* ─── 2-1b. パレット別 accent（v0.6.0）: 印刷時はライト値を強制 ─── */
+  /* 2-1 の上書きは Ocean（既定）の accent を含むため、他パレット選択時は
+       各パレットの「ライトテーマ値」をここで再指定する（インク節約・コントラスト確保）。
+       特異度 (0,2,1) > 2-1 の (0,1,0) および theme-vars.css のパレットルール (0,2,0)。 */
+  html[data-palette='forest'],
+  html[data-palette='forest'][data-theme='dark'] {
+    --accent: #059669;
+    --accent-light: #ecfdf5;
+    --accent-dim: #d1fae5;
+  }
+  html[data-palette='sunset'],
+  html[data-palette='sunset'][data-theme='dark'] {
+    --accent: #ea580c;
+    --accent-light: #fff7ed;
+    --accent-dim: #ffedd5;
+  }
+  html[data-palette='plum'],
+  html[data-palette='plum'][data-theme='dark'] {
+    --accent: #7c3aed;
+    --accent-light: #f5f3ff;
+    --accent-dim: #ede9fe;
+  }
+  html[data-palette='graphite'],
+  html[data-palette='graphite'][data-theme='dark'] {
+    --accent: #334155;
+    --accent-light: #f1f5f9;
+    --accent-dim: #e2e8f0;
+  }
+  /* ocean は 2-1 の既定値がそのまま適用される（再指定不要） */
+  /* ─── 2-2. ページ設定（1280×720 landscape、余白ゼロ） ─── */
+  @page {
+    size: 1280px 720px landscape;
+    margin: 0;
+  }
+
+  /* ─── 2-3. html / body のスクロール制御を解除 ─── */
+  /* hero モード時の overflow: hidden、list モード時の overflow: auto を
+       どちらも visible に戻し、印刷エンジンに任せる。 */
+  html,
+  body,
+  html[data-view='list'],
+  body[data-view='list'] {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    background: #ffffff !important;
+  }
+
+  /* ─── 2-4. 非表示要素 ─── */
+  /* インタラクション系の UI は印刷物に含めない。 */
+  .control-cluster,
+  .export-menu,
+  .export-dropdown,
+  .nav-arrow,
+  #progress-bar,
+  #slide-counter {
+    display: none !important;
+  }
+
+  /* list モードのスライド番号バッジも非表示 */
+  body[data-view='list'] .slide::after {
+    display: none !important;
+  }
+
+  /* ─── 2-5. スケーラーを通常配置に戻す ─── */
+  /* hero モードの position: fixed + transform: scale() と、
+       list モードの flex 縦並びの両方を解除し、
+       単純な block 要素として印刷フローに乗せる。 */
+  .slide-scaler {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    transform: none !important;
+    width: auto !important;
+    height: auto !important;
+    display: block !important;
+    padding: 0 !important;
+    gap: 0 !important;
+  }
+
+  /* ─── 2-6. スライド本体：1 ページ = 1 スライド ─── */
+  /* hero モードの absolute 配置・opacity: 0 を完全に解除し、
+       list モードの aspect-ratio・min/max width も解除する。 */
+  .slide,
+  body[data-view='list'] .slide {
+    position: relative !important;
+    inset: auto !important;
+    top: auto !important;
+    left: auto !important;
+    width: 1280px !important;
+    height: 720px !important;
+    max-width: none !important;
+    aspect-ratio: auto !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+    cursor: default !important;
+    background: var(--bg-slide) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    transform: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    flex-shrink: 0 !important;
+
+    /* 1 スライド = 1 ページの強制 */
+    page-break-after: always;
+    break-after: page;
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* 最終スライドの後ろに空白ページを作らない */
+  .slide:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+
+  /* hover トランジションを切る（印刷で意味がない） */
+  .slide:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* ─── 2-6b. slide-fit：印刷時も高さ可変（Phase 5 追加） ─── */
+  /* 一覧テーブル等の長いコンテンツを持つスライドは、
+       印刷時にも高さを可変にして全件を出力する。
+       page-break-inside: avoid を解除し、ページ跨ぎを許容する。 */
+  .slide.slide-fit,
+  body[data-view='list'] .slide.slide-fit {
+    height: auto !important;
+    min-height: 720px;
+    overflow: visible !important;
+    page-break-inside: auto;
+    break-inside: auto;
+  }
+
+  .slide.slide-fit .slide-inner,
+  body[data-view='list'] .slide.slide-fit .slide-inner {
+    height: auto !important;
+    min-height: 720px;
+  }
+
+  /* ─── 2-7. 内部コンテンツ：1280×720 にスケールアップ ─── */
+  /* 元の 960×540 から 1280×720 への拡大は transform でなく padding 調整で吸収。
+       transform: scale() を使うと印刷時に位置ずれが起きやすいため避ける。 */
+  .slide-inner,
+  body[data-view='list'] .slide-inner {
+    position: relative !important;
+    top: auto !important;
+    left: auto !important;
+    width: 1280px !important;
+    height: 720px !important;
+    padding: 70px 96px !important;
+    transform: none !important;
+    transform-origin: top left !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+  }
+
+  /* ─── 2-8. テキストの可読性確保 ─── */
+  /* リンク色を保持（PDF でクリック可能にするブラウザもある） */
+  a {
+    color: var(--accent) !important;
+    text-decoration: underline !important;
+  }
+
+  /* ─── 2-9. 画像・グラフのサイズ調整 ─── */
+  /* 印刷時は高さ制約を緩めて画質を担保 */
+  .slide-figure img {
+    max-height: 280px !important;
+  }
+  .slide-figure-fallback {
+    max-height: 280px !important;
+  }
+  .slide-chart {
+    max-height: 440px !important;
+  }
+  .chart-svg {
+    max-height: 440px !important;
+  }
+
+  /* ─── feature-showcase の右ダーク面は印刷でもダーク維持 ─── */
+  /* ライト強制の例外。構造の視認性を優先する。 */
+  .feature-right {
+    background: var(--bg-surface-dark) !important;
+  }
+  .feature-right,
+  .feature-right .feat-desc {
+    color: var(--text-on-dark) !important;
+  }
+  .feature-right .feature-num,
+  .feature-right .feat-label {
+    color: var(--accent) !important;
+  }
+
+  /* ─── 2-10. 色の印刷を強制（重要） ─── */
+  /* ブラウザのデフォルトは「背景色・画像を印刷しない」設定の場合があるため、
+       全要素で color-adjust を exact に。アクセントカラーやチャートが
+       白黒にならないよう保証する。 */
+  *,
+  *::before,
+  *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+}
+
+/* ==== content.css ==== */
+/* content.css
+ * 元スキルでは「デッキ側 <style> に追記」されていたコンテンツCSSの静的移植。
+ * example-outputs の定番スタイル + feature-showcase / comparison-chart /
+ * レイアウトバリアント（two-col / title-xl / compact）を統合。
+ * 色は必ず CSS 変数経由（ハードコード禁止のルールを踏襲）。
+ */
+
+/* ─── 汎用 ─── */
+.slide-inner.top {
+  justify-content: flex-start;
+  padding-top: 48px;
+}
+.hl {
+  color: var(--accent);
+}
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88em;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 0.08em 0.4em;
+}
+
+/* ─── title ─── */
+.eyebrow {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  margin-bottom: 1.1rem;
+}
+h1 {
+  font-size: 2.4rem;
+  font-weight: 700;
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+}
+h1 .hl,
+h1 .accent {
+  color: var(--accent);
+}
+.subtitle {
+  margin-top: 1.1rem;
+  font-size: 1.05rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+.badges {
+  margin-top: 1.7rem;
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+.badge {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.38em 0.85em;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+
+/* ─── 見出し・区切り ─── */
+.slide-title {
+  font-size: 1.55rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+.slide-divider {
+  width: 56px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin: 0.7rem 0 1.2rem;
+}
+.lead {
+  font-size: 1.02rem;
+  line-height: 1.85;
+}
+.lead strong {
+  color: var(--accent);
+}
+
+/* ─── points ─── */
+ul.points {
+  list-style: none;
+}
+ul.points li {
+  position: relative;
+  padding: 0.4em 0 0.4em 1.4em;
+  font-size: 1rem;
+  line-height: 1.55;
+}
+ul.points li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.9em;
+  width: 0.5em;
+  height: 0.5em;
+  border-radius: 50%;
+  background: var(--accent);
+}
+ul.points li strong {
+  color: var(--accent);
+}
+ul.points li .sub {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 0.15em;
+  line-height: 1.5;
+}
+
+/* ─── summary（番号丸バッジ） ─── */
+.summary-list {
+  list-style: none;
+  counter-reset: s;
+}
+.summary-list li {
+  counter-increment: s;
+  position: relative;
+  padding: 0.5em 0 0.5em 2.3em;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.summary-list li::before {
+  content: counter(s);
+  position: absolute;
+  left: 0;
+  top: 0.4em;
+  width: 1.55em;
+  height: 1.55em;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-radius: 50%;
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.summary-list li strong {
+  color: var(--accent);
+}
+.summary-list li .sub {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  margin-top: 0.15em;
+}
+
+/* ─── table ─── */
+.cmp-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+  margin-top: 0.2rem;
+}
+.cmp-table th,
+.cmp-table td {
+  text-align: left;
+  padding: 0.45em 0.6em;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.45;
+  vertical-align: top;
+}
+.cmp-table thead th {
+  background: var(--bg-surface);
+  font-weight: 700;
+  border-bottom: 2px solid var(--accent);
+}
+.cmp-table tbody th {
+  font-weight: 600;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+.cmp-table td .hl {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ─── sources ─── */
+ul.links {
+  list-style: none;
+}
+ul.links li {
+  padding: 0.4em 0;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+ul.links li a {
+  color: var(--accent);
+  text-decoration: none;
+  word-break: break-all;
+}
+ul.links li a:hover {
+  text-decoration: underline;
+}
+ul.links li .src-note {
+  color: var(--text-secondary);
+}
+
+/* ─── note ─── */
+.note {
+  margin-top: 1rem;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ─── figure フォールバック補助 ─── */
+.slide-figure-fallback .fallback-alt {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  margin-top: 0.4rem;
+}
+
+/* ─── feature-showcase（v0.6.2 相当） ─── */
+.slide.feature-showcase .slide-inner {
+  flex-direction: row;
+  padding: 0;
+  gap: 0;
+}
+.feature-left {
+  flex: 1 1 50%;
+  padding: 52px 48px 52px 72px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--bg-slide);
+}
+.feature-left h2 {
+  font-size: 1.7rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.feature-left .feat-lead {
+  margin-top: 1.1rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.8;
+}
+.feature-right {
+  flex: 1 1 50%;
+  padding: 52px 60px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: var(--bg-surface-dark);
+  color: var(--text-on-dark);
+  position: relative;
+}
+.feature-num {
+  position: absolute;
+  top: 28px;
+  right: 40px;
+  font-size: 3.2rem;
+  font-weight: 700;
+  color: var(--accent);
+  opacity: 0.5;
+  font-family: 'JetBrains Mono', monospace;
+}
+.feat-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.12em;
+}
+.feat-heading {
+  margin-top: 0.4rem;
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.feat-sub {
+  margin-top: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-on-dark-2);
+  line-height: 1.6;
+}
+.feat-list {
+  list-style: none;
+  margin-top: 1.3rem;
+}
+.feat-list li {
+  display: flex;
+  gap: 0.7em;
+  padding: 0.45em 0;
+  align-items: baseline;
+}
+.feat-ico {
+  color: var(--accent);
+  font-size: 0.7rem;
+}
+.feat-label {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+.feat-desc {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-on-dark-2);
+  margin-top: 0.1em;
+  line-height: 1.5;
+}
+
+/* ─── comparison-chart 左パネル ─── */
+.slide-with-description {
+  display: flex;
+  gap: 2.2rem;
+  align-items: center;
+  width: 100%;
+}
+.cmp-left {
+  flex: 0 0 38%;
+}
+.cmp-right {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.cmp-big {
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: var(--accent);
+  line-height: 1.1;
+}
+.cmp-big small {
+  font-size: 1.1rem;
+  margin-left: 0.25em;
+}
+.cmp-left h2 {
+  margin-top: 0.8rem;
+  font-size: 1.25rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+.cmp-divider {
+  width: 44px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--accent);
+  margin: 0.8rem 0;
+}
+.cmp-lead {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  line-height: 1.75;
+}
+.cmp-stats {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1.1rem;
+}
+.cmp-stat {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.7rem 0.9rem;
+}
+.cmp-stat-num {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+.cmp-stat-label {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 0.25rem;
+}
+
+/* comparison-chart 用のSVG補助クラス（chart.css に無い追加分） */
+.chart-neutral {
+  fill: var(--border);
+}
+.chart-center-big {
+  font-size: 20px;
+  font-weight: 700;
+  fill: var(--text-primary);
+  font-family: inherit;
+}
+.chart-ba-arrow {
+  stroke: var(--text-secondary);
+  stroke-width: 3;
+  fill: none;
+}
+.chart-arrowhead {
+  fill: var(--text-secondary);
+}
+.diagram-center {
+  fill: var(--text-secondary);
+  font-size: 15px;
+}
+
+/* ─── レイアウトバリアント（slide-layouts.md） ─── */
+.layout-two-col {
+  columns: 2;
+  column-gap: 2rem;
+}
+.layout-two-col li {
+  break-inside: avoid;
+}
+.layout-title-xl h1 {
+  font-size: 3.2rem;
+}
+.layout-title-xl {
+  padding: 64px 88px;
+}
+ul.layout-compact li,
+ol.layout-compact li {
+  padding-top: 0.15em;
+  padding-bottom: 0.15em;
+  font-size: 0.88rem;
+}
+table.layout-compact th,
+table.layout-compact td {
+  padding: 0.3em 0.5em;
+  font-size: 0.76rem;
+}
+
+/* ─── split-image（v0.2.3: title 左テキスト＋右画像） ─── */
+.layout-split-image {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  padding: 0;
+  height: 100%;
+}
+.layout-split-image .split-text {
+  flex: 0 0 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 48px 40px;
+  box-sizing: border-box;
+}
+.layout-split-image .split-image {
+  flex: 0 0 50%;
+  overflow: hidden;
+  position: relative;
+}
+.layout-split-image .split-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+/* split-image のテキスト側は余白調整 */
+.layout-split-image h1 {
+  font-size: 2.4rem;
+  margin: 0 0 0.3em;
+}
+.layout-split-image .subtitle {
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* feature-showcase: 左右反転
+ * データ（left:/right:）の意味は変えず、表示位置だけを入れ替える。
+ * 既存の .feature-showcase .slide-inner と詳細度が同点にならないよう明示的に上げている。 */
+.slide.feature-showcase .slide-inner.layout-reverse {
+  flex-direction: row-reverse;
+}
+
+/* figure: 分割レイアウト*/
+.figure-split {
+  display: flex;
+  gap: 2rem;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
+}
+.figure-split--right {
+  flex-direction: row-reverse;
+}
+.figure-split-image {
+  flex: 0 0 48%;
+  min-width: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  background: var(--bg-surface);
+}
+.figure-split-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.figure-split-body {
+  flex: 1 1 48%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-top: 0.75rem;
+}
+.figure-split-body figcaption {
+  margin-top: auto;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* ==== app.css ==== */
+/* app.css
+ * アプリシェル（ヘッダー・エディタ2ペイン・プレビュー埋め込み）のスタイル。
+ * 元スキルのCSSは「デッキが全画面」を前提とするため、
+ * ここでエディタモード時のコンテナ制約への適応を行う。
+ */
+
+/* ─── エディタモードでは html/body のスクロール制御をアプリ側が持つ ─── */
+html[data-mode='edit'],
+html[data-mode='edit'] body {
+  overflow: hidden !important;
+  height: 100% !important;
+}
+
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ─── ヘッダー ─── */
+.app-header {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 16px;
+  background: var(--bg-slide);
+  border-bottom: 1px solid var(--border);
+  z-index: 1200;
+}
+.app-header .app-logo {
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+}
+.app-header .app-logo .hl {
+  color: var(--accent);
+}
+.app-header .deck-title {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.app-header button {
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-primary);
+  font-size: 0.8rem;
+  font-family: inherit;
+  padding: 0.35em 0.9em;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.app-header button:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.app-header button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.app-header button.primary:hover {
+  opacity: 0.88;
+  color: #fff;
+}
+
+/* ─── 2ペインレイアウト ─── */
+.workspace {
+  flex: 1 1 auto;
+  display: flex;
+  min-height: 0;
+}
+.editor-pane {
+  flex: 0 0 44%;
+  min-width: 320px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--bg-slide);
+}
+.editor-pane textarea {
+  flex: 1 1 auto;
+  width: 100%;
+  resize: none;
+  border: none;
+  outline: none;
+  padding: 16px 18px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  line-height: 1.7;
+  color: var(--text-primary);
+  background: var(--bg-slide);
+  tab-size: 2;
+}
+.editor-status {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 12px;
+}
+/* ─── エディタ内 MD保存ボタン（v0.1.2 追加） ─── */
+.status-save-btn {
+  margin-left: auto;
+  padding: 2px 10px;
+  font-size: 0.72rem;
+  font-family: inherit;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+}
+.status-save-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+/* ─── 警告パネル ─── */
+.warnings-panel {
+  flex: 0 0 auto;
+  max-height: 130px;
+  overflow-y: auto;
+  border-top: 1px solid var(--border);
+  background: var(--bg-surface);
+  padding: 8px 14px;
+  font-size: 0.72rem;
+  line-height: 1.6;
+}
+.warnings-panel .warn-item {
+  color: var(--text-secondary);
+}
+.warnings-panel .warn-item::before {
+  content: '⚠ ';
+}
+
+/* ─── プレビューペイン ─── */
+.preview-pane {
+  flex: 1 1 auto;
+  position: relative;
+  min-width: 0;
+  background: var(--bg-body);
+  overflow: hidden;
+}
+
+/* deck-container: present モードでは全画面、edit モードではペイン内 */
+.deck-container {
+  position: absolute;
+  inset: 0;
+}
+/* コンテナ埋め込みのため fixed → absolute に変更（元CSSの上書き） */
+.deck-container .slide-scaler {
+  position: absolute;
+}
+.deck-container #progress-bar {
+  position: absolute;
+}
+
+/* list ビューはコンテナ内スクロールに変換 */
+.deck-container[data-view='list'] {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+.deck-container[data-view='list'] .slide-scaler {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 100%;
+  height: auto;
+  transform: none !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  padding: 56px 4vw 64px;
+}
+.deck-container[data-view='list'] .slide {
+  position: relative;
+  inset: auto;
+  width: min(90%, 960px);
+  height: auto;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  opacity: 1;
+  pointer-events: auto;
+  cursor: pointer;
+}
+.deck-container[data-view='list'] .slide .slide-inner {
+  transform-origin: top left;
+  width: 960px;
+  height: 540px;
+}
+/* slide-fit: list時は高さ可変（元 list-view.css の思想を踏襲） */
+.deck-container[data-view='list'] .slide.slide-fit {
+  aspect-ratio: auto;
+  height: auto;
+}
+.deck-container[data-view='list'] .slide.slide-fit .slide-inner {
+  position: relative;
+  height: auto;
+  min-height: 540px;
+}
+/* スライド番号バッジ（listビュー） */
+.deck-container[data-view='list'] .slide::after {
+  content: attr(data-num);
+  position: absolute;
+  right: 10px;
+  bottom: 8px;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.1em 0.7em;
+  z-index: 5;
+}
+
+/* 空デッキプレースホルダ */
+.empty-deck {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  text-align: center;
+  line-height: 2;
+}
+
+/* ─── プロンプトモーダル ─── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+.modal {
+  width: min(720px, 92vw);
+  max-height: 84vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-slide);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 16px 60px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+.modal-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+.modal-head input {
+  flex: 1 1 auto;
+  font-family: inherit;
+  font-size: 0.85rem;
+  padding: 0.35em 0.7em;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-surface);
+  color: var(--text-primary);
+}
+.modal-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 14px 16px;
+}
+.modal-body pre {
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  line-height: 1.65;
+  background: var(--bg-surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+.modal-foot {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 10px 16px;
+  border-top: 1px solid var(--border);
+}
+.modal-foot button {
+  font-family: inherit;
+  font-size: 0.82rem;
+  padding: 0.4em 1.1em;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.modal-foot button.primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+/* ─── present モードではヘッダーを最小化 ─── */
+html[data-mode='present'] .app-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: transparent;
+  border-bottom: none;
+  pointer-events: none;
+}
+html[data-mode='present'] .app-header > * {
+  pointer-events: auto;
+}
+html[data-mode='present'] .app-header .deck-title,
+html[data-mode='present'] .app-header .app-logo {
+  display: none;
+}
+
+/* 印刷時はアプリUIを隠す */
+@media print {
+  .app-header,
+  .editor-pane,
+  .control-cluster,
+  .warnings-panel {
+    display: none !important;
+  }
+  .workspace {
+    display: block;
+  }
+  .preview-pane,
+  .deck-container {
+    position: static !important;
+    overflow: visible !important;
+  }
+}
+
+/* v0.2.4: deckLint 警告パネル */
+.lint-panel {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.lint-panel--empty {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+.lint-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  padding: 4px 6px;
+  border-radius: 4px;
+}
+.lint-item--error {
+  background: rgba(220, 38, 38, 0.08);
+}
+.lint-item--warn {
+  background: rgba(217, 119, 6, 0.08);
+}
+.lint-item--info {
+  background: rgba(37, 99, 235, 0.08);
+}
+.lint-message {
+  flex: 1;
+}
+.lint-jump {
+  border: 1px solid var(--border);
+  background: var(--bg-surface);
+  border-radius: 4px;
+  padding: 1px 6px;
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+
+/* v0.2.7: editor-toolbar / template-menu */
+.editor-toolbar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+}
+
+.template-menu {
+  position: relative;
+}
+.template-menu__trigger {
+  font-size: 0.75rem;
+  font-family: inherit;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-slide);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.template-menu__trigger:hover,
+.template-menu__trigger[aria-expanded='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.template-menu__panel {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 1300;
+  min-width: 220px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg-slide);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+}
+.template-menu__group-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 6px 8px 2px;
+}
+.template-menu__item {
+  display: block;
+  width: 100%;
+  text-align: left;
+  font-size: 0.78rem;
+  font-family: inherit;
+  padding: 5px 8px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.template-menu__item:hover {
+  background: var(--accent-light);
+  color: var(--accent);
+}
+
+/* v0.2.8: help-modal / help-toast */
+.help-modal {
+  width: min(720px, 92vw);
+  max-height: 82vh;
+  display: flex;
+  flex-direction: column;
+}
+.help-modal__tabs {
+  display: flex;
+  gap: 6px;
+  margin-left: auto;
+}
+.help-modal__tabs button {
+  font-size: 0.72rem;
+  font-family: inherit;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-slide);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.help-modal__tabs button.active,
+.help-modal__tabs button[aria-pressed='true'] {
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+.help-modal__body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+}
+.help-modal__cheatsheet {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.help-modal__cheatsheet li {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+.help-modal__cheat-label {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+.help-modal__cheatsheet pre {
+  margin: 0;
+  font-size: 0.72rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.help-modal__shortcuts {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+.help-modal__shortcuts td {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border);
+}
+.help-modal__shortcuts kbd {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.76rem;
+  padding: 2px 6px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  background: var(--bg-surface);
+}
+.help-modal__rules {
+  margin: 0;
+  padding-left: 20px;
+  font-size: 0.86rem;
+  line-height: 1.9;
+}
+
+.help-toast {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1400;
+  padding: 10px 16px;
+  border-radius: 10px;
+  background: var(--text-primary);
+  color: var(--bg-slide);
+  font-size: 0.8rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24);
+  cursor: pointer;
+  animation: help-toast-fade 6s ease forwards;
+}
+@keyframes help-toast-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  10% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* v0.2.8-fix: help-modal cheat-code copy button */
+.help-modal__cheat-code {
+  position: relative;
+}
+.help-modal__copy-btn {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 1;
+  font-size: 0.8rem;
+  line-height: 1;
+  padding: 4px 6px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg-slide);
+  color: var(--text-secondary);
+  cursor: pointer;
+  opacity: 0.7;
+}
+.help-modal__copy-btn:hover {
+  opacity: 1;
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+/* ==== steps.css ==== */
+/* steps.css — v0.2.0 Studio拡張のスタイルを1ファイルに集約。
+ *
+ * 収録内容:
+ *   §1 スライド単位ダーク（.slide--dark のCSS変数上書き）
+ *   §2 共通ヘッダ拡張（.slide-badge / .slide-lead / .slide-point）
+ *   §3 steps type（カード型ステップフロー・ratio帯）
+ *
+ * 設計:
+ * - 色は必ずCSS変数経由（ハードコード禁止規約）。ただし §1 は
+ *   theme-vars.css の [data-theme='dark'] と同値の「変数定義」なので例外
+ * - 優先順位「グローバルテーマ < スライドtone」は、変数を .slide 要素に
+ *   定義し直すことで（継承の近接性により）!important なしで成立する
+ * - main.tsx で app.css の後に import する（新規セレクタのみのため順序に
+ *   よる既存スタイルへの影響はない）
+ * - SSOT リファクタ時に theme-vars / content への再配置を検討
+ */
+
+/* ==========================================================================
+ * §1 スライド単位ダーク（ディレクティブ tone: dark → .slide--dark）
+ * 値は theme-vars.css の [data-theme='dark'] 系と同一。
+ * グローバルテーマが既にダークの場合は同値上書き（無害）。
+ * ========================================================================== */
+
+.slide.slide--dark {
+  --bg-slide: #161b22;
+  --bg-surface: #21262d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --border: #30363d;
+  --accent: #58a6ff;
+  --accent-light: #1c2d3f;
+  --accent-dim: #1f3a57;
+  --chart-2: #3fb950;
+  --chart-3: #d29922;
+  --chart-4: #f85149;
+  --chart-5: #a371f7;
+  color: var(--text-primary);
+}
+
+/* パレット別 accent（theme-vars.css の [data-palette][data-theme='dark'] と同値） */
+[data-palette='forest'] .slide.slide--dark {
+  --accent: #34d399;
+  --accent-light: #14291e;
+  --accent-dim: #1b3d2b;
+}
+[data-palette='sunset'] .slide.slide--dark {
+  --accent: #fb923c;
+  --accent-light: #2f1d0e;
+  --accent-dim: #45290f;
+}
+[data-palette='plum'] .slide.slide--dark {
+  --accent: #a78bfa;
+  --accent-light: #221a38;
+  --accent-dim: #322659;
+}
+[data-palette='graphite'] .slide.slide--dark {
+  --accent: #94a3b8;
+  --accent-light: #202834;
+  --accent-dim: #2b3648;
+}
+
+/* ==========================================================================
+ * §2 共通ヘッダ拡張（badge / lead / point）
+ * ========================================================================== */
+
+/* 見出し行: badge ピルと slide-title を横並びに */
+.slide-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
+.slide-badge {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.32em 0.85em;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--bg-slide);
+}
+
+/* title スライド（h1）で badge 単独行になる場合の余白 */
+.slide-title-row + h1 {
+  margin-top: 0.8rem;
+}
+
+.slide-lead {
+  margin-top: 0.55rem;
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+
+/* 下部の強調帯（point:） */
+.slide-point {
+  position: absolute;
+  left: 48px;
+  right: 48px;
+  bottom: 26px;
+  padding: 0.55em 1.1em;
+  border-radius: 6px;
+  background: var(--bg-surface-dark);
+  color: var(--text-on-dark);
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+.slide-point::before {
+  content: '💡 ';
+}
+.slide-point .hl {
+  color: var(--accent);
+}
+/* ダークスライド上では地色と同化するため、面＋枠のパネルに切り替える */
+.slide--dark .slide-point {
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+}
+
+/* ==========================================================================
+ * §3 steps（カード型ステップフロー）
+ * ========================================================================== */
+
+.steps-flow {
+  display: flex;
+  align-items: stretch;
+  gap: 44px;
+  margin-top: 0.6rem;
+}
+
+/* 系統色の順繰り割当（決定論）。--chart-1 は var(--accent) 参照のため
+ * パレット・tone に自動追従する */
+.steps-item:nth-child(5n + 1) {
+  --step-color: var(--chart-1);
+}
+.steps-item:nth-child(5n + 2) {
+  --step-color: var(--chart-2);
+}
+.steps-item:nth-child(5n + 3) {
+  --step-color: var(--chart-3);
+}
+.steps-item:nth-child(5n + 4) {
+  --step-color: var(--chart-4);
+}
+.steps-item:nth-child(5n + 5) {
+  --step-color: var(--chart-5);
+}
+
+.steps-item {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+  gap: 0.5rem;
+  padding: 1.3rem 0.9rem 1.1rem;
+  border-radius: 8px;
+  background: var(--bg-surface);
+}
+
+/* カード間の矢印（gap: 44px の中央に配置） */
+.steps-item + .steps-item::before {
+  content: '→';
+  position: absolute;
+  left: -34px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+/* cards スタイル: 上ボーダーで系統色を示す */
+.steps-cards .steps-item {
+  border-top: 4px solid var(--step-color);
+}
+
+/* circled スタイル: 連番丸バッジ */
+.steps-circled .steps-item {
+  padding-top: 1.1rem;
+}
+.steps-num {
+  width: 2.1em;
+  height: 2.1em;
+  border-radius: 50%;
+  background: var(--step-color);
+  color: var(--bg-slide);
+  font-size: 0.95rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* カード単位の見た目変種 */
+.steps-item--dark {
+  background: var(--bg-surface-dark);
+  color: var(--text-on-dark);
+}
+.steps-item--dark .steps-desc {
+  color: var(--text-on-dark-2);
+}
+.steps-item--outline {
+  background: var(--bg-slide);
+  border: 2px solid var(--step-color);
+}
+.steps-cards .steps-item--outline {
+  /* outline は全周枠のため上ボーダーの二重線を避ける */
+  border-top-width: 2px;
+}
+
+.steps-icon {
+  font-size: 1.7rem;
+  line-height: 1;
+}
+.steps-title {
+  font-size: 0.98rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.steps-desc {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+}
+
+/* ─── ratio 帯（セグメント＋凡例） ─── */
+.steps-ratio-wrap {
+  margin-top: 1.6rem;
+}
+.steps-ratio {
+  display: flex;
+  height: 14px;
+  border-radius: 7px;
+  overflow: hidden;
+  background: var(--bg-surface);
+}
+.steps-ratio-seg:nth-child(5n + 1) {
+  background: var(--chart-1);
+}
+.steps-ratio-seg:nth-child(5n + 2) {
+  background: var(--chart-2);
+}
+.steps-ratio-seg:nth-child(5n + 3) {
+  background: var(--chart-3);
+}
+.steps-ratio-seg:nth-child(5n + 4) {
+  background: var(--chart-4);
+}
+.steps-ratio-seg:nth-child(5n + 5) {
+  background: var(--chart-5);
+}
+.steps-ratio-legend {
+  display: flex;
+  margin-top: 0.45rem;
+}
+.steps-ratio-label {
+  min-width: 0;
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 0 0.3em;
+}
+
+/* ─── 印刷（PDF）: point帯・カード面の背景色を維持 ─── */
+@media print {
+  .slide-point,
+  .steps-item,
+  .steps-num,
+  .steps-ratio-seg {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ==========================================================================
+ * steps: layout: grid
+ * 矢印（::before）を非表示にし、flex-wrap で複数列に折り返す。
+ * style（cards/circled）とは直交する概念のため、既存クラスと併用する。
+ * ========================================================================== */
+.steps-grid {
+  /* grid4col: flex-wrapの実測px依存をやめ、CSS Gridで4列固定にする。
+   * hero view は 960x540px 固定・overflow: hidden（slide-fit は list view のみ有効）
+   * のため、items上限8個（2行x4列）を前提に設計している。 */
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.steps-grid .steps-item + .steps-item::before {
+  content: none;
+}
+
+/* grid-top-padding: steps, layout: grid のみ上部余白を縮小。
+ * .slide-inner の padding: 52px 72px + justify-content: center を、
+ * このバリアントだけ padding-top: 26px（半分）+ 上詰めに上書きする。
+ * セレクタは .slide-inner.steps-inner-grid（詳細度0,2,0）で
+ * ベースの .slide-inner（0,1,0）より確実に優先させる。 */
+.slide-inner.steps-inner-grid {
+  padding-top: 26px;
+  justify-content: flex-start;
+}
+
+/* ==== timeline-sidelist.css ==== */
+/* timeline-sidelist.css — v0.2.1 Studio拡張のスタイル
+ *
+ * §1 diagram-timeline（タイムライン図）
+ * §2 chart layout: side-list（チャート＋サイドパネル）
+ *
+ * main.tsx で steps.css の後に import する。
+ */
+
+/* ==========================================================================
+ * §1 タイムライン図
+ * ========================================================================== */
+
+/* チック線: 軸より少し細いが、視覚的に軸〜ラベルまで連続した1本に見える太さ */
+.tl-tick {
+  stroke-width: 2;
+}
+
+/* マイルストーンの先端丸 */
+.tl-dot {
+  fill: var(--accent);
+}
+
+/* ==========================================================================
+ * §2 チャート side-list レイアウト
+ * ========================================================================== */
+
+.chart-side-list {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  flex: 1;
+  min-height: 0;
+}
+
+.chart-side-list > .slide-chart {
+  flex: 0 0 58%;
+  max-height: 280px;
+}
+
+.chart-side-panel {
+  flex: 1 1 38%;
+  min-width: 0;
+  overflow-y: auto;
+  max-height: 360px;
+}
+
+.chart-side-panel h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 0.6rem;
+  line-height: 1.35;
+}
+
+.chart-side-panel ul.points li {
+  font-size: 0.82rem;
+  padding: 0.25em 0 0.25em 1.2em;
+  line-height: 1.5;
+}
+
+.chart-side-panel ul.points li::before {
+  top: 0.65em;
+  width: 0.4em;
+  height: 0.4em;
+}
+
+.chart-side-panel ul.points li .sub {
+  font-size: 0.72rem;
+}
+
+/* ─── 印刷（PDF）───  */
+@media print {
+  .tl-dot {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* ==== contrast.css ==== */
+/* contrast.css
+ * contrast type（v0.2.3）: 「例示（左）vs 結論の連鎖（右）」の対比構図。
+ * - 左: タグ付き行のリスト（AIの推測、など）
+ * - 右: label/text の連鎖 + connector（矢印）+ tone: warn（弱点強調）
+ * 色は theme-vars.css の変数を参照し、ハードコード禁止規約に準拠。
+ */
+
+.contrast-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  align-items: start;
+  margin-top: 1rem;
+}
+
+/* ─── 左: 例示ボックス ─── */
+.contrast-example {
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-surface);
+  padding: 1.2rem 1.4rem;
+}
+
+.contrast-example-title {
+  font-weight: 600;
+  font-size: 0.95rem;
+  margin-bottom: 0.8rem;
+  color: var(--text-primary);
+}
+
+.contrast-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.contrast-row {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+}
+
+.contrast-tag {
+  flex-shrink: 0;
+  font-size: 0.68rem;
+  font-weight: 600;
+  padding: 0.15em 0.6em;
+  border-radius: 999px;
+  background: var(--accent-soft, var(--bg-surface));
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  white-space: nowrap;
+}
+
+.contrast-text {
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* ─── 右: 結論の連鎖 ─── */
+.contrast-verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.contrast-verdict-item {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-surface);
+  padding: 0.9rem 1.2rem;
+}
+
+.contrast-verdict-label {
+  flex-shrink: 0;
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--accent);
+}
+
+.contrast-verdict-text {
+  font-size: 0.9rem;
+  color: var(--text-primary);
+  line-height: 1.5;
+}
+
+/* tone: warn（弱点の強調表示） */
+.contrast-verdict-item--warn {
+  border-color: var(--warn, #d97757);
+  background: var(--warn-soft, var(--bg-surface));
+}
+.contrast-verdict-item--warn .contrast-verdict-label {
+  color: var(--warn, #d97757);
+}
+
+/* connector（矢印・「↓ でも」等） */
+.contrast-connector {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+
+/* ダークトーン（tone: dark ディレクティブとの併存） */
+.slide--dark .contrast-example,
+.slide--dark .contrast-verdict-item {
+  background: var(--bg-surface-dark, var(--bg-surface));
+  border-color: var(--border-dark, var(--border));
+}
+
+/* ==== svg-figure.css ==== */
+/* svg-figure.css
+ * svg-figure type: mermaid journey / gantt 記法の独自SVG描画。
+ * 色は必ず theme-vars.css の --chart-* / --text-* / --accent 経由（ハードコード禁止規約に準拠）。
+ * main.tsx で contrast.css の後に import する。
+ */
+
+.svg-figure-body {
+  display: flex;
+  gap: 24px;
+  flex: 1;
+  min-height: 0;
+}
+.svg-figure-body .svg-figure-diagram {
+  flex: 1; /* notes無しなら全幅 */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+}
+.svg-figure-body.with-notes .svg-figure-diagram {
+  flex: 2; /* notes有りなら左2/3 */
+}
+.svg-figure-body .svg-figure-notes {
+  flex: 1; /* 右1/3 */
+  min-width: 0;
+  font-size: 0.9em;
+}
+.svg-figure-body .svg-figure-notes ul.points li {
+  font-size: 0.82rem;
+}
+
+.svg-figure-svg {
+  width: 100%;
+  height: auto;
+  max-height: 380px;
+  overflow: visible;
+  display: block;
+}
+
+/* ─── journey ─── */
+.svg-journey-band {
+  fill: var(--bg-surface);
+}
+.svg-journey-band--alt {
+  fill: var(--accent-light);
+}
+.svg-journey-section-label {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  font-family: inherit;
+}
+.svg-journey-line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.svg-journey-dot {
+  stroke: var(--bg-slide);
+  stroke-width: 1.5;
+}
+.svg-journey-task-label {
+  fill: var(--text-primary);
+  font-size: 12px;
+  font-family: inherit;
+}
+
+/* ─── gantt ─── */
+.svg-gantt-section-label {
+  fill: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  font-family: inherit;
+}
+.svg-gantt-row-label {
+  fill: var(--text-secondary);
+  font-size: 11px;
+  font-family: inherit;
+}
+.svg-gantt-bar {
+  opacity: 0.9;
+}
+.svg-gantt-bar--done {
+  opacity: 0.4;
+}
+.svg-gantt-bar--active {
+  opacity: 1;
+  stroke: var(--bg-slide);
+  stroke-width: 1;
+}
+.svg-gantt-bar--crit {
+  stroke: var(--chart-4);
+  stroke-width: 2;
+}
+.svg-gantt-milestone {
+  stroke: var(--bg-slide);
+  stroke-width: 1;
+}
+
+/* ─── 印刷（PDF）: 色を維持 ─── */
+@media print {
+  .svg-journey-dot,
+  .svg-gantt-bar,
+  .svg-gantt-milestone {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+
+/* v0.4.10 Step7回帰対応: 共有テーマCSS（nav-controls.css）はSPAの.preview-pane
+   相対配置を前提にposition: absoluteだが、スタンドアロン出力には.preview-paneが
+   無くdocumentがそのままスクロールする（listビュー等）ため、position: fixedへ
+   戻してビューポートに固定する。 */
+.control-cluster{position:fixed}
+</style>
+</head>
+<body data-view="list">
+<div class="control-cluster">
+  <button id="theme-toggle" onclick="toggleTheme()" title="テーマ切替"><span id="theme-icon">🌙</span></button>
+  <button id="view-toggle" onclick="toggleView()" title="表示切替（V）">▭</button>
+  <div class="palette-menu">
+    <button id="palette-toggle" onclick="togglePaletteMenu()" title="カラーパレット">🎨</button>
+    <div id="palette-dropdown" class="palette-dropdown" hidden role="menu">
+        <button type="button" role="menuitem" class="pal-ocean is-active" data-palette-opt="ocean" onclick="setPalette('ocean')"><span class="palette-ico">🌊</span>Ocean（既定）</button>
+        <button type="button" role="menuitem" class="pal-ruby" data-palette-opt="ruby" onclick="setPalette('ruby')"><span class="palette-ico">🔶</span>Ruby</button>
+        <button type="button" role="menuitem" class="pal-forest" data-palette-opt="forest" onclick="setPalette('forest')"><span class="palette-ico">🌲</span>Forest</button>
+        <button type="button" role="menuitem" class="pal-sunset" data-palette-opt="sunset" onclick="setPalette('sunset')"><span class="palette-ico">🌅</span>Sunset</button>
+        <button type="button" role="menuitem" class="pal-plum" data-palette-opt="plum" onclick="setPalette('plum')"><span class="palette-ico">🍇</span>Plum</button>
+        <button type="button" role="menuitem" class="pal-gold" data-palette-opt="gold" onclick="setPalette('gold')"><span class="palette-ico">✨</span>Gold</button>
+        <button type="button" role="menuitem" class="pal-graphite" data-palette-opt="graphite" onclick="setPalette('graphite')"><span class="palette-ico">⬛</span>Graphite</button>
+    </div>
+  </div>
+  <div class="export-menu">
+    <button id="export-toggle" onclick="toggleExportMenu()" title="エクスポート">📥</button>
+    <div id="export-dropdown" class="export-dropdown" hidden role="menu">
+      <button type="button" role="menuitem" onclick="exportPDF(); closeExportMenu();">📄 PDFとして印刷 <span class="kbd">P</span></button>
+      <button type="button" role="menuitem" onclick="exportSinglePNG(); closeExportMenu();">🖼️ このスライドをPNG <span class="kbd">Shift+S</span></button>
+      <button type="button" role="menuitem" onclick="exportAllPNG(); closeExportMenu();">📦 全スライドをZIP <span class="kbd">Shift+P</span></button>
+      <button type="button" role="menuitem" onclick="saveMd(); closeExportMenu();">📝 スライドMDを保存</button>
+    </div>
+  </div>
+</div>
+<div id="progress-bar"></div>
+<div class="slide-scaler">
+<button class="nav-arrow nav-prev" id="btn-prev" onclick="navigate(-1)" hidden>&#8249;</button>
+<button class="nav-arrow nav-next" id="btn-next" onclick="navigate(1)" hidden>&#8250;</button>
+<section id="s1" class="slide active" data-num="1 / 26"><div class="slide-inner layout-title-xl"><h1>設定ファイルの値を変えたいだけ。<br/><span class="hl">コメントは、消さない。</span></h1><p class="subtitle">yaqpy（ヤクピー）— YAML and more, Query editor in Python</p><div class="badges"><span class="badge">pip install yaqpy</span><span class="badge">Python 標準ライブラリのみ</span><span class="badge">コマンド・ライブラリ・GUI</span></div></div></section>
+<section id="s2" class="slide" data-num="2 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">こんな経験、ありませんか？</span><div class="slide-title">たった 1 か所を直したら、<br/><span class="hl">ファイルの見た目が変わった</span></div></div><div class="slide-divider"></div><div class="contrast-grid"><div class="contrast-left"><div class="contrast-example"><div class="contrast-example-title">Python の PyYAML で YAML を「読んで・直して・書き戻す」と</div><div class="contrast-rows"><div class="contrast-row"><span class="contrast-tag">消える</span><span class="contrast-text">手書きのコメントが消える（safe_dump はコメントを落とす）</span></div><div class="contrast-row"><span class="contrast-tag">崩れる</span><span class="contrast-text">字下げや空行が整えなおされ、差分が大量に出る</span></div><div class="contrast-row"><span class="contrast-tag">面倒</span><span class="contrast-text">たった 1 行の変更にも、スクリプトを書いて動かす手間がかかる</span></div></div></div></div><div class="contrast-right"><div class="contrast-verdict"><div class="contrast-verdict-item"><span class="contrast-verdict-label">本当にやりたいこと</span><span class="contrast-verdict-text">port を 8080 → 9090 に変える、それだけ</span></div><div class="contrast-connector">↓ yaqpy なら</div><div class="contrast-verdict-item"><span class="contrast-verdict-label">答え</span><span class="contrast-verdict-text">1 行のコマンドで、ほかは 1 文字も動かさない</span></div></div></div></div></div><div class="slide-point">出典の調査では、コメントを残すには ruamel.yaml などの別ライブラリが必要と整理されています（sources 参照）</div></section>
+<section id="s3" class="slide" data-num="3 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">30 秒でわかる yaqpy</span><div class="slide-title">yaqpy ＝ <span class="hl">「式」で取り出し・更新・変換</span>する道具</div></div><p class="slide-lead">YAML・JSON・XML・CSV・TOML などの設定やデータを、短い式で扱えます</p><div class="slide-divider"></div><ul class="points"><li><strong>取り出す</strong>：<code>yaqpy &#x27;.server.port&#x27; config.yaml</code> → <code>8080</code></li><li><strong>書き換える</strong>：<code>yaqpy -i &#x27;.server.port = 9090&#x27; config.yaml</code>（コメント・並び順はそのまま）</li><li><strong>変換する</strong>：<code>yaqpy -o json &#x27;.server&#x27; config.yaml</code>（YAML → JSON など）</li></ul><p class="note">式の言語は、人気の CLI ツール mikefarah/yq（Go 製・GitHub 約 1.6 万スター）を手本にしています</p></div><div class="slide-point">名前は <span class="hl">Y</span>AML <span class="hl">A</span>nd more, <span class="hl">Q</span>uery editor in <span class="hl">PY</span>thon の略</div></section>
+<section id="s4" class="slide" data-num="4 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">しくみ</span><div class="slide-title">「入力 → 式 → 出力」。<br/>これだけ覚えれば使える</div></div><p class="slide-lead">入力の形式は自動で判定。式は yq とほぼ同じ書き方</p><div class="slide-divider"></div><div class="slide-diagram"><svg viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" class="diagram-svg" role="img"><title>フロー図: データ → yaqpy → 式 → 結果 → 保存・共有</title><defs><marker id="arrow-s4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="diagram-arrowhead"></path></marker></defs><rect class="diagram-node" x="40" y="185" width="144" height="90" rx="8"></rect><text class="diagram-label" x="112" y="235">データ</text><text class="diagram-sublabel" x="112" y="300">YAML / JSON / XML / CSV / TOML など</text><rect class="diagram-node" x="224" y="185" width="144" height="90" rx="8"></rect><text class="diagram-label" x="296" y="235">yaqpy</text><text class="diagram-sublabel" x="296" y="300">標準ライブラリだけで動く</text><rect class="diagram-node" x="408" y="185" width="144" height="90" rx="8"></rect><text class="diagram-label" x="480" y="235">式</text><text class="diagram-sublabel" x="480" y="300">.a.b / select / map ...</text><rect class="diagram-node" x="592" y="185" width="144" height="90" rx="8"></rect><text class="diagram-label" x="664" y="235">結果</text><text class="diagram-sublabel" x="664" y="300">画面・標準出力・ファイル</text><rect class="diagram-node" x="776" y="185" width="144" height="90" rx="8"></rect><text class="diagram-label" x="848" y="235">保存・共有</text><text class="diagram-sublabel" x="848" y="300">-i でその場更新も可</text><path class="diagram-edge" marker-end="url(#arrow-s4)" d="M184,230 L224,230"></path><path class="diagram-edge" marker-end="url(#arrow-s4)" d="M368,230 L408,230"></path><path class="diagram-edge" marker-end="url(#arrow-s4)" d="M552,230 L592,230"></path><path class="diagram-edge" marker-end="url(#arrow-s4)" d="M736,230 L776,230"></path></svg></div></div><div class="slide-point">使い方は <span class="hl">コマンド・Python ライブラリ・GUI（デスクトップ／ブラウザ）</span> の 4 通り。式はどれも同じ</div></section>
+<section id="s5" class="slide" data-num="5 / 26"><div class="slide-inner top"><div class="slide-title-row"><span class="slide-badge">実際の出力</span><div class="slide-title">同じ YAML から、<span class="hl">欲しい形</span>で取り出す</div></div><p class="slide-lead">examples/sample.yaml（コメント・アンカー付きの設定）に対して、yaqpy v0.7.0 で実行した結果</p><div class="slide-divider"></div><table class="cmp-table"><thead><tr><th>やりたいこと</th><th>コマンド</th><th>出力</th></tr></thead><tbody><tr><th>値を取り出す</th><td><code>yaqpy &#x27;.server.port&#x27; sample.yaml</code></td><td><code>8080</code></td></tr><tr><th>絞り込む</th><td>`yaqpy &#x27;.items[] \</td><td>select(.price &gt; 500) \</td><td>.name&#x27; sample.yaml`</td><td><code>book</code></td></tr><tr><th>JSON にする</th><td><code>yaqpy -o json -I 0 &#x27;.server&#x27; sample.yaml</code></td><td><code>{&quot;port&quot;:8080,&quot;hosts&quot;:[&quot;a&quot;,&quot;b&quot;],...}</code></td></tr><tr><th>CSV にする</th><td><code>yaqpy -o csv &#x27;.items&#x27; sample.yaml</code></td><td><code>name,price</code> / <code>pen,120</code> / <code>book,980</code></td></tr><tr><th>更新する</th><td><code>yaqpy &#x27;.server.port = 9090&#x27; sample.yaml</code></td><td><code>port: 9090 # 開発用</code></td></tr></tbody></table><p class="note">最後の行に注目：値だけが変わり、コメント「# 開発用」はそのまま残ります</p></div></section>
+<section id="s6" class="slide" data-num="6 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">最大の特長</span><div class="slide-title"><span class="hl">書式を壊さない</span>更新</div></div><div class="slide-divider"></div><div class="contrast-grid"><div class="contrast-left"><div class="contrast-example"><div class="contrast-example-title">yaqpy &#x27;.server.port = 9090&#x27; の前後（sample.yaml）</div><div class="contrast-rows"><div class="contrast-row"><span class="contrast-tag">残る</span><span class="contrast-text">コメント（# サーバー設定、# 開発用）とキーの並び順</span></div><div class="contrast-row"><span class="contrast-tag">残る</span><span class="contrast-text">アンカー &amp;tls とマージキー &lt;&lt;: *tls（展開されません）</span></div><div class="contrast-row"><span class="contrast-tag">残る</span><span class="contrast-text">数値・引用符の書き方（0x1F、1.50、&#x27;yes&#x27; など）</span></div></div></div></div><div class="contrast-right"><div class="contrast-verdict"><div class="contrast-verdict-item"><span class="contrast-verdict-label">変わるのは</span><span class="contrast-verdict-text">指定した値だけ</span></div><div class="contrast-connector">↓ だから</div><div class="contrast-verdict-item contrast-verdict-item--warn"><span class="contrast-verdict-label">差分は</span><span class="contrast-verdict-text">1 行だけ。レビューも楽で、安心してコミットできる</span></div></div></div></div></div><div class="slide-point">設定ファイルの更新を <span class="hl">CI やスクリプトに組み込む</span>ときに効きます</div></section>
+<section id="s7" class="slide" data-num="7 / 26"><div class="slide-inner top"><div class="slide-title-row"><span class="slide-badge">対応フォーマット</span><div class="slide-title">7 つの形式を、<span class="hl">読んでも書いても</span>OK</div></div><p class="slide-lead">入力も出力も、標準ライブラリだけで実装しています</p><div class="slide-divider"></div><table class="cmp-table"><thead><tr><th>形式</th><th>入力</th><th>出力</th><th>ひとこと</th></tr></thead><tbody><tr><th>YAML</th><td>○</td><td>○</td><td>コメント・アンカー・並び順を保持して更新</td></tr><tr><th>JSON</th><td>○</td><td>○</td><td>1 行（-I 0）にも整形にも</td></tr><tr><th>XML</th><td>○</td><td>○</td><td>属性・コメント・処理命令も往復</td></tr><tr><th>CSV / TSV</th><td>○</td><td>○</td><td>1 行目をヘッダにして表として扱う</td></tr><tr><th>TOML</th><td>○</td><td>○</td><td>コメントは保持しない（-i は既定で拒否）</td></tr><tr><th>properties</th><td>○</td><td>○</td><td>Java の設定ファイル形式</td></tr><tr><th>TOON</th><td>○</td><td>○</td><td>LLM 向けにトークンを減らす形式</td></tr></tbody></table><p class="note">拡張子で決まらないとき（標準入力・拡張子なし）は、中身を見て形式を自動判定します（yq にはない拡張）</p></div></section>
+<section id="s8" class="slide" data-num="8 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">AI 時代の使いどころ</span><div class="slide-title">LLM に渡すデータを、<span class="hl">半分近く軽く</span>する</div></div><p class="slide-lead">yaqpy は TOON（Token-Oriented Object Notation）を入出力できます。JSON を 100 としたときのトークン数の目安</p><div class="slide-divider"></div><div class="chart-side-list"><div class="slide-chart"><svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" class="chart-svg" role="img"><title>同じデータのトークン数（JSON = 100）</title><text x="360" y="28" class="chart-title" text-anchor="middle">同じデータのトークン数（JSON = 100）</text><g><text x="148" y="122.5" class="chart-label" text-anchor="end">JSON</text><rect x="160" y="103.5" width="480" height="30" rx="3" class="chart-series-1"></rect><text x="648" y="122.5" class="chart-value">100</text></g><g><text x="148" y="247.5" class="chart-label" text-anchor="end">TOON</text><rect x="160" y="228.5" width="275.52" height="30" rx="3" class="chart-series-2"></rect><text x="443.52" y="247.5" class="chart-value">57.4</text></g><text x="360" y="340" class="chart-axis-label" text-anchor="middle">値</text><text class="chart-axis-label" transform="rotate(-90 24 190)" x="24" y="190" text-anchor="middle">項目</text><text x="710" y="352" class="chart-source" text-anchor="end">出典: toon-format/toon ベンチマーク（42.6% 削減を換算）</text></svg></div><div class="chart-side-panel"><h3>読み方</h3><ul class="points"><li><strong>出典</strong>：TOON の公式ベンチマーク（244 問・4 モデル）で、精度は TOON 72.2%／JSON 71.4%、トークンは 42.6% 減</li><li><strong>効きやすいデータ</strong>：同じ形の行が並ぶ配列（表のようなデータ）</li><li><strong>注意</strong>：削減率はデータの形で変わる（公式は 30〜60% 程度の幅と説明）。コメントは TOON では失われる</li></ul></div></div></div></section>
+<section id="s9" class="slide" data-num="9 / 26"><div class="slide-inner steps-inner-grid"><div class="slide-title-row"><span class="slide-badge">使い方は 4 通り</span><div class="slide-title">好きな入口から、<span class="hl">同じ式</span>で使える</div></div><p class="slide-lead">覚える式は 1 つ。使う場所だけ選べばよい</p><div class="slide-divider"></div><div class="steps-flow steps-cards steps-grid"><div class="steps-item"><div class="steps-icon">⌨️</div><div class="steps-title">コマンド</div><div class="steps-desc">yaqpy &#x27;式&#x27; ファイル。シェルスクリプトや CI に</div></div><div class="steps-item"><div class="steps-icon">🐍</div><div class="steps-title">Python ライブラリ</div><div class="steps-desc">import yaqpy。evaluate / query / update</div></div><div class="steps-item"><div class="steps-icon">🖥️</div><div class="steps-title">デスクトップ GUI</div><div class="steps-desc">yaqpy-gui。画面を見ながら試せる</div></div><div class="steps-item"><div class="steps-icon">🌐</div><div class="steps-title">ブラウザ GUI</div><div class="steps-desc">yaqpy-web。同じ画面をブラウザで</div></div></div></div><div class="slide-point">初めてなら <span class="hl">GUI で試す → 式が決まったらコマンドやスクリプトへ</span>、が一番やさしい流れ</div></section>
+<section id="s10" class="slide" data-num="10 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">GUI</span><div class="slide-title">開く → 式を書く → <span class="hl">結果がすぐ右に出る</span></div></div><div class="slide-divider"></div><figure class="slide-figure"><img src="https://raw.githubusercontent.com/sgtao/yaqpy/main/assets/images/screenshot-yaqpy-gui.png" alt="yaqpy の GUI：左に元の YAML、上に式、右に変換結果（CSV）"/><div class="slide-figure-fallback" style="display:none"><span>🖼️ 画像を読み込めませんでした</span><span class="fallback-alt">yaqpy の GUI：左に元の YAML、上に式、右に変換結果（CSV）</span></div><figcaption>出典: <a href="https://github.com/sgtao/yaqpy" target="_blank" rel="noreferrer">yaqpy GUI のスクリーンショット（YAML → CSV）</a></figcaption></figure></div></section>
+<section id="s11" class="slide feature-showcase" data-num="11 / 26"><div class="slide-inner"><div class="feature-left"><div class="eyebrow">GUI</div><h2>コマンドが苦手でも、<span class="hl">画面を見ながら</span>使える。</h2><p class="feat-lead">左が原文、右が結果。プルダウンから項目を選ぶだけで式が入るので、式を暗記しなくても始められます。</p></div><div class="feature-right"><div class="feature-num">01</div><div class="feat-eyebrow">画面の見どころ</div><div class="feat-heading">3 つの窓と 1 つの欄</div><div class="feat-sub">元のファイルは「上書きする」と答えない限り変わりません</div><ul class="feat-list"><li><span class="feat-ico">▶</span><span><span class="feat-label">プロパティのプルダウン</span><span class="feat-desc">開いた文書の項目一覧から選ぶと、式が自動で入る</span></span></li><li><span class="feat-ico">▶</span><span><span class="feat-label">式の欄</span><span class="feat-desc">Enter で実行。書き間違いは実行前に教えてくれる</span></span></li><li><span class="feat-ico">▶</span><span><span class="feat-label">原文と結果の 2 つの窓</span><span class="feat-desc">形式（yaml / json / xml / csv など）と字下げも切り替え可</span></span></li></ul></div></div></section>
+<section id="s12" class="slide feature-showcase" data-num="12 / 26"><div class="slide-inner layout-reverse"><div class="feature-left"><div class="eyebrow">v0.7.0</div><h2><span class="hl">AI に式を書かせて</span>、貼り付けて実行。</h2><p class="feat-lead">「AIに相談」タブが、データ例とやりたいことから、AI へのお願い文を組み立てます。式は .yaqpy ファイルに保存でき、コマンドからも使えます。</p></div><div class="feature-right"><div class="feature-num">02</div><div class="feat-eyebrow">GUI の便利機能</div><div class="feat-heading">使うほど楽になる</div><div class="feat-sub">詳しくは USAGE-GUI.ja.md</div><ul class="feat-list"><li><span class="feat-ico">▶</span><span><span class="feat-label">AIに相談タブ</span><span class="feat-desc">yaqpy --guide-prompt と同じ内容が土台のお願い文を作る</span></span></li><li><span class="feat-ico">▶</span><span><span class="feat-label">式の保存・読み込み</span><span class="feat-desc">yaqpy sample.yaqpy data.json のようにコマンドでも使える</span></span></li><li><span class="feat-ico">▶</span><span><span class="feat-label">ログ画面（デスクトップ版）</span><span class="feat-desc">成功した変換を記録。見返して、検索して、再実行できる</span></span></li></ul></div></div></section>
+<section id="s13" class="slide" data-num="13 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">AI との相性</span><div class="slide-title">yaqpy は、自分の<span class="hl">使い方を説明できる</span></div></div><p class="slide-lead">式の書き方を AI に教える手間を、ツール側が引き受けます</p><div class="slide-divider"></div><div class="slide-diagram"><svg viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" class="diagram-svg" role="img"><title>フロー図: --print-spec → --example → --guide-prompt → --skill-md</title><defs><marker id="arrow-s13" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="diagram-arrowhead"></path></marker></defs><rect class="diagram-node" x="40" y="185" width="190" height="90" rx="8"></rect><text class="diagram-label" x="135" y="235"><tspan x="135" dy="-0.6em">--prin</tspan><tspan x="135" dy="1.2em">t-spec</tspan></text><text class="diagram-sublabel" x="135" y="300">使える／使えない演算子の一覧</text><rect class="diagram-node" x="270" y="185" width="190" height="90" rx="8"></rect><text class="diagram-label" x="365" y="235"><tspan x="365" dy="-0.6em">--exa</tspan><tspan x="365" dy="1.2em">mple</tspan></text><text class="diagram-sublabel" x="365" y="300">実行済みの例</text><rect class="diagram-node" x="500" y="185" width="190" height="90" rx="8"></rect><text class="diagram-label" x="595" y="235"><tspan x="595" dy="-0.6em">--guide</tspan><tspan x="595" dy="1.2em">-prompt</tspan></text><text class="diagram-sublabel" x="595" y="300">AI に式を書かせるお願い文</text><rect class="diagram-node" x="730" y="185" width="190" height="90" rx="8"></rect><text class="diagram-label" x="825" y="235"><tspan x="825" dy="-0.6em">--ski</tspan><tspan x="825" dy="1.2em">ll-md</tspan></text><text class="diagram-sublabel" x="825" y="300">Claude Code のスキル</text><path class="diagram-edge" marker-end="url(#arrow-s13)" d="M230,230 L270,230"></path><path class="diagram-edge" marker-end="url(#arrow-s13)" d="M460,230 L500,230"></path><path class="diagram-edge" marker-end="url(#arrow-s13)" d="M690,230 L730,230"></path></svg></div></div><div class="slide-point">演算子の一覧は<span class="hl">実装から自動生成</span>。説明が実際の挙動とずれにくい</div></section>
+<section id="s14" class="slide" data-num="14 / 26"><div class="slide-inner top"><div class="slide-title-row"><span class="slide-badge">式の書き方（超入門）</span><div class="slide-title">まずは <span class="hl">5 つの記号</span>だけ</div></div><p class="slide-lead">yq / jq を触ったことがあれば、そのまま通用します</p><div class="slide-divider"></div><table class="cmp-table"><thead><tr><th>書き方</th><th>意味</th><th>例</th></tr></thead><tbody><tr><th><code>.</code></th><td>全体</td><td><code>yaqpy &#x27;.&#x27; a.yaml</code></td></tr><tr><th><code>.キー</code></th><td>中身をたどる</td><td><code>.server.port</code></td></tr><tr><th><code>[ ]</code></th><td>配列の要素</td><td><code>.items[]</code>（全部）、<code>.items[0]</code>（先頭）</td></tr><tr><th>`\</th><td><code></code></td><td>結果を次に渡す</td><td>`.items[] \</td><td>.name`</td></tr><tr><th><code>select( 条件 )</code></th><td>絞り込む</td><td><code>select(.price &gt; 500)</code></td></tr></tbody></table><p class="note">書き換えは <code>=</code>：<code>.server.port = 9090</code>。「無いとき」の備えは <code>//</code>（例：<code>.a // &quot;既定値&quot;</code>）</p></div></section>
+<section id="s15" class="slide" data-num="15 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">上級編｜変換レシピ</span><div class="slide-title">OpenAI・Gemini・Anthropic の<br/><span class="hl">リクエストを相互変換</span></div></div><p class="slide-lead">API のリクエスト本文を、別ベンダー用に組み替え。落とした項目は必ず報告します</p><div class="slide-divider"></div><div class="slide-diagram"><svg viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" class="diagram-svg" role="img"><title>フロー図: OpenAI 形式 → yaqpy --recipe → Gemini 形式</title><defs><marker id="arrow-s15" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="diagram-arrowhead"></path></marker></defs><rect class="diagram-node" x="40" y="185" width="267" height="90" rx="8"></rect><text class="diagram-label" x="173.5" y="235"><tspan x="173.5" dy="-0.6em">OpenA</tspan><tspan x="173.5" dy="1.2em">I 形式</tspan></text><text class="diagram-sublabel" x="173.5" y="300">messages / max_tokens など</text><rect class="diagram-node" x="347" y="185" width="267" height="90" rx="8"></rect><text class="diagram-label" x="480.5" y="235"><tspan x="480.5" dy="-0.6em">yaqpy -</tspan><tspan x="480.5" dy="1.2em">-recipe</tspan></text><text class="diagram-sublabel" x="480.5" y="300">変換＋報告（実際の API は呼ばない）</text><rect class="diagram-node" x="653" y="185" width="267" height="90" rx="8"></rect><text class="diagram-label" x="786.5" y="235"><tspan x="786.5" dy="-0.6em">Gemin</tspan><tspan x="786.5" dy="1.2em">i 形式</tspan></text><text class="diagram-sublabel" x="786.5" y="300">contents / generationConfig など</text><path class="diagram-edge" marker-end="url(#arrow-s15)" d="M307,230 L347,230"></path><path class="diagram-edge" marker-end="url(#arrow-s15)" d="M614,230 L654,230"></path></svg></div></div><div class="slide-point">6 種類を同梱：<span class="hl">openai / gemini / anthropic の全組み合わせ（双方向）</span></div></section>
+<section id="s16" class="slide" data-num="16 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">変換レシピの誠実さ</span><div class="slide-title">黙って落とさない。<span class="hl">何を捨てたか</span>を教える</div></div><div class="slide-divider"></div><div class="contrast-grid"><div class="contrast-left"><div class="contrast-example"><div class="contrast-example-title">yaqpy --recipe openai-to-gemini examples/openai-request.json（実行結果）</div><div class="contrast-rows"><div class="contrast-row"><span class="contrast-tag">dropped</span><span class="contrast-text">.model — Gemini ではモデル名を URL で指定するため、本文には持ち越さない</span></div><div class="contrast-row"><span class="contrast-tag">dropped</span><span class="contrast-text">.stream — Gemini は本文の項目ではなく別のエンドポイントでストリームする</span></div><div class="contrast-row"><span class="contrast-tag">dropped</span><span class="contrast-text">.messages[].content[type!=text] — 画像・音声・ファイルは変換対象外（テキストのみ）</span></div></div></div></div><div class="contrast-right"><div class="contrast-verdict"><div class="contrast-verdict-item"><span class="contrast-verdict-label">標準出力</span><span class="contrast-verdict-text">変換後の本文（他のコマンドに渡しても報告は混ざらない）</span></div><div class="contrast-connector">↓ 標準エラー出力に</div><div class="contrast-verdict-item contrast-verdict-item--warn"><span class="contrast-verdict-label">報告</span><span class="contrast-verdict-text">dropped / added / NOT HANDLED / target schema を出す</span></div></div></div></div></div><div class="slide-point">既定ではファイルに書きません。書くのは <span class="hl">--apply --out-dir を付けたときだけ</span></div></section>
+<section id="s17" class="slide" data-num="17 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">もうひとつの便利機能</span><div class="slide-title">データから <span class="hl">JSON Schema</span> を作る</div></div><p class="slide-lead">yaqpy --schema data.yaml。Draft 2020-12 の JSON Schema を、JSON でも YAML でも出力（yq にはない拡張）</p><div class="slide-divider"></div><div class="slide-diagram"><svg viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" class="diagram-svg" role="img"><title>レイヤー図（4層）</title><defs><marker id="arrow-s17" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="diagram-arrowhead"></path></marker></defs><rect class="diagram-node" x="40" y="50" width="880" height="77" rx="8"></rect><text class="diagram-label" x="480" y="93.5"><tspan x="480" dy="-0.6em">データ（YAML /</tspan><tspan x="480" dy="1.2em"> JSON など）</tspan></text><rect class="diagram-node" x="40" y="147" width="880" height="77" rx="8"></rect><text class="diagram-label" x="480" y="190.5"><tspan x="480" dy="-0.6em">型を推論（integer / strin</tspan><tspan x="480" dy="1.2em">g / array / object）</tspan></text><rect class="diagram-node" x="40" y="245" width="880" height="77" rx="8"></rect><text class="diagram-label" x="480" y="288.5"><tspan x="480" dy="-0.6em">必須項目・入</tspan><tspan x="480" dy="1.2em">れ子を整理</tspan></text><rect class="diagram-node diagram-node-accent" x="40" y="342" width="880" height="77" rx="8"></rect><text class="diagram-label" x="480" y="385.5"><tspan x="480" dy="-0.6em">JSON Schema（D</tspan><tspan x="480" dy="1.2em">raft 2020-12）</tspan></text></svg></div></div><div class="slide-point">sample.yaml の port は <span class="hl">type: integer</span>、hosts は <span class="hl">array of string</span> と推論されます</div></section>
+<section id="s18" class="slide" data-num="18 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">信頼性</span><div class="slide-title">yq の <span class="hl">1,047 / 1,051 件</span>と同じ結果</div></div><p class="slide-lead">Go 版 yq のテストシナリオ 1,091 件を互換テストにして検証（結果を比べられるのは 1,051 件）</p><div class="slide-divider"></div><div class=""><div class="slide-chart"><svg viewBox="0 0 720 360" xmlns="http://www.w3.org/2000/svg" class="chart-svg" role="img"><title>互換テストの内訳（件）</title><text x="360" y="28" class="chart-title" text-anchor="middle">互換テストの内訳（件）</text><path d="M260.00,70.00 A110,110 0 1 1 232.00,73.62 L244.73,121.98 A60,60 0 1 0 260.00,120.00 Z" class="chart-series-1"></path><path d="M232.42,73.51 A110,110 0 0 1 234.46,73.01 L246.07,121.64 A60,60 0 0 0 244.96,121.92 Z" class="chart-series-2"></path><path d="M234.88,72.91 A110,110 0 0 1 259.56,70.00 L259.76,120.00 A60,60 0 0 0 246.30,121.59 Z" class="chart-series-3"></path><text x="276.67973529420556" y="314.94192006578805" class="chart-value" text-anchor="middle">1,047件</text><text x="228.381944166872" y="55.842680484752634" class="chart-value" text-anchor="middle">4件</text><text x="244.8295547423649" y="52.87464932102145" class="chart-value" text-anchor="middle">40件</text><g><rect x="470" y="90" width="14" height="14" rx="3" class="chart-series-1"></rect><text x="492" y="102" class="chart-legend">yq と一致（96%）</text></g><g><rect x="470" y="124" width="14" height="14" rx="3" class="chart-series-2"></rect><text x="492" y="136" class="chart-legend">不一致（0%）</text></g><g><rect x="470" y="158" width="14" height="14" rx="3" class="chart-series-3"></rect><text x="492" y="170" class="chart-legend">比較対象外（4%）</text></g><text x="710" y="352" class="chart-source" text-anchor="end">出典: yaqpy README（Go 版 yq v4.53.6 のシナリオ）</text></svg></div></div></div></section>
+<section id="s19" class="slide" data-num="19 / 26"><div class="slide-inner top"><div class="slide-title-row"><span class="slide-badge">正直な比較</span><div class="slide-title">yq（Go 版）との <span class="hl">使い分け</span></div></div><p class="slide-lead">yaqpy は yq の代わりではなく、「Python の世界で使える yq 互換」です</p><div class="slide-divider"></div><table class="cmp-table"><thead><tr><th>観点</th><th>mikefarah/yq（Go）</th><th>yaqpy</th></tr></thead><tbody><tr><th>実装</th><td>Go の単一バイナリ</td><td>Python 3.13+（標準ライブラリのみ）</td></tr><tr><th>配布</th><td>パッケージマネージャ／Docker など</td><td><code>pip</code> / <code>uv</code>（PyPI）</td></tr><tr><th>式</th><td>jq 風の式（多数の演算子）</td><td>同じ式。<code>load</code> 系・<code>eval</code>・<code>envsubst</code>・<code>system</code>・<code>error</code> は未対応</td></tr><tr><th>画面</th><td>なし（CLI）</td><td>デスクトップ／ブラウザの GUI つき</td></tr><tr><th>独自の拡張</th><td>—</td><td>TOON・自動判定・スキーマ・変換レシピ・自己説明</td></tr></tbody></table><p class="note">未対応の演算子を実行すると「Error: unknown operator ...」で終了します（黙って誤動作はしません）</p></div></section>
+<section id="s20" class="slide" data-num="20 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">安心して使える</span><div class="slide-title">安全側の既定＝<span class="hl">勝手に外へ触らない</span></div></div><p class="slide-lead">ファイル読み込み・環境変数・外部コマンドの扱いは、使う場所ごとに決まっています</p><div class="slide-divider"></div><ul class="points"><li><strong>ライブラリ</strong>：ファイル読み込み・環境変数・外部コマンドの演算子は、すべて無効</li><li><strong>コマンド（CLI）</strong>：Go 版と同じく、環境変数とファイル読み込みが有効（外部コマンドは無効）</li><li><strong>ブラウザ GUI</strong>：それらは常に無効。既定ではこの PC からしか開けず、認証は無い</li><li><strong>GUI の保存</strong>：既定は別名保存。上書きするときは、直前に自動でバックアップ（.bak）を作る</li></ul><p class="note">ほかの PC からブラウザ GUI を使うときは、認証がない点に注意（USAGE-GUI.ja.md の 15 章）</p></div><div class="slide-point"><span class="hl">「うっかり」を減らす</span>側に倒してあります</div></section>
+<section id="s21" class="slide" data-num="21 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">こんな人に</span><div class="slide-title">次のどれかに当てはまるなら、<span class="hl">試す価値あり</span></div></div><p class="slide-lead">特に「値を 1 つ変えるだけ」の作業が多い人に</p><div class="slide-divider"></div><ul class="points"><li><strong>Kubernetes・CI・アプリの設定ファイルを触る人</strong>：YAML の 1 項目を、コメントを残して更新したい</li><li><strong>Python 環境が主で、Go のバイナリを増やしたくない人</strong>：pip / uv で入り、依存もない</li><li><strong>YAML・JSON・XML・CSV を行き来する人</strong>：形式変換を 1 つの式の書き方に統一したい</li><li><strong>LLM にデータを渡す人</strong>：TOON で入力トークンを減らしたい／API リクエストを別ベンダー用に変換したい</li><li><strong>コマンドが苦手な人</strong>：GUI で式を試してから、慣れたらコマンドへ</li></ul></div></section>
+<section id="s22" class="slide" data-num="22 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">今すぐ試す</span><div class="slide-title"><span class="hl">3 ステップ</span>で、最初の 1 行が動く</div></div><p class="slide-lead">Python 3.13 以上があれば、追加の準備は要りません</p><div class="slide-divider"></div><div class="steps-flow steps-cards"><div class="steps-item"><div class="steps-icon">📦</div><div class="steps-title">入れる</div><div class="steps-desc">pip install yaqpy（または uv tool install yaqpy）</div></div><div class="steps-item"><div class="steps-icon">⌨️</div><div class="steps-title">動かす</div><div class="steps-desc">yaqpy &#x27;.server.port&#x27; config.yaml</div></div><div class="steps-item steps-item--outline"><div class="steps-icon">✏️</div><div class="steps-title">書き換える</div><div class="steps-desc">yaqpy -i &#x27;.server.port = 9090&#x27; config.yaml</div></div></div></div><div class="slide-point">入れずに試すなら <span class="hl">uvx yaqpy &#x27;.server.port&#x27; config.yaml</span>（uv が必要）。GUI は pip install &quot;yaqpy[gui]&quot; → yaqpy-gui</div></section>
+<section id="s23" class="slide" data-num="23 / 26"><div class="slide-inner"><div class="slide-title-row"><span class="slide-badge">育っています</span><div class="slide-title">2026 年 9 月に公開、<span class="hl">毎日のように前進</span></div></div><p class="slide-lead">初版から v0.7.0 まで、機能を段階的に追加してきました（各版の日付は CHANGELOG より）</p><div class="slide-divider"></div><div class="slide-diagram"><svg viewBox="0 0 960 480" xmlns="http://www.w3.org/2000/svg" class="diagram-svg" role="img"><title>タイムライン: 初版（YAML/JSON・式で取得/更新/変換） → XML・CSV・TOML・スキーマ出力 → 演算子の拡充（ほぼ全部が使える） → 変換レシピ・自己説明 → ブラウザ GUI・PyPI 公開 → AIに相談・ログ画面</title><defs><marker id="arrow-s23" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="diagram-arrowhead"></path></marker></defs><line class="diagram-edge" x1="80" y1="240" x2="890" y2="240"></line><circle class="diagram-node diagram-node-accent" cx="80" cy="240" r="28"></circle><text class="diagram-label" x="80" y="244" text-anchor="middle">09-20</text><line class="diagram-edge tl-tick" x1="200" y1="165" x2="200" y2="240"></line><circle class="diagram-node-accent tl-dot" cx="200" cy="165" r="7"></circle><text class="diagram-label" x="200" y="108"><tspan x="200" dy="-0.6em">初版（YAML/JSON</tspan><tspan x="200" dy="1.2em">・式で取得/更新/変換）</tspan></text><text class="diagram-sublabel" x="200" y="148" text-anchor="middle">v0.1.0</text><line class="diagram-edge tl-tick" x1="330" y1="240" x2="330" y2="315"></line><circle class="diagram-node-accent tl-dot" cx="330" cy="315" r="7"></circle><text class="diagram-label" x="330" y="378"><tspan x="330" dy="-0.6em">XML・CSV・TO</tspan><tspan x="330" dy="1.2em">ML・スキーマ出力</tspan></text><text class="diagram-sublabel" x="330" y="336" text-anchor="middle">v0.2.0</text><line class="diagram-edge tl-tick" x1="460" y1="165" x2="460" y2="240"></line><circle class="diagram-node-accent tl-dot" cx="460" cy="165" r="7"></circle><text class="diagram-label" x="460" y="108"><tspan x="460" dy="-0.6em">演算子の拡充（ほ</tspan><tspan x="460" dy="1.2em">ぼ全部が使える）</tspan></text><text class="diagram-sublabel" x="460" y="148" text-anchor="middle">v0.3.0</text><line class="diagram-edge tl-tick" x1="590" y1="240" x2="590" y2="315"></line><circle class="diagram-node-accent tl-dot" cx="590" cy="315" r="7"></circle><text class="diagram-label" x="590" y="378"><tspan x="590" dy="-0.6em">変換レシピ</tspan><tspan x="590" dy="1.2em">・自己説明</tspan></text><text class="diagram-sublabel" x="590" y="336" text-anchor="middle">v0.4.0</text><line class="diagram-edge tl-tick" x1="720" y1="165" x2="720" y2="240"></line><circle class="diagram-node-accent tl-dot" cx="720" cy="165" r="7"></circle><text class="diagram-label" x="720" y="108"><tspan x="720" dy="-0.6em">ブラウザ GUI</tspan><tspan x="720" dy="1.2em">・PyPI 公開</tspan></text><text class="diagram-sublabel" x="720" y="148" text-anchor="middle">v0.6.0</text><line class="diagram-edge tl-tick" x1="850" y1="240" x2="850" y2="315"></line><circle class="diagram-node-accent tl-dot" cx="850" cy="315" r="7"></circle><text class="diagram-label" x="850" y="378"><tspan x="850" dy="-0.6em">AIに相談</tspan><tspan x="850" dy="1.2em">・ログ画面</tspan></text><text class="diagram-sublabel" x="850" y="336" text-anchor="middle">v0.7.0</text></svg></div></div><div class="slide-point">詳しい変更点と既知の制限は <span class="hl">CHANGELOG.md</span> に版ごとにまとめてあります</div></section>
+<section id="s24" class="slide" data-num="24 / 26"><div class="slide-inner top"><div class="slide-title-row"><span class="slide-badge">よくある疑問</span><div class="slide-title">始める前の <span class="hl">Q&amp;A</span></div></div><p class="slide-lead">迷いやすい点を先に片づけておきます</p><div class="slide-divider"></div><table class="cmp-table"><thead><tr><th>疑問</th><th>答え</th></tr></thead><tbody><tr><th>コメントは消えませんか？</th><td>YAML → YAML の更新では残ります。JSON や TOON に出力すると、それらにコメントが無いため消えます</td></tr><tr><th>元のファイルは書き換わりますか？</th><td>コマンドは <code>-i</code> を付けたときだけ。GUI は「上書きする」と答えたときだけ（既定は別名保存）</td></tr><tr><th>追加のライブラリは要りますか？</th><td>要りません（Python 3.13 以上のみ）。GUI を使うときだけ Flet を追加します</td></tr><tr><th>日本語の資料は？</th><td>README.ja.md／USAGE.ja.md／USAGE-GUI.ja.md があります（詳細ガイドは日本語）</td></tr><tr><th>yq を使っていても意味はありますか？</th><td>Python 環境で完結させたい・GUI・TOON・変換レシピが欲しいときに向きます</td></tr></tbody></table></div></section>
+<section id="s25" class="slide" data-num="25 / 26"><div class="slide-inner"><div class="slide-title-row"><div class="slide-title">まとめ｜30 秒後の最初の一歩</div></div><div class="slide-divider"></div><ol class="summary-list layout-compact"><li><strong>課題</strong>：設定ファイルを 1 か所直すだけで、コメントや体裁が壊れる</li><li><strong>解決</strong>：yaqpy は「式」で指した値だけを書き換え、<span class="hl">書式はそのまま</span>。取り出し・更新・変換を 1 つの書き方で</li><li><strong>広がり</strong>：コマンド／ライブラリ／GUI／ブラウザ。TOON・スキーマ・変換レシピ・AI 相談まで</li><li><strong>最初の一歩</strong>：<code>pip install yaqpy</code> → 手元の YAML で <code>yaqpy &#x27;.キー&#x27; ファイル.yaml</code></li></ol><p class="note">試したら、GitHub で感想や不具合を伝えてください：github.com/sgtao/yaqpy（MIT License）</p></div></section>
+<section id="s26" class="slide" data-num="26 / 26"><div class="slide-inner top"><div class="slide-title-row"><div class="slide-title">出典・参考リンク</div></div><div class="slide-divider"></div><ul class="links"><li><a href="https://github.com/sgtao/yaqpy/blob/main/README.md" target="_blank" rel="noreferrer">yaqpy README（英語）</a><span class="src-note"> — 概要・特長・インストール・互換テストの数値</span></li><li><a href="https://github.com/sgtao/yaqpy/blob/main/USAGE.ja.md" target="_blank" rel="noreferrer">yaqpy 使い方ガイド USAGE.ja.md</a><span class="src-note"> — コマンド・各形式・変換レシピ・スキーマ</span></li><li><a href="https://github.com/sgtao/yaqpy/blob/main/USAGE-GUI.ja.md" target="_blank" rel="noreferrer">yaqpy GUI 使い方ガイド USAGE-GUI.ja.md</a><span class="src-note"> — 画面の見方・Web 版・ログ</span></li><li><a href="https://github.com/sgtao/yaqpy/blob/main/CHANGELOG.md" target="_blank" rel="noreferrer">yaqpy CHANGELOG</a><span class="src-note"> — 版ごとの変更（日付はここから）</span></li><li><a href="https://github.com/mikefarah/yq" target="_blank" rel="noreferrer">mikefarah/yq</a><span class="src-note"> — 手本にした Go 製ツール（約 1.6 万スター、YAML/JSON/XML/CSV/TOML/HCL/properties 対応）</span></li><li><a href="https://github.com/toon-format/toon" target="_blank" rel="noreferrer">toon-format/toon</a><span class="src-note"> — TOON の仕様・ベンチマーク（72.2% vs 71.4%、42.6% 減）</span></li><li><a href="https://oneuptime.com/blog/post/2026-09-05-edit-yaml-in-place-safely-yq/view" target="_blank" rel="noreferrer">How to Edit YAML In Place with yq Without Truncating the File on Failure</a><span class="src-note"> — 「&gt;」で元ファイルへ書き戻す危険と安全な更新手順</span></li><li><a href="https://kolavistudio.com/yaml-tools/python" target="_blank" rel="noreferrer">YAML in Python: PyYAML, safe_load, and ruamel.yaml</a><span class="src-note"> — PyYAML はコメントを落とす／ruamel.yaml は保持する、という整理</span></li></ul></div></section>
+<div id="slide-counter">1 / 26</div>
+</div>
+<script>
+const DECK_TITLE = "yaqpy 入門｜YAML の設定を、コメントを消さずに一行で書き換える";
+const DECK_MD = "---\r\ntitle: yaqpy 入門｜YAML の設定を、コメントを消さずに一行で書き換える\r\npalette: ocean\r\npurpose: outreach\r\n---\r\n<!-- slide: title, layout: title-xl -->\r\n# 設定ファイルの値を変えたいだけ。<br>==コメントは、消さない。==\r\nsubtitle: yaqpy（ヤクピー）— YAML and more, Query editor in Python\r\nbadges: [pip install yaqpy, Python 標準ライブラリのみ, コマンド・ライブラリ・GUI]\r\n---\r\n<!-- slide: contrast -->\r\nbadge: こんな経験、ありませんか？\r\n## たった 1 か所を直したら、<br>==ファイルの見た目が変わった==\r\n```contrast\r\nexample:\r\n  title: Python の PyYAML で YAML を「読んで・直して・書き戻す」と\r\n  rows:\r\n    - tag: 消える\r\n      text: 手書きのコメントが消える（safe_dump はコメントを落とす）\r\n    - tag: 崩れる\r\n      text: 字下げや空行が整えなおされ、差分が大量に出る\r\n    - tag: 面倒\r\n      text: たった 1 行の変更にも、スクリプトを書いて動かす手間がかかる\r\nverdict:\r\n  - { label: 本当にやりたいこと, text: port を 8080 → 9090 に変える、それだけ }\r\n  - { connector: ↓ yaqpy なら }\r\n  - { label: 答え, text: 1 行のコマンドで、ほかは 1 文字も動かさない }\r\n```\r\npoint: 出典の調査では、コメントを残すには ruamel.yaml などの別ライブラリが必要と整理されています（sources 参照）\r\n---\r\n<!-- slide: points -->\r\nbadge: 30 秒でわかる yaqpy\r\n## yaqpy ＝ ==「式」で取り出し・更新・変換==する道具\r\nlead: YAML・JSON・XML・CSV・TOML などの設定やデータを、短い式で扱えます\r\n- **取り出す**：`yaqpy '.server.port' config.yaml` → `8080`\r\n- **書き換える**：`yaqpy -i '.server.port = 9090' config.yaml`（コメント・並び順はそのまま）\r\n- **変換する**：`yaqpy -o json '.server' config.yaml`（YAML → JSON など）\r\n> 式の言語は、人気の CLI ツール mikefarah/yq（Go 製・GitHub 約 1.6 万スター）を手本にしています\r\npoint: 名前は ==Y==AML ==A==nd more, ==Q==uery editor in ==PY==thon の略\r\n---\r\n<!-- slide: diagram-flow -->\r\nbadge: しくみ\r\n## 「入力 → 式 → 出力」。<br>これだけ覚えれば使える\r\nlead: 入力の形式は自動で判定。式は yq とほぼ同じ書き方\r\n```diagram\r\ntype: flow\r\nnodes: [\"データ\", \"yaqpy\", \"式\", \"結果\", \"保存・共有\"]\r\nlabels: [\"YAML / JSON / XML / CSV / TOML など\", \"標準ライブラリだけで動く\", \".a.b / select / map ...\", \"画面・標準出力・ファイル\", \"-i でその場更新も可\"]\r\n```\r\npoint: 使い方は ==コマンド・Python ライブラリ・GUI（デスクトップ／ブラウザ）== の 4 通り。式はどれも同じ\r\n---\r\n<!-- slide: table -->\r\nbadge: 実際の出力\r\n## 同じ YAML から、==欲しい形==で取り出す\r\nlead: examples/sample.yaml（コメント・アンカー付きの設定）に対して、yaqpy v0.7.0 で実行した結果\r\n| やりたいこと | コマンド | 出力 |\r\n|---|---|---|\r\n| 値を取り出す | `yaqpy '.server.port' sample.yaml` | `8080` |\r\n| 絞り込む | `yaqpy '.items[] \\| select(.price > 500) \\| .name' sample.yaml` | `book` |\r\n| JSON にする | `yaqpy -o json -I 0 '.server' sample.yaml` | `{\"port\":8080,\"hosts\":[\"a\",\"b\"],...}` |\r\n| CSV にする | `yaqpy -o csv '.items' sample.yaml` | `name,price` / `pen,120` / `book,980` |\r\n| 更新する | `yaqpy '.server.port = 9090' sample.yaml` | `port: 9090 # 開発用` |\r\n> 最後の行に注目：値だけが変わり、コメント「# 開発用」はそのまま残ります\r\n---\r\n<!-- slide: contrast -->\r\nbadge: 最大の特長\r\n## ==書式を壊さない==更新\r\n```contrast\r\nexample:\r\n  title: yaqpy '.server.port = 9090' の前後（sample.yaml）\r\n  rows:\r\n    - tag: 残る\r\n      text: コメント（# サーバー設定、# 開発用）とキーの並び順\r\n    - tag: 残る\r\n      text: \"アンカー &tls とマージキー <<: *tls（展開されません）\"\r\n    - tag: 残る\r\n      text: 数値・引用符の書き方（0x1F、1.50、'yes' など）\r\nverdict:\r\n  - { label: 変わるのは, text: 指定した値だけ }\r\n  - { connector: ↓ だから }\r\n  - { label: 差分は, text: 1 行だけ。レビューも楽で、安心してコミットできる, tone: warn }\r\n```\r\npoint: 設定ファイルの更新を ==CI やスクリプトに組み込む==ときに効きます\r\n---\r\n<!-- slide: table -->\r\nbadge: 対応フォーマット\r\n## 7 つの形式を、==読んでも書いても==OK\r\nlead: 入力も出力も、標準ライブラリだけで実装しています\r\n| 形式 | 入力 | 出力 | ひとこと |\r\n|:---|:-:|:-:|:---|\r\n| YAML | ○ | ○ | コメント・アンカー・並び順を保持して更新 |\r\n| JSON | ○ | ○ | 1 行（-I 0）にも整形にも |\r\n| XML | ○ | ○ | 属性・コメント・処理命令も往復 |\r\n| CSV / TSV | ○ | ○ | 1 行目をヘッダにして表として扱う |\r\n| TOML | ○ | ○ | コメントは保持しない（-i は既定で拒否） |\r\n| properties | ○ | ○ | Java の設定ファイル形式 |\r\n| TOON | ○ | ○ | LLM 向けにトークンを減らす形式 |\r\n> 拡張子で決まらないとき（標準入力・拡張子なし）は、中身を見て形式を自動判定します（yq にはない拡張）\r\n---\r\n<!-- slide: chart-bar, layout: side-list -->\r\nbadge: AI 時代の使いどころ\r\n## LLM に渡すデータを、==半分近く軽く==する\r\nlead: yaqpy は TOON（Token-Oriented Object Notation）を入出力できます。JSON を 100 としたときのトークン数の目安\r\n```chart\r\ntype: bar\r\ntitle: 同じデータのトークン数（JSON = 100）\r\nunit: \"\"\r\ndata:\r\n  - { label: JSON, value: 100 }\r\n  - { label: TOON, value: 57.4 }\r\nsource: { name: toon-format/toon ベンチマーク（42.6% 削減を換算）, url: https://github.com/toon-format/toon }\r\n```\r\n### 読み方\r\n- **出典**：TOON の公式ベンチマーク（244 問・4 モデル）で、精度は TOON 72.2%／JSON 71.4%、トークンは 42.6% 減\r\n- **効きやすいデータ**：同じ形の行が並ぶ配列（表のようなデータ）\r\n- **注意**：削減率はデータの形で変わる（公式は 30〜60% 程度の幅と説明）。コメントは TOON では失われる\r\n---\r\n<!-- slide: steps, layout: grid -->\r\nbadge: 使い方は 4 通り\r\n## 好きな入口から、==同じ式==で使える\r\nlead: 覚える式は 1 つ。使う場所だけ選べばよい\r\n```steps\r\nstyle: cards\r\nitems:\r\n  - { icon: \"⌨️\", title: コマンド, desc: \"yaqpy '式' ファイル。シェルスクリプトや CI に\" }\r\n  - { icon: \"🐍\", title: Python ライブラリ, desc: \"import yaqpy。evaluate / query / update\" }\r\n  - { icon: \"🖥️\", title: デスクトップ GUI, desc: \"yaqpy-gui。画面を見ながら試せる\" }\r\n  - { icon: \"🌐\", title: ブラウザ GUI, desc: \"yaqpy-web。同じ画面をブラウザで\" }\r\n```\r\npoint: 初めてなら ==GUI で試す → 式が決まったらコマンドやスクリプトへ==、が一番やさしい流れ\r\n---\r\n<!-- slide: figure -->\r\nbadge: GUI\r\n## 開く → 式を書く → ==結果がすぐ右に出る==\r\n![yaqpy の GUI：左に元の YAML、上に式、右に変換結果（CSV）](https://raw.githubusercontent.com/sgtao/yaqpy/main/assets/images/screenshot-yaqpy-gui.png)\r\nsource: [yaqpy GUI のスクリーンショット（YAML → CSV）](https://github.com/sgtao/yaqpy)\r\n---\r\n<!-- slide: feature-showcase -->\r\nleft:\r\n  eyebrow: GUI\r\n  heading: コマンドが苦手でも、==画面を見ながら==使える。\r\n  lead: 左が原文、右が結果。プルダウンから項目を選ぶだけで式が入るので、式を暗記しなくても始められます。\r\nright:\r\n  num: \"01\"\r\n  eyebrow: 画面の見どころ\r\n  heading: 3 つの窓と 1 つの欄\r\n  sub: 元のファイルは「上書きする」と答えない限り変わりません\r\n  items:\r\n    - label: プロパティのプルダウン\r\n      desc: 開いた文書の項目一覧から選ぶと、式が自動で入る\r\n    - label: 式の欄\r\n      desc: Enter で実行。書き間違いは実行前に教えてくれる\r\n    - label: 原文と結果の 2 つの窓\r\n      desc: 形式（yaml / json / xml / csv など）と字下げも切り替え可\r\n---\r\n<!-- slide: feature-showcase, layout: reverse -->\r\nleft:\r\n  eyebrow: v0.7.0\r\n  heading: ==AI に式を書かせて==、貼り付けて実行。\r\n  lead: 「AIに相談」タブが、データ例とやりたいことから、AI へのお願い文を組み立てます。式は .yaqpy ファイルに保存でき、コマンドからも使えます。\r\nright:\r\n  num: \"02\"\r\n  eyebrow: GUI の便利機能\r\n  heading: 使うほど楽になる\r\n  sub: 詳しくは USAGE-GUI.ja.md\r\n  items:\r\n    - label: AIに相談タブ\r\n      desc: yaqpy --guide-prompt と同じ内容が土台のお願い文を作る\r\n    - label: 式の保存・読み込み\r\n      desc: \"yaqpy sample.yaqpy data.json のようにコマンドでも使える\"\r\n    - label: ログ画面（デスクトップ版）\r\n      desc: 成功した変換を記録。見返して、検索して、再実行できる\r\n---\r\n<!-- slide: diagram-flow -->\r\nbadge: AI との相性\r\n## yaqpy は、自分の==使い方を説明できる==\r\nlead: 式の書き方を AI に教える手間を、ツール側が引き受けます\r\n```diagram\r\ntype: flow\r\nnodes: [\"--print-spec\", \"--example\", \"--guide-prompt\", \"--skill-md\"]\r\nlabels: [\"使える／使えない演算子の一覧\", \"実行済みの例\", \"AI に式を書かせるお願い文\", \"Claude Code のスキル\"]\r\n```\r\npoint: 演算子の一覧は==実装から自動生成==。説明が実際の挙動とずれにくい\r\n---\r\n<!-- slide: table -->\r\nbadge: 式の書き方（超入門）\r\n## まずは ==5 つの記号==だけ\r\nlead: yq / jq を触ったことがあれば、そのまま通用します\r\n| 書き方 | 意味 | 例 |\r\n|---|---|---|\r\n| `.` | 全体 | `yaqpy '.' a.yaml` |\r\n| `.キー` | 中身をたどる | `.server.port` |\r\n| `[ ]` | 配列の要素 | `.items[]`（全部）、`.items[0]`（先頭） |\r\n| `\\|` | 結果を次に渡す | `.items[] \\| .name` |\r\n| `select( 条件 )` | 絞り込む | `select(.price > 500)` |\r\n> 書き換えは `=`：`.server.port = 9090`。「無いとき」の備えは `//`（例：`.a // \"既定値\"`）\r\n---\r\n<!-- slide: diagram-flow -->\r\nbadge: 上級編｜変換レシピ\r\n## OpenAI・Gemini・Anthropic の<br>==リクエストを相互変換==\r\nlead: API のリクエスト本文を、別ベンダー用に組み替え。落とした項目は必ず報告します\r\n```diagram\r\ntype: flow\r\nnodes: [\"OpenAI 形式\", \"yaqpy --recipe\", \"Gemini 形式\"]\r\nlabels: [\"messages / max_tokens など\", \"変換＋報告（実際の API は呼ばない）\", \"contents / generationConfig など\"]\r\n```\r\npoint: 6 種類を同梱：==openai / gemini / anthropic の全組み合わせ（双方向）==\r\n---\r\n<!-- slide: contrast -->\r\nbadge: 変換レシピの誠実さ\r\n## 黙って落とさない。==何を捨てたか==を教える\r\n```contrast\r\nexample:\r\n  title: yaqpy --recipe openai-to-gemini examples/openai-request.json（実行結果）\r\n  rows:\r\n    - tag: dropped\r\n      text: \".model — Gemini ではモデル名を URL で指定するため、本文には持ち越さない\"\r\n    - tag: dropped\r\n      text: \".stream — Gemini は本文の項目ではなく別のエンドポイントでストリームする\"\r\n    - tag: dropped\r\n      text: \".messages[].content[type!=text] — 画像・音声・ファイルは変換対象外（テキストのみ）\"\r\nverdict:\r\n  - { label: 標準出力, text: 変換後の本文（他のコマンドに渡しても報告は混ざらない） }\r\n  - { connector: ↓ 標準エラー出力に }\r\n  - { label: 報告, text: dropped / added / NOT HANDLED / target schema を出す, tone: warn }\r\n```\r\npoint: 既定ではファイルに書きません。書くのは ==--apply --out-dir を付けたときだけ==\r\n---\r\n<!-- slide: diagram-layer -->\r\nbadge: もうひとつの便利機能\r\n## データから ==JSON Schema== を作る\r\nlead: yaqpy --schema data.yaml。Draft 2020-12 の JSON Schema を、JSON でも YAML でも出力（yq にはない拡張）\r\n```diagram\r\ntype: layer\r\nnodes: [[\"データ（YAML / JSON など）\"], [\"型を推論（integer / string / array / object）\"], [\"必須項目・入れ子を整理\"], [\"JSON Schema（Draft 2020-12）\"]]\r\n```\r\npoint: sample.yaml の port は ==type: integer==、hosts は ==array of string== と推論されます\r\n---\r\n<!-- slide: chart-donut -->\r\nbadge: 信頼性\r\n## yq の ==1,047 / 1,051 件==と同じ結果\r\nlead: Go 版 yq のテストシナリオ 1,091 件を互換テストにして検証（結果を比べられるのは 1,051 件）\r\n```chart\r\ntype: donut\r\ntitle: 互換テストの内訳（件）\r\nunit: 件\r\ndata:\r\n  - { label: yq と一致, value: 1047 }\r\n  - { label: 不一致, value: 4 }\r\n  - { label: 比較対象外, value: 40 }\r\nsource: { name: yaqpy README（Go 版 yq v4.53.6 のシナリオ）, url: https://github.com/sgtao/yaqpy }\r\n```\r\n---\r\n<!-- slide: table -->\r\nbadge: 正直な比較\r\n## yq（Go 版）との ==使い分け==\r\nlead: yaqpy は yq の代わりではなく、「Python の世界で使える yq 互換」です\r\n| 観点 | mikefarah/yq（Go） | yaqpy |\r\n|---|---|---|\r\n| 実装 | Go の単一バイナリ | Python 3.13+（標準ライブラリのみ） |\r\n| 配布 | パッケージマネージャ／Docker など | `pip` / `uv`（PyPI） |\r\n| 式 | jq 風の式（多数の演算子） | 同じ式。`load` 系・`eval`・`envsubst`・`system`・`error` は未対応 |\r\n| 画面 | なし（CLI） | デスクトップ／ブラウザの GUI つき |\r\n| 独自の拡張 | — | TOON・自動判定・スキーマ・変換レシピ・自己説明 |\r\n> 未対応の演算子を実行すると「Error: unknown operator ...」で終了します（黙って誤動作はしません）\r\n---\r\n<!-- slide: points -->\r\nbadge: 安心して使える\r\n## 安全側の既定＝==勝手に外へ触らない==\r\nlead: ファイル読み込み・環境変数・外部コマンドの扱いは、使う場所ごとに決まっています\r\n- **ライブラリ**：ファイル読み込み・環境変数・外部コマンドの演算子は、すべて無効\r\n- **コマンド（CLI）**：Go 版と同じく、環境変数とファイル読み込みが有効（外部コマンドは無効）\r\n- **ブラウザ GUI**：それらは常に無効。既定ではこの PC からしか開けず、認証は無い\r\n- **GUI の保存**：既定は別名保存。上書きするときは、直前に自動でバックアップ（.bak）を作る\r\n> ほかの PC からブラウザ GUI を使うときは、認証がない点に注意（USAGE-GUI.ja.md の 15 章）\r\npoint: ==「うっかり」を減らす==側に倒してあります\r\n---\r\n<!-- slide: points -->\r\nbadge: こんな人に\r\n## 次のどれかに当てはまるなら、==試す価値あり==\r\nlead: 特に「値を 1 つ変えるだけ」の作業が多い人に\r\n- **Kubernetes・CI・アプリの設定ファイルを触る人**：YAML の 1 項目を、コメントを残して更新したい\r\n- **Python 環境が主で、Go のバイナリを増やしたくない人**：pip / uv で入り、依存もない\r\n- **YAML・JSON・XML・CSV を行き来する人**：形式変換を 1 つの式の書き方に統一したい\r\n- **LLM にデータを渡す人**：TOON で入力トークンを減らしたい／API リクエストを別ベンダー用に変換したい\r\n- **コマンドが苦手な人**：GUI で式を試してから、慣れたらコマンドへ\r\n---\r\n<!-- slide: steps -->\r\nbadge: 今すぐ試す\r\n## ==3 ステップ==で、最初の 1 行が動く\r\nlead: Python 3.13 以上があれば、追加の準備は要りません\r\n```steps\r\nstyle: cards\r\nitems:\r\n  - icon: \"📦\"\r\n    title: 入れる\r\n    desc: pip install yaqpy（または uv tool install yaqpy）\r\n  - icon: \"⌨️\"\r\n    title: 動かす\r\n    desc: yaqpy '.server.port' config.yaml\r\n  - icon: \"✏️\"\r\n    title: 書き換える\r\n    desc: yaqpy -i '.server.port = 9090' config.yaml\r\n    tone: outline\r\n```\r\npoint: 入れずに試すなら ==uvx yaqpy '.server.port' config.yaml==（uv が必要）。GUI は pip install \"yaqpy[gui]\" → yaqpy-gui\r\n---\r\n<!-- slide: diagram-timeline -->\r\nbadge: 育っています\r\n## 2026 年 9 月に公開、==毎日のように前進==\r\nlead: 初版から v0.7.0 まで、機能を段階的に追加してきました（各版の日付は CHANGELOG より）\r\n```diagram\r\ntype: timeline\r\nstart: 09-20\r\nmilestones:\r\n  - { label: 初版（YAML/JSON・式で取得/更新/変換）, when: v0.1.0 }\r\n  - { label: XML・CSV・TOML・スキーマ出力, when: v0.2.0 }\r\n  - { label: 演算子の拡充（ほぼ全部が使える）, when: v0.3.0 }\r\n  - { label: 変換レシピ・自己説明, when: v0.4.0 }\r\n  - { label: ブラウザ GUI・PyPI 公開, when: v0.6.0 }\r\n  - { label: AIに相談・ログ画面, when: v0.7.0 }\r\n```\r\npoint: 詳しい変更点と既知の制限は ==CHANGELOG.md== に版ごとにまとめてあります\r\n---\r\n<!-- slide: table -->\r\nbadge: よくある疑問\r\n## 始める前の ==Q&A==\r\nlead: 迷いやすい点を先に片づけておきます\r\n| 疑問 | 答え |\r\n|---|---|\r\n| コメントは消えませんか？ | YAML → YAML の更新では残ります。JSON や TOON に出力すると、それらにコメントが無いため消えます |\r\n| 元のファイルは書き換わりますか？ | コマンドは `-i` を付けたときだけ。GUI は「上書きする」と答えたときだけ（既定は別名保存） |\r\n| 追加のライブラリは要りますか？ | 要りません（Python 3.13 以上のみ）。GUI を使うときだけ Flet を追加します |\r\n| 日本語の資料は？ | README.ja.md／USAGE.ja.md／USAGE-GUI.ja.md があります（詳細ガイドは日本語） |\r\n| yq を使っていても意味はありますか？ | Python 環境で完結させたい・GUI・TOON・変換レシピが欲しいときに向きます |\r\n---\r\n<!-- slide: summary, layout: compact -->\r\n## まとめ｜30 秒後の最初の一歩\r\n1. **課題**：設定ファイルを 1 か所直すだけで、コメントや体裁が壊れる\r\n2. **解決**：yaqpy は「式」で指した値だけを書き換え、==書式はそのまま==。取り出し・更新・変換を 1 つの書き方で\r\n3. **広がり**：コマンド／ライブラリ／GUI／ブラウザ。TOON・スキーマ・変換レシピ・AI 相談まで\r\n4. **最初の一歩**：`pip install yaqpy` → 手元の YAML で `yaqpy '.キー' ファイル.yaml`\r\n> 試したら、GitHub で感想や不具合を伝えてください：github.com/sgtao/yaqpy（MIT License）\r\n---\r\n<!-- slide: sources -->\r\n## 出典・参考リンク\r\n- [yaqpy README（英語）](https://github.com/sgtao/yaqpy/blob/main/README.md) — 概要・特長・インストール・互換テストの数値\r\n- [yaqpy 使い方ガイド USAGE.ja.md](https://github.com/sgtao/yaqpy/blob/main/USAGE.ja.md) — コマンド・各形式・変換レシピ・スキーマ\r\n- [yaqpy GUI 使い方ガイド USAGE-GUI.ja.md](https://github.com/sgtao/yaqpy/blob/main/USAGE-GUI.ja.md) — 画面の見方・Web 版・ログ\r\n- [yaqpy CHANGELOG](https://github.com/sgtao/yaqpy/blob/main/CHANGELOG.md) — 版ごとの変更（日付はここから）\r\n- [mikefarah/yq](https://github.com/mikefarah/yq) — 手本にした Go 製ツール（約 1.6 万スター、YAML/JSON/XML/CSV/TOML/HCL/properties 対応）\r\n- [toon-format/toon](https://github.com/toon-format/toon) — TOON の仕様・ベンチマーク（72.2% vs 71.4%、42.6% 減）\r\n- [How to Edit YAML In Place with yq Without Truncating the File on Failure](https://oneuptime.com/blog/post/2026-09-05-edit-yaml-in-place-safely-yq/view) — 「>」で元ファイルへ書き戻す危険と安全な更新手順\r\n- [YAML in Python: PyYAML, safe_load, and ruamel.yaml](https://kolavistudio.com/yaml-tools/python) — PyYAML はコメントを落とす／ruamel.yaml は保持する、という整理\r\n";
+const PALETTES = ['ocean', 'forest', 'sunset', 'plum', 'graphite', 'ruby', 'gold'];
+
+const slides = document.querySelectorAll('.slide');
+const total = slides.length;
+let cur = 0;
+let currentView = (document.documentElement.dataset.view === 'hero') ? 'hero' : 'list';
+let openMenu = null; // 'palette' | 'export' | null
+
+/* ─── ユーティリティ（exporters.ts の sanitize/timestamp と同一ロジック） ─── */
+function sanitizeName(s) {
+  return s.replace(/[\\\/:*?"<>|]/g, '_').slice(0, 60);
+}
+function timestampStr() {
+  var now = new Date();
+  function pad(n) { return String(n).padStart(2, '0'); }
+  return String(now.getFullYear()).slice(2) + pad(now.getMonth() + 1) + pad(now.getDate()) +
+    pad(now.getHours()) + pad(now.getMinutes()) + pad(now.getSeconds());
+}
+function downloadBlob(blob, filename) {
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── fit-slide.js ─── */
+function fitSlide() {
+  var scaler = document.querySelector('.slide-scaler');
+  if (!scaler) return;
+  var vw = window.innerWidth;
+  var vh = window.innerHeight;
+  var ratio = Math.min(vw / 960, vh / 540) * 0.92;
+  scaler.style.transform = 'translate(-50%, -50%) scale(' + ratio + ')';
+}
+window.addEventListener('resize', function () {
+  if (currentView === 'hero') fitSlide();
+  if (currentView === 'list') scaleListSlides();
+});
+
+/* ─── theme-toggle.js ─── */
+function toggleTheme() {
+  var isDark = document.documentElement.dataset.theme === 'dark';
+  document.documentElement.dataset.theme = isDark ? 'light' : 'dark';
+  document.getElementById('theme-icon').textContent = isDark ? '🌙' : '☀️';
+}
+
+/* ─── view-toggle.js ─── */
+function toggleView() {
+  currentView = (currentView === 'hero') ? 'list' : 'hero';
+  applyView();
+}
+function applyView() {
+  document.documentElement.dataset.view = currentView;
+  document.body.dataset.view = currentView;
+  document.getElementById('view-toggle').textContent = (currentView === 'hero') ? '☰' : '▭';
+  if (currentView === 'hero') {
+    slides.forEach(function (s, i) { s.classList.toggle('active', i === cur); });
+    fitSlide();
+    update();
+  } else {
+    scaleListSlides();
+  }
+}
+function scaleListSlides() {
+  requestAnimationFrame(function () {
+    slides.forEach(function (slide) {
+      var inner = slide.querySelector('.slide-inner');
+      if (!inner) return;
+      var ratio = slide.clientWidth / 960;
+      inner.style.transform = 'scale(' + ratio + ')';
+    });
+  });
+}
+slides.forEach(function (slide, i) {
+  slide.addEventListener('click', function () {
+    if (currentView !== 'list') return;
+    cur = i;
+    currentView = 'hero';
+    applyView();
+  });
+});
+
+/* ─── navigation.js ─── */
+function navigate(dir) {
+  if (currentView === 'list') return;
+  slides[cur].classList.remove('active');
+  cur = Math.max(0, Math.min(total - 1, cur + dir));
+  slides[cur].classList.add('active');
+  update();
+}
+function update() {
+  var bar = document.getElementById('progress-bar');
+  if (bar) bar.style.width = ((cur + 1) / total * 100) + '%';
+  var counter = document.getElementById('slide-counter');
+  if (counter) counter.textContent = (cur + 1) + ' / ' + total;
+  updateArrows();
+}
+function updateArrows() {
+  var prev = document.getElementById('btn-prev');
+  var next = document.getElementById('btn-next');
+  if (prev) prev.hidden = (currentView === 'list') || (cur === 0);
+  if (next) next.hidden = (currentView === 'list') || (cur === total - 1);
+}
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen();
+  } else {
+    document.exitFullscreen();
+  }
+}
+
+document.addEventListener('keydown', function (e) {
+  var t = e.target;
+  if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+  if (e.ctrlKey || e.metaKey) return;
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1); return; }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); return; }
+  if (e.key === 'f' || e.key === 'F') { toggleFullscreen(); return; }
+  if (e.key === 'v' || e.key === 'V') { toggleView(); return; }
+  if (e.shiftKey && e.key === 'P') { e.preventDefault(); exportAllPNG(); return; }
+  if (e.shiftKey && (e.key === 'S' || e.key === 's')) { e.preventDefault(); exportSinglePNG(); return; }
+  if (!e.shiftKey && (e.key === 'p' || e.key === 'P')) { e.preventDefault(); exportPDF(); return; }
+  if (e.key === 'Escape' && openMenu) { closeAllMenus(); e.preventDefault(); }
+});
+
+/* ─── palette-toggle.js ─── */
+function setPalette(p) {
+  if (PALETTES.indexOf(p) === -1) return;
+  document.documentElement.dataset.palette = p;
+  document.querySelectorAll('[data-palette-opt]').forEach(function (btn) {
+    btn.classList.toggle('is-active', btn.getAttribute('data-palette-opt') === p);
+  });
+}
+function togglePaletteMenu() {
+  openMenu = (openMenu === 'palette') ? null : 'palette';
+  syncMenus();
+}
+
+/* ─── メニュー開閉共通（export-menu.js相当） ─── */
+function toggleExportMenu() {
+  openMenu = (openMenu === 'export') ? null : 'export';
+  syncMenus();
+}
+function closeExportMenu() { openMenu = null; syncMenus(); }
+function closeAllMenus() { openMenu = null; syncMenus(); }
+function syncMenus() {
+  var pd = document.getElementById('palette-dropdown');
+  var ed = document.getElementById('export-dropdown');
+  if (pd) pd.hidden = (openMenu !== 'palette');
+  if (ed) ed.hidden = (openMenu !== 'export');
+}
+document.addEventListener('click', function (e) {
+  if (!e.target.closest('.palette-menu') && !e.target.closest('.export-menu')) {
+    closeAllMenus();
+  }
+});
+
+/* ─── export-pdf.js ─── */
+function exportPDF() {
+  var prevView = currentView;
+  currentView = 'list';
+  applyView();
+  var restore = function () {
+    currentView = prevView;
+    applyView();
+    window.removeEventListener('afterprint', restore);
+  };
+  window.addEventListener('afterprint', restore);
+  requestAnimationFrame(function () { requestAnimationFrame(function () { window.print(); }); });
+}
+
+/* ─── export-png.js ─── */
+var HTML2CANVAS_CDN = 'https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js';
+var JSZIP_CDN = 'https://cdn.jsdelivr.net/npm/jszip@3.10.1/dist/jszip.min.js';
+
+function loadScript(src) {
+  return new Promise(function (resolve, reject) {
+    if (document.querySelector('script[src="' + src + '"]')) return resolve();
+    var s = document.createElement('script');
+    s.src = src;
+    s.async = false;
+    s.onload = function () { resolve(); };
+    s.onerror = function () { reject(new Error('Failed to load: ' + src)); };
+    document.head.appendChild(s);
+  });
+}
+function buildCanvasOptions() {
+  return {
+    width: 960,
+    height: 540,
+    scale: 2,
+    useCORS: true,
+    allowTaint: false,
+    backgroundColor: getComputedStyle(document.body).backgroundColor,
+    logging: false,
+    onclone: function (clonedDoc) {
+      var el = clonedDoc.querySelectorAll('.slide-inner');
+      el.forEach(function (n) { n.style.transform = 'none'; });
+    },
+  };
+}
+function showExportError(action, error) {
+  var message = [
+    action + 'に失敗しました。', '',
+    '考えられる原因：',
+    '・ネットワーク接続が不安定（CDN ロード失敗）',
+    '・外部画像が CORS 未対応',
+    '・ブラウザがダウンロードをブロックした', '',
+    'オフライン環境では P キーから PDF エクスポートをご利用ください。', '',
+    '詳細: ' + (error.message || error),
+  ].join('\n');
+  alert(message);
+  console.error('[' + action + '] ' + (error.message || error), error);
+}
+async function exportSinglePNG() {
+  try {
+    await loadScript(HTML2CANVAS_CDN);
+    var target = currentView === 'list' ? slides[0] : slides[cur];
+    var canvas = await html2canvas(target, buildCanvasOptions());
+    canvas.toBlob(function (blob) {
+      if (!blob) return showExportError('PNGエクスポート', new Error('PNG生成に失敗しました'));
+      downloadBlob(blob, sanitizeName(DECK_TITLE) + '-slide' + (cur + 1) + '.png');
+    }, 'image/png');
+  } catch (e) {
+    showExportError('PNGエクスポート', e);
+  }
+}
+async function exportAllPNG() {
+  try {
+    await Promise.all([loadScript(HTML2CANVAS_CDN), loadScript(JSZIP_CDN)]);
+    var zip = new JSZip();
+    for (var i = 0; i < slides.length; i++) {
+      var canvas = await html2canvas(slides[i], buildCanvasOptions());
+      var dataUrl = canvas.toDataURL('image/png');
+      var base64 = dataUrl.split(',')[1];
+      zip.file('slide-' + String(i + 1).padStart(2, '0') + '.png', base64, { base64: true });
+    }
+    var blob = await zip.generateAsync({ type: 'blob' });
+    downloadBlob(blob, sanitizeName(DECK_TITLE) + '-slides.zip');
+  } catch (e) {
+    showExportError('ZIPエクスポート', e);
+  }
+}
+
+/* ─── MD保存（アプリ固有・埋め込んだ原稿をそのままダウンロード） ─── */
+function saveMd() {
+  var ts = timestampStr();
+  var safe = sanitizeName(DECK_TITLE);
+  var filename = safe ? ('MD-' + ts + '_Slide-' + safe + '.md') : ('MD-' + ts + '_Slide.md');
+  downloadBlob(new Blob([DECK_MD], { type: 'text/markdown;charset=utf-8' }), filename);
+}
+
+/* ─── 初期化 ─── */
+applyView();
+</script>
+</body>
+</html>
