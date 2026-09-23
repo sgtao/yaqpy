@@ -92,7 +92,7 @@ MSG_COPY_FAILED = (
     "欄の文字を選択してコピーしてください"
 )
 
-# Web 版（yaqpy-gui --web。v0.6.0）
+# Web 版（yaqpy-web。v0.6.0）
 BTN_DOWNLOAD = "ダウンロード"
 MSG_DOWNLOADED = "ダウンロードを開始しました: {name}"
 MSG_UPLOADING = "アップロード中…"

@@ -1,4 +1,4 @@
-"""Web 版のサーバー（``yaqpy-gui --web``）。v0.6.0。**ここだけが uvicorn に依存する**。
+"""Web 版のサーバー（``yaqpy-web`` / ``yaqpy --web``）。v0.6.0。**ここだけが uvicorn に依存する**。
 
 ``ft.run(view=WEB_BROWSER)`` を使わず、``flet.fastapi.app`` を uvicorn で自分で起動する。
 理由（W0 の実測。``docs/flet-1.0-api-notes.md`` 7 章）：
