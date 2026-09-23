@@ -159,6 +159,20 @@ class GuiState:
         return len(self.documents) > 1
 
 
+def clamp_settings_to_web_limits(state: GuiState) -> None:
+    """Web 版のセッション開始時に、ブラウザに保存された設定をサーバーの上限まで下げる。
+
+    効く値は ``build_options`` でいつも小さい方になるが、設定画面に上限より大きい数字
+    （デスクトップの既定の 50 MiB など）が出たままだと、効いている値と食い違って見えるため。
+    """
+    web = state.web
+    if web is None:
+        return
+    s = state.settings
+    s.max_input_mib = max(1, min(s.max_input_mib, web.max_input_bytes // (1024 * 1024)))
+    s.timeout_seconds = min(s.timeout_seconds, web.timeout_seconds)
+
+
 def build_options(state: GuiState) -> Options:
     """GuiState から、その 1 回の評価に使う不変の Options を作る。
 

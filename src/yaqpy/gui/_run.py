@@ -15,7 +15,7 @@ from yaqpy.gui._prefs import load_settings, save_settings
 from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.pages.main_page import MainPage
 from yaqpy.gui.pages.settings_page import SettingsPage
-from yaqpy.gui.state import GuiState
+from yaqpy.gui.state import GuiState, clamp_settings_to_web_limits
 from yaqpy.gui.web_config import WebRuntime
 
 # 窓を閉じてから、クライアントの後始末を待つ時間（秒）
@@ -55,6 +55,7 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
 
     state = GuiState(web=web.config.limits() if web else None)
     state.settings = await load_settings(sp)   # allow_env / allow_file は既定のまま（U1）
+    clamp_settings_to_web_limits(state)        # Web 版：保存値をサーバーの上限まで下げて表示する
     if web is None:
         # 画面を組み立てる前に 1 回だけ（U4）。Web 版はサーバーの起動時に 1 回だけ選ぶ
         # （texts はプロセスで共有されるので、タブごとに選ぶと文言が混ざる）。

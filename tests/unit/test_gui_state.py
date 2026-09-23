@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from yaqpy.gui.state import GuiState, WebLimits, build_options, truncate_for_display
+from yaqpy.gui.state import (
+    GuiState,
+    WebLimits,
+    build_options,
+    clamp_settings_to_web_limits,
+    truncate_for_display,
+)
 
 
 class BuildOptionsTests:
@@ -113,3 +119,26 @@ class DiTests:
         assert "props" in output_format_choices()
         assert extension_for("json") == "json"
         assert extension_for("props") == "properties"
+
+
+class ClampToWebLimitsTests:
+    MIB = 1024 * 1024
+
+    def test_saved_values_above_the_cap_are_lowered(self) -> None:
+        state = GuiState(web=WebLimits(max_input_bytes=10 * self.MIB, timeout_seconds=10.0))
+        state.settings.max_input_mib = 50
+        state.settings.timeout_seconds = 60.0
+        clamp_settings_to_web_limits(state)
+        assert (state.settings.max_input_mib, state.settings.timeout_seconds) == (10, 10.0)
+
+    def test_smaller_values_are_kept(self) -> None:
+        state = GuiState(web=WebLimits(max_input_bytes=10 * self.MIB, timeout_seconds=10.0))
+        state.settings.max_input_mib = 3
+        state.settings.timeout_seconds = 2.0
+        clamp_settings_to_web_limits(state)
+        assert (state.settings.max_input_mib, state.settings.timeout_seconds) == (3, 2.0)
+
+    def test_desktop_is_untouched(self) -> None:
+        state = GuiState()
+        clamp_settings_to_web_limits(state)
+        assert state.settings.max_input_mib == 50
