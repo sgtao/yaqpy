@@ -49,6 +49,7 @@ GUI_FLET_FREE_MODULES = {
     "yaqpy.gui.web_assets",
     "yaqpy.gui.ask_ai",
     "yaqpy.gui.expression_file",
+    "yaqpy.gui.run_log",
     "yaqpy.gui.app",
 }
 
