@@ -14,7 +14,7 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 
 - **書式を壊さない**：コメント、キーの並び順、アンカー（`&` / `*`）、数値やクォートの元の書き方（`0x1F`、`1.50`、`'yes'`）を保持したまま更新できます
 - **依存ライブラリなし**：実行に必要なのは Python 3.13 以上だけです（GUI を使うときだけ任意で Flet を追加。ブラウザで使う Web 版は flet-web も）
-- **3 通りの使い方**：コマンド（`yaqpy`）／ Python ライブラリ（`import yaqpy`）／ GUI（デスクトップの `yaqpy-gui`、ブラウザで使う `yaqpy-gui --web`）
+- **3 通りの使い方**：コマンド（`yaqpy`）／ Python ライブラリ（`import yaqpy`）／ GUI（デスクトップの `yaqpy-gui`、ブラウザで使う `yaqpy-web`）
 - **対応フォーマット**：
 
   | 形式 | 入力 | 出力 |
@@ -100,7 +100,8 @@ yaqpy.update(".server.port = 9090", {"server": {"port": 8080}})  # {'server': {'
 
 ```bash
 yaqpy-gui                # または: yaqpy --gui
-yaqpy-gui --web          # ブラウザで使う（http://127.0.0.1:8550/。yaqpy[web] が必要）
+yaqpy-web                # ブラウザで使う（http://127.0.0.1:8550/。yaqpy[web] が必要）。または: yaqpy --web
+yaqpy-web --port 9000    # ポートを変える（オプションは yaqpy-web --help）
 ```
 
 ## ドキュメント
