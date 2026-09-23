@@ -40,7 +40,7 @@ class DesktopTests:
         main_entry.assert_not_called()
 
     @pytest.mark.parametrize("argv", [["--host", "0.0.0.0"], ["--port", "9000"],
-                                      ["--lang", "en"], ["--no-browser"],
+                                      ["--lang", "en"], ["--no-browser"], ["--no-cdn"],
                                       ["--max-input-mib", "5"], ["--timeout", "3"],
                                       ["--max-concurrent-runs", "3"]])
     def test_web_only_options_need_web(self, argv: list[str]) -> None:
@@ -61,10 +61,12 @@ class WebTests:
     def test_options_reach_the_config(self) -> None:
         with mock.patch.object(app, "web_entry", return_value=0) as web_entry:
             run(["--web", "--host", "0.0.0.0", "--port", "9000", "--lang", "en", "--no-browser",
-                 "--max-input-mib", "4", "--timeout", "2.5", "--max-concurrent-runs", "3"])
+                 "--no-cdn", "--max-input-mib", "4", "--timeout", "2.5",
+                 "--max-concurrent-runs", "3"])
         config = web_entry.call_args.args[0]
         assert config == WebConfig(host="0.0.0.0", port=9000, language="en", open_browser=False,
-                                   max_input_mib=4, timeout_seconds=2.5, max_concurrent_runs=3)
+                                   use_cdn=False, max_input_mib=4, timeout_seconds=2.5,
+                                   max_concurrent_runs=3)
         assert config.exposed
 
     def test_a_file_cannot_be_served_from_the_server_disk(self) -> None:

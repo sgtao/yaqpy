@@ -51,6 +51,9 @@ class WebConfig:
     port: int = DEFAULT_PORT
     language: str = texts.DEFAULT_LANGUAGE
     open_browser: bool = True
+    use_cdn: bool = True
+    """Web クライアントの CanvasKit・フォントを CDN から読む（Flet の既定）。False だと同梱の
+    資産だけで動くが、**日本語の文字が表示されない**（□ になる。v0.6.0 の実測）。"""
     max_input_mib: int = DEFAULT_MAX_INPUT_MIB
     timeout_seconds: float = DEFAULT_TIMEOUT_SECONDS
     max_concurrent_runs: int = DEFAULT_MAX_CONCURRENT_RUNS

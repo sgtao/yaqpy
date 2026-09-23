@@ -57,7 +57,9 @@ def build_app(runtime: WebRuntime):
         upload_endpoint_path=UPLOAD_ENDPOINT,
         max_upload_size=runtime.config.max_input_bytes,   # 画面の事前確認をすり抜けても 413
         secret_key=secrets.token_urlsafe(32),             # アップロード URL の署名（起動ごとに作る）
-        no_cdn=True,                                      # 同梱のクライアント資産だけを使う
+        # CDN を使わないと日本語のフォントが無く「□」になった（v0.6.0 の実測）。既定は Flet と同じ
+        # CDN。オフライン向けに --no-cdn（その場合は --lang en を勧める）。
+        no_cdn=not runtime.config.use_cdn,
         app_name=texts.APP_TITLE,
     )
 

@@ -61,7 +61,7 @@ def web_entry(config: WebConfig, *, stderr: TextIO | None = None) -> int:
     return 0
 
 
-_WEB_ONLY = ("host", "port", "lang", "no_browser", "max_input_mib", "timeout",
+_WEB_ONLY = ("host", "port", "lang", "no_browser", "no_cdn", "max_input_mib", "timeout",
              "max_concurrent_runs")
 
 
@@ -90,6 +90,9 @@ def build_parser() -> argparse.ArgumentParser:
                      help="display language for every browser (default ja)")
     web.add_argument("--no-browser", action="store_true", default=None,
                      help="do not open the default browser at startup")
+    web.add_argument("--no-cdn", action="store_true", default=None,
+                     help="do not load the web client's renderer and fonts from a CDN (works "
+                          "offline, but Japanese text is not displayed; use --lang en)")
     web.add_argument("--max-input-mib", type=int, default=None,
                      help=f"largest file or paste accepted, in MiB (default {DEFAULT_MAX_INPUT_MIB})")
     web.add_argument("--timeout", type=float, default=None,
@@ -133,6 +136,7 @@ def cli_entry(argv: Sequence[str] | None = None, *, stderr: TextIO | None = None
             port=DEFAULT_PORT if ns.port is None else ns.port,
             language=ns.lang or texts.DEFAULT_LANGUAGE,
             open_browser=not ns.no_browser,
+            use_cdn=not ns.no_cdn,
             max_input_mib=DEFAULT_MAX_INPUT_MIB if ns.max_input_mib is None else ns.max_input_mib,
             timeout_seconds=DEFAULT_TIMEOUT_SECONDS if ns.timeout is None else ns.timeout,
             max_concurrent_runs=(DEFAULT_MAX_CONCURRENT_RUNS if ns.max_concurrent_runs is None

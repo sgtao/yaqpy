@@ -138,7 +138,7 @@
 | 0 | **待ち受けアドレス** | `ft.run(main, host=None, view=WEB_BROWSER)` は **`0.0.0.0` と `::`（全インターフェース）で待ち受けた**（`Get-NetTCPConnection` で確認）。uvicorn の `Config(host=None)` がそのまま渡るため。**yaqpy は `127.0.0.1` を必ず明示する** |
 | 1 | ファイル選択 | `pick_files()` の `path` は **常に `None`**（`FilePickerFile.path` の docstring どおり）。中身の受け取り方は 2 通り（7-2）。**yaqpy はアップロード経路（B）を採る** |
 | 2 | 保存 | `save_file(file_name=…, src_bytes=…)` で**ブラウザのダウンロード**になった。中身はバイト単位で一致（UTF-8 の日本語を含む 12 バイト）。戻り値は `None`。`src_bytes`・`file_name` が無いと Web では `ValueError`（ソースで確認） |
-| 3 | クリップボード | 組み込みブラウザでは `ft.Clipboard().set()` が **`PlatformException(copy_fail, Clipboard.setData failed.)`** で失敗した。`navigator.permissions.query({name: "clipboard-write"})` が `denied`（`isSecureContext` は true、`document.hasFocus()` も true）で、**このブラウザの権限の方針**による。一般のブラウザでは未確認。**コピーは失敗しうる前提で、例外を受けて案内を出す** |
+| 3 | クリップボード | 組み込みブラウザでは `ft.Clipboard().set()` が **`PlatformException(copy_fail, Clipboard.setData failed.)`** で失敗した。`navigator.permissions.query({name: "clipboard-write"})` が `denied`（`isSecureContext` は true、`document.hasFocus()` も true）で、**このブラウザの権限の方針**による。一般のブラウザでは未確認。**コピーは失敗しうる前提で、例外を受けて案内を出す**。なお、実装後の yaqpy（同じ組み込みブラウザ）では、ボタンのクリックからのコピーが**成功した**（OS のクリップボードに書き込まれた）。成否は環境（ブラウザの権限・操作の直後かどうか）で変わる |
 | 4 | `SharedPreferences` | Web でも `set` / `get` が動いた。保存先は**ブラウザ側**で、同じブラウザの 2 つ目のタブでは前の値が読めた（タブ間で共有される） |
 | 5 | デスクトップ専用 API | `page.web` は `True`、`page.platform` は `WINDOWS`（ブラウザの OS）。`page.window.width`・`prevent_close`・`on_event` への代入は**例外にならない**（効果もない）。終了ボタン・窓のイベントは Web では出さない／登録しない |
 | 6 | 同時利用の分離 | 2 つのタブはそれぞれ**別の `Page`（別セッション）**で `main` が呼ばれ、入力が混ざらなかった。**同じタブの再読み込みは同じセッションに戻る**（前の状態が残る）。モジュールの大域変数はプロセスで共有されるので、アプリ側の大域変数（`texts.select_language` など）は分離されない |
@@ -161,7 +161,7 @@
 ### 7-3. そのほか
 
 - `flet-web` が無いと、`ft.run(view=WEB_BROWSER)` は実行時に pip で `flet-web` を入れようとする（`ensure_flet_web_package_installed`）。yaqpy は extra（`[web]`）で入れる
-- Web クライアント一式（`canvaskit` など、約 73 MB）は `flet_web/web/` に同梱されている。`no_cdn=True` で CDN を使わない（外部へ取りに行かない）
+- Web クライアント一式（`canvaskit` など、約 73 MB）は `flet_web/web/` に同梱されている。`no_cdn=True` で CDN を使わない（外部へ取りに行かない）。**ただし `no_cdn=True` では日本語の文字が「□」になった**（実装後の実機確認。英数字は表示される。`FLET_WEB_NO_CDN=false` で CDN を使うと正しく表示された）。Flutter の Web は OS のフォントを使えず、同梱の資産に日本語のフォントが無いため。**yaqpy の既定は CDN を使う**（Flet の既定と同じ）。オフライン向けに `--no-cdn`（`--lang en` を勧める）
 - `view=WEB_BROWSER` は起動時に**既定のブラウザを開く**（`webbrowser`）。`FLET_FORCE_WEB_SERVER=1` なら開かない。自分で uvicorn を組む場合はどちらも関係しない
 - Linux で `DISPLAY` が無い（ヘッドレス）と、Flet は `ft.run` を強制的に Web サーバーにする（`is_linux_server()`）
 
