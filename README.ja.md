@@ -1,8 +1,19 @@
-# yaqpy
+[English](README.md) | **日本語**
 
-YAML / JSON をコマンドや Python から、**式で取り出し・更新・変換**するための軽量ツールです。
+<p align="center">
+  <img src="logo.svg" alt="yaqpy — YAML and more, Query editor in Python" width="600">
+</p>
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)](https://www.python.org/downloads/)
+[![GitHub release](https://img.shields.io/github/v/release/sgtao/yaqpy.svg)](https://github.com/sgtao/yaqpy/releases)
+
+# yaqpy — YAML and more, Query editor in Python
+
+YAML をはじめ複数のフォーマットを、コマンドや Python から**式で取り出し・更新・変換**するための軽量ツールです。
 - 人気の CLI ツール [mikefarah/yq](https://github.com/mikefarah/yq)（Go 版 v4.53.6）の式言語を模倣
 - **Python の標準ライブラリだけ**で再実装してます
+- 名前は **Y**AML **A**nd more, **Q**uery editor in **PY**thon の略です
 
 ```console
 $ yaqpy '.server.port' config.yaml
@@ -37,31 +48,36 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 
 ## インストール
 
-Python 3.13 以上が必要です。yaqpy は PyPI には公開していないので、**GitHub のリリース**から入れます。
+Python 3.13 以上が必要です。**PyPI** から `pip` か `uv` で入れます。
 
-1. [Releases](https://github.com/sgtao/yaqpy/releases) で、入れたい版を選びます（最新版が一番上です）
-2. 次のコマンドの **`0.5.0`（と `v0.5.0`）を、選んだ版の番号に読み替えて**実行します
+```bash
+pip install yaqpy                   # コマンドとライブラリ（依存ライブラリなし）
+pip install "yaqpy[gui]"            # ＋デスクトップ GUI（Flet が追加されます）
+pip install "yaqpy[web]"            # ＋ブラウザで使う Web 版（Flet と flet-web が追加されます）
+```
+
+[uv](https://docs.astral.sh/uv/) を使う場合：
+
+```bash
+uv tool install yaqpy               # yaqpy コマンドとして入れる
+uv tool install "yaqpy[gui,web]"    # yaqpy-gui・yaqpy-web を使うための部品も一緒に
+uvx yaqpy '.server.port' config.yaml   # 入れずに 1 回だけ実行する
+uv add yaqpy                        # uv のプロジェクトでライブラリとして使う
+```
+
+新しい版に更新するときは、`pip install -U yaqpy` や `uv tool upgrade yaqpy` を実行します。
+
+**GitHub のリリースから入れる**（PyPI に無い版を入れたいときなど）：[Releases](https://github.com/sgtao/yaqpy/releases) で入れたい版を選び、次のコマンドの **`0.6.0`（と `v0.6.0`）を、選んだ版の番号に読み替えて**実行します。
 
 ```bash
 # ビルド済みの wheel から入れる（Git は不要）
-pip install https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.6.0/yaqpy-0.6.0-py3-none-any.whl"
 
-# GUI も使う場合（Flet が追加されます）
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl"
-
-# コマンドとして入れる場合（uv）
-uv tool install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl"
+# Git がある場合は、タグを指定して
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.6.0"
 ```
 
-Git がある場合は、タグを指定して入れることもできます。
-
-```bash
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.5.0"
-```
-
-ブラウザで使う Web 版（v0.6.0 から）を入れるときは、`yaqpy[gui]` を **`yaqpy[web]`**（両方なら `yaqpy[gui,web]`）に読み替えます。
-
-新しい版に更新するときは、新しい版の番号で同じコマンドを実行します。ソースを見たい・改造したい場合は [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。
+`[gui]` の部分は、入れたいものに合わせて外す・`[web]`・`[gui,web]` に変えられます（`[web]` は v0.6.0 から）。ソースを見たい・改造したい場合は [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。
 
 ## クイックスタート
 
@@ -111,6 +127,7 @@ yaqpy-web --port 9000    # ポートを変える（オプションは yaqpy-web 
 | コマンド・各形式（XML・CSV・TOML・properties・TOON）・スキーマの出力・ライブラリの使い方、対応演算子、Go 版 yq との違い | [USAGE.ja.md](USAGE.ja.md) |
 | GUI の使い方（画面の見方、式の書き方、保存・設定・エラー） | [USAGE-GUI.ja.md](USAGE-GUI.ja.md) |
 | 開発者向け（セットアップ、設計、テスト、リポジトリ構成） | [DEVELOPMENT.md](DEVELOPMENT.md) |
+| この README の英語版（PyPI のページにも表示） | [README.md](README.md) |
 | 版ごとの変更（できること、既知の制限） | [CHANGELOG.md](CHANGELOG.md) |
 
 ## License

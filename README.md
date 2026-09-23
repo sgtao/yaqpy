@@ -50,7 +50,7 @@ With [uv](https://docs.astral.sh/uv/):
 
 ```bash
 uv tool install yaqpy               # install the yaqpy command
-uv tool install "yaqpy[gui,web]"    # ... with yaqpy-gui and yaqpy-web as well
+uv tool install "yaqpy[gui,web]"    # ... with what yaqpy-gui and yaqpy-web need
 uvx yaqpy '.server.port' config.yaml   # run it once without installing
 uv add yaqpy                        # use it as a library in a uv project
 ```
