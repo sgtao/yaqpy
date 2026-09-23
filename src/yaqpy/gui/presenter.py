@@ -6,6 +6,7 @@ import asyncio
 import os
 from collections.abc import Callable
 from dataclasses import dataclass, replace
+from datetime import datetime
 from typing import Protocol
 
 from yaqpy.app.dto import EvalMode, EvaluateRequest, EvaluateResult, InputSource
@@ -15,7 +16,7 @@ from yaqpy.app.selfdoc import render_guide_prompt
 from yaqpy.app.service import YqService
 from yaqpy.core.engine.limits import StepBudget
 from yaqpy.errors import UnknownFormatError
-from yaqpy.gui import expression_file, intake, texts
+from yaqpy.gui import expression_file, intake, run_log, texts
 from yaqpy.gui.errors_ja import ErrorViewModel, to_view_model
 from yaqpy.gui.paths import DEFAULT_MAX_DEPTH, DEFAULT_MAX_ITEMS, PathCandidate, collect_paths
 from yaqpy.gui.state import AUTO, DocumentState, GuiState, build_options, truncate_for_display
@@ -110,6 +111,29 @@ class DownloadViewModel:
         return self.error is None
 
 
+@dataclass(frozen=True, slots=True)
+class RecordSource:
+    """実行ログに記録するために、**実行した時点**の要求と入力を控えたもの（v0.7.0）。
+
+    記録は結果を画面に出した後に別タスクで走るので、その間に状態（式・文書）が変わっても、
+    ボタンを押した回の内容を記録できるよう、``run()`` が要求の組み立てと同時に控える。
+    """
+
+    request: EvaluateRequest
+    inputs: tuple[run_log.LogInput, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class RecordViewModel:
+    """実行ログの記録の結果。``recorded`` が偽なら、理由が ``skipped``（記録しなかった）か
+    ``error``（書き込みに失敗した）に入る。"""
+
+    recorded: bool = False
+    path: str = ""
+    skipped: str = ""            # "web" / "disabled" / "failed_run" / "duplicate"
+    error: str = ""
+
+
 class RunGatePort(Protocol):
     """サーバー全体の同時実行数の関門（``yaqpy.gui.web_config.RunGate``）。"""
 
@@ -130,6 +154,8 @@ class MainPresenter:
         self._run_gate = run_gate            # Web 版だけ（全セッションで共有。v0.6.0）
         self._budget: StepBudget | None = None
         self._last_run: RunViewModel | None = None
+        self._last_source: RecordSource | None = None
+        self._last_log_key: str | None = None      # 最後に記録した内容のキー（重複除外。再起動で消える）
         self._candidates: list[PathCandidate] = []
 
     # ------------------------------------------------------------------ 開く
@@ -310,6 +336,7 @@ class MainPresenter:
         # 失敗した実行のあとに、古い成功結果が「保存できる結果」として残らないようにする
         # （表示と保存がずれない：不変条件 S2）。成功したときだけ、下で入れ直す。
         self._last_run = None
+        self._last_source = None
         validation = self.validate(self.state.query.expression)
         if not validation.valid:
             return RunViewModel(error=ErrorViewModel("expression_syntax", validation.message,
@@ -317,6 +344,7 @@ class MainPresenter:
                                                      position=validation.position))
 
         request = self._build_request()
+        source = RecordSource(request=request, inputs=self._log_inputs())
         gate = self._run_gate
         if gate is not None and not gate.try_enter():
             return RunViewModel(error=ErrorViewModel("busy", texts.ERR_SERVER_BUSY))
@@ -334,6 +362,7 @@ class MainPresenter:
                 gate.leave()
         vm = self._success(result)
         self._last_run = vm
+        self._last_source = source
         return vm
 
     def _for_this_mode(self, error: ErrorViewModel) -> ErrorViewModel:
@@ -348,6 +377,11 @@ class MainPresenter:
         budget = self._budget
         if budget is not None:
             budget.cancel()
+
+    @property
+    def last_source(self) -> RecordSource | None:
+        """最後に成功した ``run()`` の要求と入力（実行ログ用。``last_run`` と同じ回のもの）。"""
+        return self._last_source
 
     @property
     def last_run(self) -> RunViewModel | None:
@@ -618,6 +652,70 @@ class MainPresenter:
     def _evaluate_sync(self, request: EvaluateRequest, budget: StepBudget) -> EvaluateResult:
         """別スレッドで動く同期部分。ここだけが重い。"""
         return self._service.evaluate(request, MemorySink(), budget=budget)
+
+    def _log_inputs(self) -> tuple[run_log.LogInput, ...]:
+        """この回の評価に渡す文書を、ログに記録する形にする（``_build_request`` と同じ選び方）。"""
+        if self.state.eval_all and self.state.has_multiple_documents:
+            documents = self.state.documents
+        else:
+            documents = [self.state.document]
+        return tuple(run_log.LogInput(name=d.name or texts.MSG_PASTED, text=d.original_text,
+                                      path=d.path, edited=d.edited) for d in documents)
+
+    # ------------------------------------------------------------------ 実行ログ（v0.7.0）
+
+    def log_dir(self) -> str:
+        """実行ログの保存先（設定が空なら OS ごとの既定）。"""
+        return self.state.settings.log_dir or run_log.default_log_dir()
+
+    async def record_run(self, source: RecordSource, vm: RunViewModel) -> RecordViewModel:
+        """成功した実行を、実行ログに 1 ファイル書く。**「実行」ボタンで始まった回だけ**呼ぶこと
+        （自動の再実行は呼び出し側が呼ばない）。
+
+        記録しないとき：Web 版・設定でオフ・失敗した実行・直前に記録した内容と同じ。
+        書き込みに失敗しても例外にせず、``error`` で返す（実行結果には影響させない）。
+        """
+        if self.state.is_web:
+            return RecordViewModel(skipped="web")
+        settings = self.state.settings
+        if not settings.log_enabled:
+            return RecordViewModel(skipped="disabled")
+        if not vm.ok:
+            return RecordViewModel(skipped="failed_run")
+        entry = self._log_entry(source, vm)
+        key = run_log.dedupe_key(entry)
+        if key == self._last_log_key:
+            return RecordViewModel(skipped="duplicate")
+        root = self.log_dir()
+        try:
+            path = await asyncio.to_thread(self._write_log_sync, root, entry,
+                                           settings.log_max_entry_mib * 1024 * 1024,
+                                           settings.log_max_files)
+        except Exception as e:                      # noqa: BLE001 - 記録の失敗で画面を止めない
+            return RecordViewModel(error=str(e) or type(e).__name__)
+        self._last_log_key = key                    # 書き込みに成功したときだけ更新する
+        return RecordViewModel(recorded=True, path=path)
+
+    def _log_entry(self, source: RecordSource, vm: RunViewModel) -> run_log.LogEntry:
+        request = source.request
+        security = request.options.security
+        return run_log.LogEntry(
+            timestamp=datetime.now().astimezone(), expression=request.expression,
+            inputs=source.inputs, input_format=vm.input_format,
+            input_selected=request.input_format or AUTO, output_format=vm.output_format,
+            output_selected=request.output_format or AUTO, output_text=vm.full_text,
+            indent=request.options.indent, eval_all=request.mode is EvalMode.ALL,
+            document_count=vm.document_count, elapsed_ms=vm.elapsed_ms,
+            allow_env=security.allow_env, allow_file=security.allow_file,
+            options=request.options)
+
+    def _write_log_sync(self, root: str, entry: run_log.LogEntry, max_entry_bytes: int,
+                        max_files: int) -> str:
+        """別スレッドで動く。組み立て・書き込み・件数の整理。"""
+        built = run_log.build_log(entry, max_entry_bytes=max_entry_bytes)
+        path = run_log.write_log(root, entry, built, self._fs.write_file)
+        run_log.prune_logs(root, max_files)
+        return path
 
     def _build_request(self) -> EvaluateRequest:
         q = self.state.query

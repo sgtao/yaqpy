@@ -26,6 +26,7 @@ TIP_EXPR_PASTE = "クリップボードの内容を式欄に貼り付け（式�
 TIP_EXPR_COPY = "式をコピー"
 TIP_EXPR_CLEAR = "式をクリア"
 MSG_EXPR_COPIED = "式をクリップボードにコピーしました"
+MSG_LOG_WRITE_FAILED = "実行ログを保存できませんでした：{reason}"
 TIP_EXPR_LOAD = "式を読み込む（.yaqpy）"
 TIP_EXPR_SAVE = "式を保存（.yaqpy）"
 MSG_EXPR_LOADED = "式を読み込みました: {name}"
@@ -202,6 +203,7 @@ _EN: dict[str, str] = {
     "TIP_EXPR_COPY": "Copy the expression",
     "TIP_EXPR_CLEAR": "Clear the expression",
     "MSG_EXPR_COPIED": "Copied the expression to the clipboard",
+    "MSG_LOG_WRITE_FAILED": "Could not save the run log: {reason}",
     "TIP_EXPR_LOAD": "Load an expression (.yaqpy)",
     "TIP_EXPR_SAVE": "Save the expression (.yaqpy)",
     "MSG_EXPR_LOADED": "Loaded the expression: {name}",

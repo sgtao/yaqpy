@@ -21,7 +21,7 @@ from yaqpy.gui.errors_ja import caret_line
 from yaqpy.gui.pages.clipboard import get_clipboard, set_clipboard
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
 from yaqpy.gui.presenter import (
-    ExpressionFileViewModel, MainPresenter, RunViewModel, ValidationViewModel,
+    ExpressionFileViewModel, MainPresenter, RecordSource, RunViewModel, ValidationViewModel,
 )
 from yaqpy.gui.state import AUTO, GuiState
 
@@ -72,6 +72,9 @@ class MainPage:
         self._uploader = uploader
         self._web = state.is_web
         self._rerun_requested = False
+        # 「実行」ボタン（式欄の Enter を含む）で始まった実行だけを実行ログに記録する（v0.7.0）。
+        # 実行中に押されて後回しになった場合も要求を落とさないよう、フラグとして持ち回る
+        self._record_requested = False
         self._validate_token = 0
 
         # --- ファイルバー ---
@@ -818,6 +821,7 @@ class MainPage:
     async def _on_run(self, e: ft.Event) -> None:
         self._validate_token += 1            # 走りかけのデバウンスを無効化
         self._apply_validation(self._p.validate(self._state.query.expression))
+        self._record_requested = True        # このボタンで始まった実行だけを記録する（6-1 節）
         await self._run()
 
     def _on_cancel(self, e: ft.Event[ft.Button]) -> None:
@@ -917,20 +921,35 @@ class MainPage:
         こうしないと、実行中に形式を切り替えたときに古い設定の結果が画面に残る。
         """
         if not self._state.document.is_loaded:
+            self._record_requested = False
             return
         if self._state.running:
             self._rerun_requested = True
             return
         while True:
             self._rerun_requested = False
+            record_now, self._record_requested = self._record_requested, False
             self._set_running(True)
             self._page.update()             # 実行前に「実行中」を見せる
             vm = await self._p.run()
+            # 次の await の前に取り出す：記録は別タスクで走り、その間に自動の再実行が
+            # ``last_source`` を書き換えるため、この回の要求を引数で渡す（6-1 節）
+            source = self._p.last_source if vm.ok else None
             self._set_running(False)
             self._apply(vm)
             self._page.update()             # 実行後にも update する（Flet 1.0 の実測）
+            if record_now and source is not None:
+                self._page.run_task(self._record, source, vm)
             if not self._rerun_requested:
                 return
+
+    async def _record(self, source: RecordSource, vm: RunViewModel) -> None:
+        """実行ログへの記録（結果を画面に出した後。失敗しても実行結果には影響させない）。"""
+        result = await self._p.record_run(source, vm)
+        if result.error:
+            self._page.show_dialog(ft.SnackBar(ft.Text(
+                texts.MSG_LOG_WRITE_FAILED.format(reason=result.error))))
+            self._page.update()
 
     def _set_running(self, running: bool) -> None:
         self._progress.visible = running
