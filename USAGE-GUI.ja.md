@@ -30,10 +30,10 @@ YAML / JSON のファイルを開いて、**必要な部分だけを取り出し
 [toTop](#toreadme)
 ## 1. 起動する
 
-**GitHub のリリースから入れた場合**（詳しくは [README のインストール](README.ja.md#インストール)）。`0.5.0` は入れた版の番号に読み替えます。
+**PyPI から入れる場合**（GitHub のリリースから入れる方法などは [README のインストール](README.ja.md#インストール)）
 
 ```bash
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl"
+pip install "yaqpy[gui]"          # または: uv tool install "yaqpy[gui]"
 yaqpy-gui                 # 専用コマンドで起動
 yaqpy --gui               # こちらでも同じ画面が開きます
 ```
@@ -679,7 +679,7 @@ v0.6.0 から、**同じ画面をブラウザで**使えます。アプリの窓
 
 ### 15-1. 起動する
 
-Web 版には、GUI の部品（flet）に加えて **flet-web** が要ります。`yaqpy[gui]` の代わりに **`yaqpy[web]`**（両方なら `yaqpy[gui,web]`）で入れます。リポジトリを clone した場合は次のとおりです。
+Web 版には、GUI の部品（flet）に加えて **flet-web** が要ります。`yaqpy[gui]` の代わりに **`yaqpy[web]`**（両方なら `yaqpy[gui,web]`）で入れます（`pip install "yaqpy[web]"` または `uv tool install "yaqpy[web]"`）。リポジトリを clone した場合は次のとおりです。
 
 ```bash
 uv sync --extra web                  # Web 版の部品（flet と flet-web）が入ります
