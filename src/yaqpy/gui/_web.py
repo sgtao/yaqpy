@@ -16,21 +16,24 @@
 from __future__ import annotations
 
 import asyncio
+import atexit
 import secrets
 import shutil
 import tempfile
 import threading
 import time
 import webbrowser
+from pathlib import Path
 from typing import TextIO
 
 import flet as ft
 import flet.fastapi as flet_fastapi
+import flet_web
 import uvicorn
 
 from yaqpy.gui import texts
 from yaqpy.gui._run import _main
-from yaqpy.gui.logo import WEB_ASSETS_DIR
+from yaqpy.gui.web_assets import build_assets_dir
 from yaqpy.gui.web_config import RunGate, WebConfig, WebRuntime
 
 UPLOAD_ENDPOINT = "upload"          # 先頭に "/" を付けない（付けると "//upload" になり 405。W0）
@@ -43,6 +46,14 @@ def ws_max_size(config: WebConfig) -> int:
     """WebSocket の 1 通の上限。貼り付け・原文の追加編集は WebSocket で届くので、入力の上限より
     少し大きくしておく（上限いっぱいの貼り付けで接続が切れないように。W0）。"""
     return max(WS_DEFAULT_MAX_SIZE, config.max_input_bytes + WS_MARGIN)
+
+
+def _make_assets_dir() -> str:
+    """ロゴとドロップ用スクリプトを入れた ``index.html`` を、一時フォルダに作る（終了時に消す）。"""
+    root = tempfile.mkdtemp(prefix="yaqpy-web-assets-")
+    atexit.register(shutil.rmtree, root, ignore_errors=True)
+    flet_index = Path(flet_web.__file__).resolve().parent / "web" / "index.html"
+    return str(build_assets_dir(root, flet_index=flet_index))
 
 
 def build_app(runtime: WebRuntime):
@@ -61,8 +72,9 @@ def build_app(runtime: WebRuntime):
         # CDN。オフライン向けに --no-cdn（その場合は --lang en を勧める）。
         no_cdn=not runtime.config.use_cdn,
         app_name=texts.APP_TITLE,
-        # yaqpy のロゴ（favicon・読み込み中の画面）。Flet は同梱のクライアントより先にここを見る
-        assets_dir=str(WEB_ASSETS_DIR),
+        # yaqpy のロゴ（favicon・読み込み中の画面）と、ファイルのドロップを受ける index.html。
+        # Flet は同梱のクライアントより先にここを見る（gui/web_assets.py）
+        assets_dir=_make_assets_dir(),
     )
 
 

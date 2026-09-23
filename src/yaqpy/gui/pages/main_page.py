@@ -335,6 +335,16 @@ class MainPage:
             await self._reload_candidates()
         self._page.update()                 # async ハンドラは終了時にも update する
 
+    async def add_dropped_files(self) -> None:
+        """Web 版：ブラウザにドロップされたファイルを開く（``yaqpy-drop.js`` が通知する。v0.7.0）。
+
+        ドロップされた File は、JS が「ファイルを選んだこと」にして ``pick_files`` へ渡すので、
+        [＋ファイルを追加] と同じ経路（サイズの事前確認・アップロード・上限）を通る。
+        """
+        if self._uploader is None:
+            return
+        await self._add_uploaded_files()
+
     async def _add_uploaded_files(self) -> None:
         """Web 版の [＋ファイルを追加]：ブラウザから送らせて開く（``_on_add_file`` と同じ規則）。"""
         assert self._uploader is not None

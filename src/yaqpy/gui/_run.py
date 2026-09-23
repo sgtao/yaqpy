@@ -17,6 +17,7 @@ from yaqpy.gui.logo import WINDOW_ICON
 from yaqpy.gui.pages.main_page import MainPage
 from yaqpy.gui.pages.settings_page import SettingsPage
 from yaqpy.gui.state import GuiState, clamp_settings_to_web_limits
+from yaqpy.gui.web_assets import is_drop_route
 from yaqpy.gui.web_config import WebRuntime
 
 # 窓を閉じてから、クライアントの後始末を待つ時間（秒）
@@ -164,6 +165,18 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
             uploader.cleanup()                # Web 版：このタブが受け取ったものを残さない
 
     page.on_close = on_close
+
+    if web is not None:
+        async def on_route_change(e: ft.RouteChangeEvent) -> None:
+            """ファイルのドロップ（``yaqpy-drop.js``）の通知。Main 画面に切り替えて開く。"""
+            if not is_drop_route(e.route):
+                return
+            await page.push_route("/")          # 通知用のルートを URL に残さない
+            show(0)
+            page.update()
+            await main_page.add_dropped_files()
+
+        page.on_route_change = on_route_change
     page.theme_mode = ft.ThemeMode.DARK if state.settings.dark_theme else ft.ThemeMode.LIGHT
 
     show(0)
