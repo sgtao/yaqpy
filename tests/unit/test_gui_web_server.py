@@ -87,6 +87,16 @@ class WebServerTests:
         assert status == 200
         assert body == FAVICON.read_bytes()
 
+    def test_serves_the_index_with_the_drop_script(self) -> None:
+        """v0.7.0：ファイルのドロップを受ける JS が index.html から読み込まれ、配られる。"""
+        with RunningServer() as running:
+            _, index = running.request("GET", "/")
+            status, script = running.request("GET", "/yaqpy-drop.js")
+        assert b'src="yaqpy-drop.js"' in index
+        assert b"<!-- fletAppConfig -->" not in index          # Flet が差し込み済み
+        assert status == 200
+        assert b"drop" in script
+
     def test_an_unsigned_upload_is_refused(self) -> None:
         """アップロードは署名つき URL だけ（ブラウザを開いた誰かが勝手に置けない）。"""
         with RunningServer() as running:

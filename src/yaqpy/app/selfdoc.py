@@ -276,6 +276,10 @@ def _prompt_operator_line(table: list[OperatorInfo]) -> str:
     return ("使える演算子：" + " ".join(usable) + "\n使えない演算子（使うと unknown operator）：" + " ".join(missing))
 
 
+GUIDE_PROMPT_PLACEHOLDER = "（ここに、入力データの例と、やりたい変換を書いてください）"
+"""相談文の末尾の「## 依頼」に置く案内の一文。GUI の「AIに相談」画面が、ここを利用者の入力で置き換える。"""
+
+
 def render_guide_prompt(service: YqService) -> str:
     table = operator_table(service.operators)
     lines = ["# yaqpy の式を書いてください", "",
@@ -292,7 +296,7 @@ def render_guide_prompt(service: YqService) -> str:
               "3. 私の入力例で実行した結果を示す。**実際に実行して確かめた結果だけ**を書く",
               "4. 一致しないときは、式・入力・実際の出力・期待した出力の 4 つを並べて直す",
               "5. うまく書けないときは、使えない機能だとはっきり書く（近い書き方で誤魔化さない）", "",
-              "## 依頼", "", "（ここに、入力データの例と、やりたい変換を書いてください）", ""]
+              "## 依頼", "", GUIDE_PROMPT_PLACEHOLDER, ""]
     return "\n".join(lines)
 
 

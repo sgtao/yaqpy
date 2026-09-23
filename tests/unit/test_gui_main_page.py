@@ -16,14 +16,17 @@ from yaqpy.app.service import YqService
 from yaqpy.gui.presenter import MainPresenter, RunViewModel
 from yaqpy.gui.state import GuiState
 
-FILES = {"/w/shop.xml": "<shop><item>pen</item></shop>\n", "/w/app.toml": "[db]\nport = 1\n"}
+FILES = {"/w/shop.xml": "<shop><item>pen</item></shop>\n", "/w/app.toml": "[db]\nport = 1\n",
+         "/w/items.csv": "a,b\n1,2\n", "/w/app.properties": "db.port = 1\n",
+         "/w/b.json": '{"b": 1}\n'}
 
 
-def make_page():
+def make_page(output_format: str = "auto"):
     from yaqpy.gui.pages.main_page import MainPage
 
     fs = InMemoryFileSystem(dict(FILES))
     state = GuiState()
+    state.query.output_format = output_format
     presenter = MainPresenter(service=YqService(fs, StaticEnvironment({})), fs=fs, state=state,
                               size_of=lambda p: len(fs.files[p].encode("utf-8")))
     page = MainPage(page=mock.MagicMock(), presenter=presenter, state=state, picker=mock.MagicMock())
@@ -338,29 +341,13 @@ class IndentStepperTests:
 
 
 @pytest.mark.skipif(ft is None, reason="flet is not installed")
-class GuidePromptDialogTests:
-    """CLI の --guide-prompt を GUI からも呼べる（要望）。
+class GuideButtonRemovedTests:
+    """v0.7.0：式バーの 🤖 は「AI に相談」タブ（ask_ai_page）へ移した。"""
 
-    実際のクリップボード操作（``ft.Clipboard().set``）は、生きた page が無いと
-    ``RuntimeError`` になる（他の ``_on_copy`` も同様に未検査）。ここではダイアログの
-    中身が正しく組み立てられることだけを確かめる。
-    """
-
-    async def test_opens_a_dialog_with_the_guide_prompt_prefilled(self) -> None:
-        from yaqpy.app.selfdoc import render_guide_prompt
-
-        page, presenter, _state = make_page()
-        await page._on_open_guide_prompt(mock.MagicMock())
-        dialog = page._page.show_dialog.call_args.args[0]
-        assert isinstance(dialog, ft.AlertDialog)
-        assert dialog.title.value == "AI への相談文"
-        field = dialog.content.controls[-1]
-        assert field.value == render_guide_prompt(presenter._service)
-
-    async def test_works_without_a_document_open(self) -> None:
-        page, _presenter, _state = make_page()
-        await page._on_open_guide_prompt(mock.MagicMock())
-        page._page.show_dialog.assert_called_once()
+    def test_the_expression_bar_has_no_guide_button(self) -> None:
+        page, _, _ = make_page()
+        assert not hasattr(page, "_guide_button")
+        assert not hasattr(page, "_on_open_guide_prompt")
 
 
 @pytest.mark.skipif(ft is None, reason="flet is not installed")
@@ -498,3 +485,133 @@ class WebSettingsPageTests:
         assert texts.SET_WEB_SECURITY_NOTE in values
         assert texts.SET_WEB_LANGUAGE_NOTE in values
         assert any(isinstance(v, str) and "10 MiB" in v for v in values)
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class OutputFormatDefaultTests:
+    """v0.7.0：出力形式の既定は YAML。「auto」は「入力と同じ」と分かる表示にする。"""
+
+    def test_a_new_state_starts_with_yaml(self) -> None:
+        assert GuiState().query.output_format == "yaml"
+
+    def test_the_output_dropdown_starts_on_yaml_and_the_badge_follows(self) -> None:
+        page, presenter, _ = make_page(output_format=GuiState().query.output_format)
+        assert page._output_dd.value == "yaml"
+
+    async def test_an_xml_file_is_shown_as_yaml_by_default(self) -> None:
+        page, presenter, _ = make_page(output_format=GuiState().query.output_format)
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        assert badge(page, "original") == (True, "xml")
+        assert badge(page, "converted") == (True, "yaml")
+
+    def test_only_the_output_auto_option_says_same_as_input(self) -> None:
+        from yaqpy.gui import texts
+
+        page, _, _ = make_page()
+        output = {o.key: o.text for o in page._output_dd.options}
+        input_ = {o.key: o.text for o in page._input_dd.options}
+        assert output["auto"] == texts.LBL_AUTO_SAME_AS_INPUT
+        assert input_["auto"] == "auto"                       # 入力の auto は自動判定の意味のまま
+        assert output["json"] == "json"
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class AddPipeTests:
+    """v0.7.0：「+ パイプを追加」は式欄の末尾に ` | ` を足すだけ（プロパティの選択と独立）。"""
+
+    def test_the_button_label_is_the_new_one(self) -> None:
+        from yaqpy.gui import texts
+
+        page, _, _ = make_page()
+        assert page._add_button.content == texts.BTN_ADD_PIPE == "+ パイプを追加"
+
+    def test_it_appends_a_pipe_to_the_expression_field(self) -> None:
+        page, presenter, state = make_page()
+        state.query.expression = ".items[]"
+        page._expr_field.value = ".items[]"
+        page._on_add_pipe(mock.MagicMock())
+        assert page._expr_field.value == ".items[] | "
+        assert state.query.expression == ".items[] | "
+
+    def test_it_does_not_run(self) -> None:
+        page, _, state = make_page()
+        state.query.expression = ".a"
+        page._on_add_pipe(mock.MagicMock())
+        page._page.run_task.assert_not_called()
+
+    def test_it_is_enabled_only_while_the_expression_is_not_empty(self) -> None:
+        page, _, _ = make_page()
+        empty = mock.MagicMock()
+        empty.control.value = "  "
+        page._on_expression_change(empty)
+        assert page._add_button.disabled
+        typed = mock.MagicMock()
+        typed.control.value = ".a"
+        page._on_expression_change(typed)
+        assert not page._add_button.disabled
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class FileChipFoldingTests:
+    """v0.7.0：ファイルのチップは先頭 2 件だけ。3 件目以降は「＋ファイル N件」のプルダウンにまとめる。"""
+
+    async def _open(self, count: int):
+        page, presenter, state = make_page()
+        names = ["/w/app.toml", "/w/shop.xml", "/w/items.csv", "/w/app.properties", "/w/b.json"]
+        for i, path in enumerate(names[:count]):
+            vm = await (presenter.open_path(path) if i == 0 else presenter.add_path(path))
+            assert vm.ok, vm.error
+        page._refresh_multi_file_ui()
+        return page, presenter, state
+
+    async def test_up_to_two_files_are_all_chips(self) -> None:
+        page, _, _ = await self._open(2)
+        assert [type(c) for c in page._files_row.controls] == [ft.Chip, ft.Chip]
+
+    async def test_a_third_file_goes_into_the_menu(self) -> None:
+        page, _, state = await self._open(3)
+        controls = page._files_row.controls
+        assert [type(c) for c in controls] == [ft.Chip, ft.Chip, ft.PopupMenuButton]
+        assert [c.label for c in controls[:2]] == [d.name for d in state.documents[:2]]
+        assert controls[2].content.content.controls[0].value == "＋ファイル 1件"
+
+    async def test_the_count_is_the_number_beyond_two(self) -> None:
+        page, _, _ = await self._open(5)
+        menu = page._files_row.controls[-1]
+        assert menu.content.content.controls[0].value == "＋ファイル 3件"
+        selects = [i for i in menu.items if i.content and not str(i.content).startswith("閉じる")]
+        assert len(selects) == 3
+
+    async def test_the_display_order_stays_the_order_opened_even_when_a_hidden_one_is_active(self) -> None:
+        """決定 D：3 件目以降がアクティブになっても、チップ側には繰り上げない。"""
+        page, presenter, state = await self._open(4)
+        presenter.select_document(3)
+        page._refresh_multi_file_ui()
+        controls = page._files_row.controls
+        assert [c.label for c in controls[:2]] == [d.name for d in state.documents[:2]]
+        assert not any(c.selected for c in controls[:2])          # チップ側は選択中でなくなる
+        menu = controls[2]
+        assert menu.content.bgcolor == ft.Colors.SECONDARY_CONTAINER   # ボタンが選択中を示す
+        checked = [i.checked for i in menu.items if i.content and i.checked is not None
+                   and not str(i.content).startswith("閉じる")]
+        assert checked == [False, True]
+
+    async def test_menu_items_select_and_close_the_right_document(self) -> None:
+        page, presenter, state = await self._open(4)
+        menu = page._files_row.controls[-1]
+        select_third = menu.items[0]
+        close_fourth = menu.items[-1]
+        assert "閉じる" in close_fourth.content
+        page._page.run_task = mock.MagicMock()
+        select_third.on_click(mock.MagicMock())
+        page._page.run_task.assert_called_once_with(page._on_select_document, 2)
+        page._page.run_task.reset_mock()
+        close_fourth.on_click(mock.MagicMock())
+        page._page.run_task.assert_called_once_with(page._on_close_document_at, 3)
+
+    async def test_the_menu_disappears_when_files_are_closed_down_to_two(self) -> None:
+        page, presenter, _ = await self._open(3)
+        presenter.close_document_at(2)
+        page._refresh_multi_file_ui()
+        assert [type(c) for c in page._files_row.controls] == [ft.Chip, ft.Chip]

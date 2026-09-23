@@ -15,6 +15,7 @@ from yaqpy.options import (
 )
 
 _TOON_DELIMITERS = {"comma": ",", "tab": "\t", "pipe": "|"}
+EXPRESSION_FILE_SUFFIXES = (".yq", ".yaqpy")
 
 
 class InvocationError(Exception):
@@ -46,7 +47,9 @@ def process_args(ns: argparse.Namespace, *, stdin_is_pipe: bool, file_exists: Ca
         if "-" not in args:
             args.append("-")
     maybe_first_is_file = len(args) > 0 and file_exists(args[0])
-    if expression_file == "" and maybe_first_is_file and args[0].endswith(".yq"):
+    # 先頭が実在する式ファイルなら、式として読む。`.yq` は Go 版と同じ。`.yaqpy` は yaqpy の拡張
+    # （GUI の「式を保存」が作る、式だけのテキスト。同梱のレシピと同じ拡張子）
+    if expression_file == "" and maybe_first_is_file and args[0].endswith(EXPRESSION_FILE_SUFFIXES):
         expression_file = args[0]
         args = args[1:]
     if expression_file != "":

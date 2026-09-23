@@ -33,10 +33,10 @@ uv run yaqpy '.server.port' examples/sample.yaml
 # 全部まとめて（並列。pytest-xdist）
 uv run pytest -n auto
 
-# ユニットテスト（1,287 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・入力形式の自動判定・GUI の Presenter など。実際にウィンドウは開きません。Web 版のサーバーは、[web] extra があれば 127.0.0.1 の空きポートで実際に起動して確かめます）
+# ユニットテスト（1,722 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・入力形式の自動判定・GUI の Presenter・実行ログ・ログ画面など。実際にウィンドウは開きません。Web 版のサーバーは、[web] extra があれば 127.0.0.1 の空きポートで実際に起動して確かめます）
 uv run pytest tests/unit -n auto
 
-# CLI 受け入れテスト（86 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など））
+# CLI 受け入れテスト（87 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など））
 uv run pytest tests/acceptance -n auto
 
 # Go 版シナリオのゴールデンテスト（演算子 1,091 件・形式 154 件）
@@ -89,7 +89,7 @@ src/yaqpy/
 │   └── builtin/                                   … 同梱の 6 レシピ（*.yaqpy ＋ *.recipe.yaml）と、3 つの API の目標スキーマ（*.schema.json）
 ├── app/                            … YqService、DTO、ポート（FileSystem/Environment）、printer（-s の SplitWriter を含む）、RecipeService（レシピの実行。常に SecurityPolicy.strict()）、selfdoc / examples（自己説明。登録表から自動生成し、例は実行して確かめる）、recipe_text（報告の文章）
 ├── cli/                            … argparse、引数解釈（純粋関数）、main、recipe_cli（--recipe ほか）、describe_cli（--print-spec ほか）
-└── gui/                            … Flet の GUI（任意依存。presenter は Flet 非依存）。_run（画面の組み立て。デスクトップ・Web 共通）、_web（Web 版のサーバー。uvicorn を使うのはここだけ）、_upload（Web 版のアップロード受け取り）、web_config（Web 版の設定・上限。Flet 非依存）、app（yaqpy-gui / yaqpy-web の入口とヘルプ）、logo と assets/（ロゴ。原本はリポジトリの assets/images で、コピーが一致することをテストで確認）
+└── gui/                            … Flet の GUI（任意依存。presenter は Flet 非依存）。pages/（main・settings・ask_ai・log の各画面と clipboard）、_run（画面の組み立て。デスクトップ・Web 共通。タブは MAIN/SETTINGS/ASK_AI/LOG の並びで、LOG はデスクトップだけ）、run_log（実行ログの組み立て・読み戻し・保存先の整理。Flet 非依存）、log_presenter（ログ画面のロジック）、expression_file（`.yaqpy` の読み書きの規則）、ask_ai（相談文への反映）、web_assets（Web 版の index.html にドロップ用のスクリプトを足す）、_web（Web 版のサーバー。uvicorn を使うのはここだけ）、_upload（Web 版のアップロード受け取り）、web_config（Web 版の設定・上限。Flet 非依存）、app（yaqpy-gui / yaqpy-web の入口とヘルプ）、logo と assets/（ロゴ。原本はリポジトリの assets/images で、コピーが一致することをテストで確認）
 tests/
 ├── unit/  acceptance/  golden/     … pytest（tests/conftest.py が golden/acceptance/gui にマーカーを付ける）
 ├── golden/formats/                 … Go 版の形式シナリオ（抽出した JSON）と formats_manifest.json

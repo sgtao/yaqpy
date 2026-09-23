@@ -35,9 +35,8 @@ class QueryState:
 
     expression: str = "."
     input_format: str = AUTO
-    output_format: str = AUTO
+    output_format: str = "yaml"      # 既定は YAML（v0.7.0）。「auto」は入力と同じ形式（GUI の表示だけの既定）
     indent: int = 2
-    pretty_print: bool = False
 
 
 @dataclass(slots=True)
@@ -55,6 +54,11 @@ class SettingsState:
     max_display_lines: int = 5000
     dark_theme: bool = False
     language: str = "ja"             # "ja" / "en"（U4）。次の起動から有効（gui/texts.py）
+    # 実行ログ（v0.7.0。デスクトップ版のみ。gui/run_log.py）。持ち越しても危険はないので永続化する
+    log_enabled: bool = True         # 「実行」で成功したときに 1 件ずつ記録する
+    log_dir: str = ""                # 空なら OS ごとの既定の保存先（run_log.default_log_dir）
+    log_max_files: int = 500         # 超えたら古いものから削除する
+    log_max_entry_mib: int = 1       # 1 件の入力（合計）・結果がこれを超えたら本文を省く
 
     @property
     def max_input_bytes(self) -> int:
@@ -84,6 +88,10 @@ def settings_to_dict(settings: SettingsState) -> dict[str, object]:
         "max_display_lines": settings.max_display_lines,
         "dark_theme": settings.dark_theme,
         "language": settings.language,
+        "log_enabled": settings.log_enabled,
+        "log_dir": settings.log_dir,
+        "log_max_files": settings.log_max_files,
+        "log_max_entry_mib": settings.log_max_entry_mib,
     }
 
 
@@ -93,12 +101,18 @@ def settings_from_dict(data: dict[str, object]) -> SettingsState:
     language = data.get("language")
     if language not in _LANGUAGES:
         language = defaults.language
+    log_dir = data.get("log_dir", defaults.log_dir)
     return SettingsState(
         timeout_seconds=_positive_float(data.get("timeout_seconds"), defaults.timeout_seconds),
         max_input_mib=_positive_int(data.get("max_input_mib"), defaults.max_input_mib),
         max_display_lines=_positive_int(data.get("max_display_lines"), defaults.max_display_lines),
         dark_theme=bool(data.get("dark_theme", defaults.dark_theme)),
         language=language,
+        log_enabled=bool(data.get("log_enabled", defaults.log_enabled)),
+        log_dir=log_dir if isinstance(log_dir, str) else defaults.log_dir,
+        log_max_files=_positive_int(data.get("log_max_files"), defaults.log_max_files),
+        log_max_entry_mib=_positive_int(data.get("log_max_entry_mib"),
+                                        defaults.log_max_entry_mib),
     )
 
 
@@ -188,7 +202,7 @@ def build_options(state: GuiState) -> Options:
         input_format=q.input_format or AUTO,
         output_format=q.output_format or AUTO,
         indent=indent,
-        pretty_print=q.pretty_print,
+        pretty_print=False,          # 整形 (-P) の切り替えは v0.7.0 で GUI から外した（式 `.. style=""` で同じ効果）
         yaml=YamlOptions(indent=indent),
         json=JsonOptions(indent=indent),
         toon=ToonOptions(indent=indent if indent >= 1 else 2),

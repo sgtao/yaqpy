@@ -6,6 +6,7 @@ import asyncio
 import os
 from collections.abc import Callable
 from dataclasses import dataclass, replace
+from datetime import datetime
 from typing import Protocol
 
 from yaqpy.app.dto import EvalMode, EvaluateRequest, EvaluateResult, InputSource
@@ -15,8 +16,9 @@ from yaqpy.app.selfdoc import render_guide_prompt
 from yaqpy.app.service import YqService
 from yaqpy.core.engine.limits import StepBudget
 from yaqpy.errors import UnknownFormatError
-from yaqpy.gui import intake, texts
+from yaqpy.gui import expression_file, intake, run_log, texts
 from yaqpy.gui.errors_ja import ErrorViewModel, to_view_model
+from yaqpy.gui.log_presenter import RerunPayload
 from yaqpy.gui.paths import DEFAULT_MAX_DEPTH, DEFAULT_MAX_ITEMS, PathCandidate, collect_paths
 from yaqpy.gui.state import AUTO, DocumentState, GuiState, build_options, truncate_for_display
 
@@ -85,6 +87,19 @@ class SaveViewModel:
 
 
 @dataclass(frozen=True, slots=True)
+class ExpressionFileViewModel:
+    """式のファイル（``.yaqpy``）を読んだ結果。v0.7.0。"""
+
+    name: str = ""
+    expression: str = ""
+    error: ErrorViewModel | None = None
+
+    @property
+    def ok(self) -> bool:
+        return self.error is None
+
+
+@dataclass(frozen=True, slots=True)
 class DownloadViewModel:
     """Web 版の保存（ブラウザのダウンロード）に渡すもの。v0.6.0。"""
 
@@ -95,6 +110,29 @@ class DownloadViewModel:
     @property
     def ok(self) -> bool:
         return self.error is None
+
+
+@dataclass(frozen=True, slots=True)
+class RecordSource:
+    """実行ログに記録するために、**実行した時点**の要求と入力を控えたもの（v0.7.0）。
+
+    記録は結果を画面に出した後に別タスクで走るので、その間に状態（式・文書）が変わっても、
+    ボタンを押した回の内容を記録できるよう、``run()`` が要求の組み立てと同時に控える。
+    """
+
+    request: EvaluateRequest
+    inputs: tuple[run_log.LogInput, ...]
+
+
+@dataclass(frozen=True, slots=True)
+class RecordViewModel:
+    """実行ログの記録の結果。``recorded`` が偽なら、理由が ``skipped``（記録しなかった）か
+    ``error``（書き込みに失敗した）に入る。"""
+
+    recorded: bool = False
+    path: str = ""
+    skipped: str = ""            # "web" / "disabled" / "failed_run" / "duplicate"
+    error: str = ""
 
 
 class RunGatePort(Protocol):
@@ -117,6 +155,8 @@ class MainPresenter:
         self._run_gate = run_gate            # Web 版だけ（全セッションで共有。v0.6.0）
         self._budget: StepBudget | None = None
         self._last_run: RunViewModel | None = None
+        self._last_source: RecordSource | None = None
+        self._last_log_key: str | None = None      # 最後に記録した内容のキー（重複除外。再起動で消える）
         self._candidates: list[PathCandidate] = []
 
     # ------------------------------------------------------------------ 開く
@@ -152,11 +192,16 @@ class MainPresenter:
         self._candidates = []
 
     def _accept(self, item: intake.IntakeItem) -> OpenViewModel:
+        # 何も開いていない状態から開くときは、式欄の式を残す（先に「式を読み込む」で用意した式が
+        # 消えないように。閉じたときは close_document が「.」に戻している）。開いている文書を
+        # 置き換えるときだけ、新しい文書として恒等式から始める。
+        was_unloaded = not self.state.documents
         self.state.documents = [DocumentState(path=item.path, name=item.name,
                                               original_text=item.text, byte_size=item.byte_size)]
         self.state.active_index = 0
         self.state.eval_all = False
-        self.state.query.expression = "."          # 新しい文書は恒等式から始める
+        if not was_unloaded:
+            self.state.query.expression = "."
         self._last_run = None
         self._candidates = []
         return OpenViewModel(name=item.name, path=item.path, original_text=item.text,
@@ -292,6 +337,7 @@ class MainPresenter:
         # 失敗した実行のあとに、古い成功結果が「保存できる結果」として残らないようにする
         # （表示と保存がずれない：不変条件 S2）。成功したときだけ、下で入れ直す。
         self._last_run = None
+        self._last_source = None
         validation = self.validate(self.state.query.expression)
         if not validation.valid:
             return RunViewModel(error=ErrorViewModel("expression_syntax", validation.message,
@@ -299,6 +345,7 @@ class MainPresenter:
                                                      position=validation.position))
 
         request = self._build_request()
+        source = RecordSource(request=request, inputs=self._log_inputs())
         gate = self._run_gate
         if gate is not None and not gate.try_enter():
             return RunViewModel(error=ErrorViewModel("busy", texts.ERR_SERVER_BUSY))
@@ -316,6 +363,7 @@ class MainPresenter:
                 gate.leave()
         vm = self._success(result)
         self._last_run = vm
+        self._last_source = source
         return vm
 
     def _for_this_mode(self, error: ErrorViewModel) -> ErrorViewModel:
@@ -330,6 +378,11 @@ class MainPresenter:
         budget = self._budget
         if budget is not None:
             budget.cancel()
+
+    @property
+    def last_source(self) -> RecordSource | None:
+        """最後に成功した ``run()`` の要求と入力（実行ログ用。``last_run`` と同じ回のもの）。"""
+        return self._last_source
 
     @property
     def last_run(self) -> RunViewModel | None:
@@ -367,21 +420,23 @@ class MainPresenter:
             items = [c for c in items if text in c.expression.lower()]
         return items[:limit]
 
-    def apply_candidate(self, expression: str, *, append: bool = False) -> str:
-        """候補を式欄へ反映する。append=True ならパイプで連結する。
+    def apply_candidate(self, expression: str) -> str:
+        """候補を式欄へ反映する（式欄を候補で置き換える）。"""
+        self.state.query.expression = expression
+        return expression
 
-        すでに式がその候補そのもの、またはその候補で終わっているときは連結しない
-        （候補を選ぶと式欄が置き換わるため、直後の「追加」で ``A | A`` になるのを防ぐ）。
+    def append_pipe(self) -> str:
+        """式の末尾に `` | `` を足す（「+ パイプを追加」。v0.7.0）。戻り値は新しい式。
+
+        Flet 1.0 の TextField にはカーソル位置を取る API が無いので、挿入位置はいつも末尾。
+        式が空のとき、またはすでにパイプで終わっているときは何もしない。
         """
-        current = self.state.query.expression.strip()
-        if append and current and current != ".":
-            if current == expression or current.endswith(f"| {expression}"):
-                return current
-            merged = f"{current} | {expression}"
-        else:
-            merged = expression
-        self.state.query.expression = merged
-        return merged
+        current = self.state.query.expression
+        stripped = current.rstrip()
+        if not stripped or stripped.endswith("|"):
+            return current
+        self.state.query.expression = f"{stripped} | "
+        return self.state.query.expression
 
     def adopted_formats(self) -> tuple[str, str]:
         """いま採用される（入力形式, 出力形式）。プルダウンが auto でも指定でも実際の形式名を返す。
@@ -408,6 +463,104 @@ class MainPresenter:
             return self._service.formats.get(name).name
         except UnknownFormatError:
             return name
+
+    # ------------------------------------------------------------------ ログからの再実行（v0.7.0）
+
+    def apply_rerun(self, payload: RerunPayload, *, replace: bool = False) -> ErrorViewModel | None:
+        """ログの内容を、**新しい文書として追加**して、式・形式・インデントを復元する（決定 M）。
+
+        ``replace=True`` のときだけ、開いている文書をすべて閉じて置き換える（決定 Z：
+        ``eval_all`` で記録したログは、ログに無い文書を巻き込まないため）。
+        実行はしない（画面が実行する。記録もしない：決定 S）。失敗したら、状態を変えずに理由を返す。
+        """
+        for name, text in payload.inputs:
+            try:
+                intake.ensure_size(len(text.encode("utf-8")), max_bytes=self.state.max_input_bytes)
+            except intake.IntakeError as e:
+                return ErrorViewModel("intake", f"{name}: {e}")
+        if replace:
+            self.close_document()
+        for name, text in payload.inputs:
+            item = intake.from_text(text, name=name)
+            if not self.state.documents:
+                self._accept(item)
+            else:
+                self._append(item)
+        q = self.state.query
+        q.expression = payload.expression
+        q.input_format = payload.input_format
+        q.output_format = payload.output_format
+        q.indent = payload.indent
+        self.state.eval_all = bool(payload.eval_all) and self.state.has_multiple_documents
+        return None
+
+    # ------------------------------------------------------------------ 式のファイル（.yaqpy。v0.7.0）
+
+    async def load_expression_file(self, path: str) -> ExpressionFileViewModel:
+        """``.yaqpy`` / ``.yq`` を読んで式欄の式にする。実行はしない（検証は画面側）。
+
+        式に誤りがあっても読み込む（赤枠で知らせる）。現在の式は確認なしで置き換える。
+        """
+        name = os.path.basename(path)
+        try:
+            if not self._fs.exists_file(path):
+                return ExpressionFileViewModel(
+                    name=name, error=ErrorViewModel("intake", texts.ERR_NOT_A_FILE))
+            try:
+                size = self._size_of(path)
+            except OSError:
+                size = 0
+            expression_file.ensure_size(size)
+            text = await asyncio.to_thread(self._fs.read_text, path)
+            expression_file.ensure_size(len(text.encode("utf-8")))
+            expression = expression_file.decode_expression(text)
+        except expression_file.ExpressionFileError as e:
+            return ExpressionFileViewModel(name=name, error=ErrorViewModel("expression_file", str(e)))
+        except UnicodeDecodeError:
+            return ExpressionFileViewModel(
+                name=name, error=ErrorViewModel("expression_file", texts.ERR_EXPR_FILE_NOT_UTF8))
+        except Exception as e:                      # noqa: BLE001 - 画面を落とさない
+            return ExpressionFileViewModel(name=name, error=to_view_model(e))
+        self.state.query.expression = expression
+        return ExpressionFileViewModel(name=name, expression=expression)
+
+    def check_expression_upload_size(self, size: int) -> ErrorViewModel | None:
+        """Web 版：式のファイルをアップロードする**前に**、大きさで断る。"""
+        try:
+            expression_file.ensure_size(size)
+        except expression_file.ExpressionFileError as e:
+            return ErrorViewModel("expression_file", str(e))
+        return None
+
+    def load_expression_bytes(self, name: str, data: bytes) -> ExpressionFileViewModel:
+        """Web 版：アップロードされた中身を式欄の式にする（``load_expression_file`` の Web 版）。"""
+        try:
+            expression_file.ensure_size(len(data))
+            expression = expression_file.decode_expression(data)
+        except expression_file.ExpressionFileError as e:
+            return ExpressionFileViewModel(name=name, error=ErrorViewModel("expression_file", str(e)))
+        self.state.query.expression = expression
+        return ExpressionFileViewModel(name=name, expression=expression)
+
+    def default_expression_file_name(self) -> str:
+        """式の保存ダイアログの初期ファイル名（``sample.yaqpy``。貼り付け・文書なしなら ``expression.yaqpy``）。"""
+        return expression_file.default_expression_file_name(self.state.document.name)
+
+    async def save_expression_file(self, path: str) -> SaveViewModel:
+        """式欄の式を ``.yaqpy`` に保存する。既存ファイルの上書き確認は OS のダイアログに任せる。"""
+        path = expression_file.ensure_extension(path)
+        text = expression_file.encode_expression(self.state.query.expression)
+        try:
+            await asyncio.to_thread(self._fs.atomic_write, path, text)
+        except Exception as e:                      # noqa: BLE001 - 画面を落とさない
+            return SaveViewModel(path=path, error=to_view_model(e))
+        return SaveViewModel(path=path, byte_size=len(text.encode("utf-8")))
+
+    def expression_download(self) -> DownloadViewModel:
+        """Web 版：式のダウンロード（ファイル名とバイト列）。サーバーのディスクには書かない。"""
+        text = expression_file.encode_expression(self.state.query.expression)
+        return DownloadViewModel(file_name=self.default_expression_file_name(),
+                                 data=text.encode("utf-8"))
 
     # ------------------------------------------------------------------ AI への相談文（追加要望）
 
@@ -530,6 +683,70 @@ class MainPresenter:
     def _evaluate_sync(self, request: EvaluateRequest, budget: StepBudget) -> EvaluateResult:
         """別スレッドで動く同期部分。ここだけが重い。"""
         return self._service.evaluate(request, MemorySink(), budget=budget)
+
+    def _log_inputs(self) -> tuple[run_log.LogInput, ...]:
+        """この回の評価に渡す文書を、ログに記録する形にする（``_build_request`` と同じ選び方）。"""
+        if self.state.eval_all and self.state.has_multiple_documents:
+            documents = self.state.documents
+        else:
+            documents = [self.state.document]
+        return tuple(run_log.LogInput(name=d.name or texts.MSG_PASTED, text=d.original_text,
+                                      path=d.path, edited=d.edited) for d in documents)
+
+    # ------------------------------------------------------------------ 実行ログ（v0.7.0）
+
+    def log_dir(self) -> str:
+        """実行ログの保存先（設定が空なら OS ごとの既定）。"""
+        return self.state.settings.log_dir or run_log.default_log_dir()
+
+    async def record_run(self, source: RecordSource, vm: RunViewModel) -> RecordViewModel:
+        """成功した実行を、実行ログに 1 ファイル書く。**「実行」ボタンで始まった回だけ**呼ぶこと
+        （自動の再実行は呼び出し側が呼ばない）。
+
+        記録しないとき：Web 版・設定でオフ・失敗した実行・直前に記録した内容と同じ。
+        書き込みに失敗しても例外にせず、``error`` で返す（実行結果には影響させない）。
+        """
+        if self.state.is_web:
+            return RecordViewModel(skipped="web")
+        settings = self.state.settings
+        if not settings.log_enabled:
+            return RecordViewModel(skipped="disabled")
+        if not vm.ok:
+            return RecordViewModel(skipped="failed_run")
+        entry = self._log_entry(source, vm)
+        key = run_log.dedupe_key(entry)
+        if key == self._last_log_key:
+            return RecordViewModel(skipped="duplicate")
+        root = self.log_dir()
+        try:
+            path = await asyncio.to_thread(self._write_log_sync, root, entry,
+                                           settings.log_max_entry_mib * 1024 * 1024,
+                                           settings.log_max_files)
+        except Exception as e:                      # noqa: BLE001 - 記録の失敗で画面を止めない
+            return RecordViewModel(error=str(e) or type(e).__name__)
+        self._last_log_key = key                    # 書き込みに成功したときだけ更新する
+        return RecordViewModel(recorded=True, path=path)
+
+    def _log_entry(self, source: RecordSource, vm: RunViewModel) -> run_log.LogEntry:
+        request = source.request
+        security = request.options.security
+        return run_log.LogEntry(
+            timestamp=datetime.now().astimezone(), expression=request.expression,
+            inputs=source.inputs, input_format=vm.input_format,
+            input_selected=request.input_format or AUTO, output_format=vm.output_format,
+            output_selected=request.output_format or AUTO, output_text=vm.full_text,
+            indent=request.options.indent, eval_all=request.mode is EvalMode.ALL,
+            document_count=vm.document_count, elapsed_ms=vm.elapsed_ms,
+            allow_env=security.allow_env, allow_file=security.allow_file,
+            options=request.options)
+
+    def _write_log_sync(self, root: str, entry: run_log.LogEntry, max_entry_bytes: int,
+                        max_files: int) -> str:
+        """別スレッドで動く。組み立て・書き込み・件数の整理。"""
+        built = run_log.build_log(entry, max_entry_bytes=max_entry_bytes)
+        path = run_log.write_log(root, entry, built, self._fs.write_file)
+        run_log.prune_logs(root, max_files)
+        return path
 
     def _build_request(self) -> EvaluateRequest:
         q = self.state.query

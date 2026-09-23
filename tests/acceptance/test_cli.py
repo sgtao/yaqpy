@@ -66,6 +66,13 @@ class BasicTests(CliTestCase):
             r = yq("ea", "--from-file", instructions, data, "-o=j", "-I=0")
             assert r.stdout == '{"xyz":"meow","cool":"frog"}\n'
 
+    def test_a_yaqpy_file_is_an_expression_file_like_yq(self) -> None:
+        """v0.7.0：GUI の「式を保存」が作る `.yaqpy`（式だけのテキスト）を、そのまま渡せる。"""
+        data = self.write("test.yml", "xyz: 123\n")
+        expr = self.write("sel.yaqpy", ".xyz\r\n| . + 1\r\n")
+        assert yq(expr, data).stdout == "124\n"
+        assert yq("--from-file", expr, data).stdout == "124\n"
+
     def test_github_action_style_stdin(self) -> None:
         path = self.write("test.yml", "a: 123\n")
         # stdin is a pipe (empty) but a file is given: read the file, not stdin

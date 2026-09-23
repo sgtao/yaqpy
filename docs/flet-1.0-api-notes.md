@@ -170,3 +170,36 @@
 - 一般のブラウザ（Chrome・Edge・Firefox）での実機操作。特に**クリップボード**（`localhost` は安全なコンテキストなので許可される見込みだが未確認）と、**OS のファイル選択ダイアログ**からの選択
 - `http://` で他の端末から開いたとき（安全なコンテキストでない）のクリップボード
 - 長時間放置したセッションの破棄（`page.on_close` の発火までの時間）
+
+---
+
+## 8. Web 版のファイルのドラッグ＆ドロップ（v0.7.0 の調査・実測）
+
+**結論：実現できる。** Flet の部品には無いが、Web 版だけは、配る `index.html` にスクリプトを足せば、既存のアップロードの経路にそのまま合流させられる。
+
+### 8-1. 調べたこと（ソースと実機）
+
+| 調べた点 | 結果 |
+|---|---|
+| Flet 1.0.0 に、ドロップを受ける部品・イベントはあるか | **無い**。`Page` や `Container` に `on_drop` 相当は無い（`drag_target.py` / `draggable.py` はアプリ内のドラッグ専用）。`flet-dropzone` は標準クライアントに入っていない（本書 5 章） |
+| Python からページに JavaScript を実行させる API はあるか | `base_page.py`・`client_action.py` に該当なし |
+| 配る `index.html` を差し替えられるか | **できる**。`flet_web/fastapi/flet_static_files.py` は、`assets_dir` に `index.html` があれば**同梱のものより先にコピーして使い**、その後に `<!-- fletAppConfig -->` などを差し込む（`patch_index_html`） |
+| ブラウザ → Python の通知の手段 | ブラウザの URL（ルート）の変更が使える。`history.pushState` のあと `popstate` を発火させると Flet のルーターが拾い、`page.on_route_change`（`RouteChangeEvent.route`）が呼ばれる。`page.push_route("/")` で URL を戻せる |
+| ダイアログを開かずに `FilePicker.pick_files` に File を渡せるか | Flutter の `file_picker` は `<input type="file">` を作って `click()` する。`HTMLInputElement.prototype.click` を差し替え、`input.files` に `DataTransfer` の File を入れて `change` を発火させれば、ダイアログなしで「選んだこと」になる（v0.6.0 の検証で使った方法と同じ） |
+
+### 8-2. 実装（`gui/assets/web/yaqpy-drop.js`、`gui/web_assets.py`、`gui/_web.py`、`gui/_run.py`）
+
+1. `_web.py` が起動時に、Flet 同梱の `index.html`（`flet_web/web/index.html`）を写して `</body>` の直前に `<script src="yaqpy-drop.js">` を足したものを一時フォルダに作り、ロゴと一緒に `assets_dir` として渡す
+2. `yaqpy-drop.js` はページ全体の `dragover`（許可）と `drop` を受け、File を 10 秒だけ手元に取り、ルート `/__yaqpy_drop` を通知する
+3. `_run.py` の `page.on_route_change`（Web 版のみ）が通知を受け、`push_route("/")` で URL を戻し、Main 画面へ切り替えて `MainPage.add_dropped_files()` を呼ぶ。中は「＋ファイルを追加」と同じ（`WebUploader.pick` → サイズの事前確認 → アップロード → 開く）
+
+### 8-3. 実機確認（組み込みブラウザ。2026-09-23）
+
+- 合成した `DragEvent('drop')`（`DataTransfer` に File 1 件／2 件）を `flt-glass-pane` に送り、**開く・複数件を追加する・URL が `/` に戻る**ことを確認した。表示は「ファイルを追加」で開いたときと同じ
+- 起動直後（Flutter の読み込み前）のドロップは受けられない（Python 側がまだ無い）
+
+### 8-4. 未確認
+
+- **OS のファイルマネージャーからの本物のドラッグ**（合成イベントで代用した。ブラウザが `dataTransfer.files` を作る動作は標準のもの）
+- Chrome・Edge・Firefox・Safari ごとの差
+- 別のパスに載せた Web 版（`app_mount_path` を変えた場合）。`DROP_ROUTE` は `document.baseURI` からの相対で作っている

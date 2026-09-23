@@ -14,19 +14,23 @@ from collections.abc import Callable
 
 import flet as ft
 
-from yaqpy.gui import texts
+from yaqpy.gui import expression_file, texts
 from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
 from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.errors_ja import caret_line
+from yaqpy.gui.log_presenter import RerunPayload
+from yaqpy.gui.pages.clipboard import get_clipboard, set_clipboard
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
-from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
-from yaqpy.gui.state import GuiState
+from yaqpy.gui.presenter import (
+    ExpressionFileViewModel, MainPresenter, RecordSource, RunViewModel, ValidationViewModel,
+)
+from yaqpy.gui.state import AUTO, GuiState
 
 VALIDATE_DEBOUNCE_SECONDS = 0.3
 PASTE_DEBOUNCE_SECONDS = 0.3
 EDIT_DEBOUNCE_SECONDS = 0.5      # 読み込み後の追加編集：打ち終わってから取り込むまでの間
-COPY_FEEDBACK_SECONDS = 1.5      # ボタン文字を「コピーしました！」に変えておく時間
 PASTE_MIN_LINES = 4              # 未読込のあいだの貼り付け欄の高さ（画面に収まるよう控えめに）
+VISIBLE_FILE_CHIPS = 2           # ファイルのチップは先頭のこれだけ並べ、残りは「＋ファイル N件」にまとめる
 PANE_HEADER_HEIGHT = 44         # 右見出しの保存ボタンに高さを合わせ、左右の枠の上端を揃える
 MONO = ft.TextStyle(font_family="Consolas", size=12)
 BUTTON_TEXT_SIZE = 14           # Flet のボタン文字（labelLarge）と同じ大きさ。ファイル名の表示に使う
@@ -46,18 +50,13 @@ def _options(names: list[str]) -> list[ft.DropdownOption]:
     return [ft.DropdownOption(key=n, text=n) for n in names]
 
 
-async def _set_clipboard(text: str) -> bool:
-    """クリップボードに書く。失敗したら False（例外で画面を止めない）。
+def _output_format_options(names: list[str]) -> list[ft.DropdownOption]:
+    """出力形式の選択肢。「auto」は「入力と同じ」だと分かる表示にする（key は auto のまま）。
 
-    W0 の実測で、ブラウザが ``clipboard-write`` を許可していないと
-    ``PlatformException(copy_fail, Clipboard.setData failed.)`` になった。デスクトップでも
-    OS 側の理由で失敗しうるので、どちらも同じく案内に切り替える。
+    入力形式の「auto」は「中身から自動判定」という別の意味なので、そちらは変えない。
     """
-    try:
-        await ft.Clipboard().set(text)
-    except Exception:                          # noqa: BLE001 - 失敗は利用者への案内で扱う
-        return False
-    return True
+    return [ft.DropdownOption(key=n, text=texts.LBL_AUTO_SAME_AS_INPUT if n == AUTO else n)
+            for n in names]
 
 
 class MainPage:
@@ -74,6 +73,9 @@ class MainPage:
         self._uploader = uploader
         self._web = state.is_web
         self._rerun_requested = False
+        # 「実行」ボタン（式欄の Enter を含む）で始まった実行だけを実行ログに記録する（v0.7.0）。
+        # 実行中に押されて後回しになった場合も要求を落とさないよう、フラグとして持ち回る
+        self._record_requested = False
         self._validate_token = 0
 
         # --- ファイルバー ---
@@ -99,7 +101,7 @@ class MainPage:
                                      on_select=self._on_input_format)
         self._output_dd = ft.Dropdown(label=texts.LBL_OUTPUT_FORMAT, width=170,
                                       value=state.query.output_format,
-                                      options=_options(output_format_choices()),
+                                      options=_output_format_options(output_format_choices()),
                                       on_select=self._on_output_format)
         # インデントは数字欄に直接打つほか、±ボタンでも操作できる（要望）。Flet に専用の
         # スピナー部品は無いので、IconButton を左右に添える形で組む。
@@ -114,8 +116,6 @@ class MainPage:
                                           on_click=self._on_indent_plus)
         self._indent_stepper = ft.Row([self._indent_minus, self._indent_field, self._indent_plus],
                                       spacing=0, vertical_alignment=ft.CrossAxisAlignment.END)
-        self._pretty_switch = ft.Switch(label=texts.LBL_PRETTY, value=state.query.pretty_print,
-                                        on_change=self._on_pretty)
 
         # --- プロパティ行（G2）---
         # 絞り込みは Flet 組み込みの enable_filter に任せる（G0 の実測）。
@@ -130,11 +130,10 @@ class MainPage:
             on_select=self._on_property_select,
             disabled=True,
         )
-        self._add_button = ft.Button(content=texts.BTN_ADD_TO_EXPR, icon=ft.Icons.ADD,
-                                     on_click=self._on_add_to_expression, disabled=True)
+        # 式欄の末尾に「 | 」を足すだけのボタン（プロパティの選択とは独立。v0.7.0）
+        self._add_button = ft.Button(content=texts.BTN_ADD_PIPE, on_click=self._on_add_pipe)
         self._candidate_note = ft.Text("", size=11, color=ft.Colors.ON_SURFACE_VARIANT,
                                        visible=False)
-        self._selected_candidate = ""
 
         # --- 式バー ---
         self._expr_field =ft.TextField(label=texts.LBL_EXPRESSION, value=state.query.expression,
@@ -148,11 +147,24 @@ class MainPage:
                                      on_click=self._on_run, disabled=True)
         self._cancel_button = ft.Button(content=texts.BTN_CANCEL, icon=ft.Icons.STOP,
                                         on_click=self._on_cancel, disabled=True)
-        # 式が難しいときに AI へ相談する文面を出す（CLI の --guide-prompt の GUI 版。要望）。
-        # 文書の有無に関わらず使えるので、無効化しない。
-        self._guide_button = ft.IconButton(icon=ft.Icons.SMART_TOY_OUTLINED,
-                                           tooltip=texts.BTN_GUIDE_PROMPT,
-                                           on_click=self._on_open_guide_prompt)
+        # 式欄の右：貼り付け・コピー・クリア、式ファイル（.yaqpy）の読み込み・保存（v0.7.0）。
+        # カーソル位置は取れないので、貼り付けは式の全体を置き換える。読み込みは常に有効
+        # （文書を開く前に式だけ用意できる）。保存は式が空でないときだけ
+        self._save_expr_button = ft.IconButton(icon=ft.Icons.SAVE_ALT,
+                                               tooltip=texts.TIP_EXPR_SAVE,
+                                               on_click=self._on_save_expression)
+        self._expr_tools = ft.Row([
+            ft.IconButton(icon=ft.Icons.CONTENT_PASTE, tooltip=texts.TIP_EXPR_PASTE,
+                          on_click=self._on_expr_paste),
+            ft.IconButton(icon=ft.Icons.CONTENT_COPY, tooltip=texts.TIP_EXPR_COPY,
+                          on_click=self._on_expr_copy),
+            ft.IconButton(icon=ft.Icons.CLEAR, tooltip=texts.TIP_EXPR_CLEAR,
+                          on_click=self._on_expr_clear),
+            ft.IconButton(icon=ft.Icons.FILE_OPEN, tooltip=texts.TIP_EXPR_LOAD,
+                          on_click=self._on_load_expression),
+            self._save_expr_button,
+        ], spacing=0)
+        self._refresh_expression_buttons()
         self._progress = ft.ProgressBar(visible=False)
 
         # --- 2 ペイン ---
@@ -174,6 +186,14 @@ class MainPage:
                 ft.Text(texts.MSG_NO_DOCUMENT, size=13),
                 ft.Text(texts.MSG_WEB_HINT if self._web else texts.MSG_DROP_UNSUPPORTED,
                         size=11, color=ft.Colors.ON_SURFACE_VARIANT),
+                # 案内の文字だけでなく、ボタンでも開ける／貼り付けられる（v0.7.0）。
+                # 枠全体のクリックも従来どおり残す（開く導線を二重にして見つけやすくする）
+                ft.Row([
+                    ft.Button(content=texts.BTN_OPEN_FILE, icon=ft.Icons.FOLDER_OPEN,
+                              on_click=self._on_add_file),
+                    ft.Button(content=texts.BTN_PASTE, icon=ft.Icons.CONTENT_PASTE,
+                              on_click=self._on_paste_button),
+                ], alignment=ft.MainAxisAlignment.CENTER, spacing=8),
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
             alignment=ft.Alignment.CENTER, padding=10, on_click=self._on_add_file,
         )
@@ -215,13 +235,12 @@ class MainPage:
 
         files_bar = ft.Row([self._files_row], spacing=16)
 
-        format_bar = ft.Row([self._input_dd, self._output_dd, self._indent_stepper,
-                             self._pretty_switch], spacing=12)
+        format_bar = ft.Row([self._input_dd, self._output_dd, self._indent_stepper], spacing=12)
 
         filter_bar = ft.Column([
             ft.Row([self._property_dd, self._add_button], spacing=8),
             self._candidate_note,
-            ft.Row([self._expr_field, self._guide_button, self._run_button, self._cancel_button],
+            ft.Row([self._expr_field, self._expr_tools, self._run_button, self._cancel_button],
                   spacing=8),
             self._expr_error,
         ], spacing=FILTER_ROW_SPACING)
@@ -259,6 +278,30 @@ class MainPage:
     async def open_startup_file(self, path: str) -> None:
         """起動引数で渡されたファイルを開く（``yaqpy --gui a.yaml``。U2）。"""
         await self._load(path)
+        self._page.update()
+
+    async def apply_rerun(self, payload: RerunPayload, *, replace: bool = False) -> None:
+        """ログ画面の［再実行］：ログの内容を新しい文書として加え、式・形式を戻してすぐ実行する。
+
+        実行は「記録なし」（決定 S）：ログから開いた入力は整形が変わるので重複除外に掛からず、
+        再実行のたびに同じ内容のログが増えてしまうため。あとで［実行］を押せば通常どおり記録される。
+        """
+        error = self._p.apply_rerun(payload, replace=replace)
+        if error is not None:
+            self._show_error(error.message, error.hint)
+            self._page.update()
+            return
+        q = self._state.query
+        self._input_dd.value = q.input_format
+        self._output_dd.value = q.output_format
+        self._indent_field.value = str(q.indent)
+        self._show_loaded()
+        self._sync_active_document_view()
+        self._after_open()
+        self._refresh_expression_buttons()
+        self._apply_validation(self._p.validate(q.expression))
+        await self._run()
+        await self._reload_candidates()
         self._page.update()
 
     async def _load(self, path: str) -> None:
@@ -334,6 +377,16 @@ class MainPage:
             await self._run()
             await self._reload_candidates()
         self._page.update()                 # async ハンドラは終了時にも update する
+
+    async def add_dropped_files(self) -> None:
+        """Web 版：ブラウザにドロップされたファイルを開く（``yaqpy-drop.js`` が通知する。v0.7.0）。
+
+        ドロップされた File は、JS が「ファイルを選んだこと」にして ``pick_files`` へ渡すので、
+        [＋ファイルを追加] と同じ経路（サイズの事前確認・アップロード・上限）を通る。
+        """
+        if self._uploader is None:
+            return
+        await self._add_uploaded_files()
 
     async def _add_uploaded_files(self) -> None:
         """Web 版の [＋ファイルを追加]：ブラウザから送らせて開く（``_on_add_file`` と同じ規則）。"""
@@ -416,7 +469,7 @@ class MainPage:
         documents = self._state.documents
         self._files_row.visible = len(documents) > 1
         chips: list[ft.Control] = []
-        for i, doc in enumerate(documents):
+        for i, doc in enumerate(documents[:VISIBLE_FILE_CHIPS]):
             chips.append(ft.Chip(
                 label=doc.name or texts.MSG_PASTED,
                 selected=(i == self._state.active_index),
@@ -424,7 +477,41 @@ class MainPage:
                 on_click=self._chip_select_handler(i),
                 on_delete=self._chip_close_handler(i),
             ))
+        if len(documents) > VISIBLE_FILE_CHIPS:
+            chips.append(self._more_files_menu())
         self._files_row.controls = chips
+
+    def _more_files_menu(self) -> ft.Control:
+        """3 件目以降を、「＋ファイル N件」の 1 つのボタンにまとめて、押すとプルダウンで選ばせる。
+
+        表示は開いた順のまま（アクティブな文書が 3 件目以降でも、チップ側へは繰り上げない）。
+        アクティブな文書がここにあるときは、ボタンを選択中の色にし、メニューにチェックを付ける。
+        """
+        documents = self._state.documents
+        hidden = range(VISIBLE_FILE_CHIPS, len(documents))
+        select_items: list[ft.PopupMenuItem] = [
+            ft.PopupMenuItem(content=documents[i].name or texts.MSG_PASTED,
+                             checked=(i == self._state.active_index),
+                             on_click=self._chip_select_handler(i))
+            for i in hidden
+        ]
+        close_items: list[ft.PopupMenuItem] = [
+            ft.PopupMenuItem(content=texts.MENU_CLOSE_FILE.format(
+                                name=documents[i].name or texts.MSG_PASTED),
+                             icon=ft.Icons.CLOSE, on_click=self._chip_close_handler(i))
+            for i in hidden
+        ]
+        active_hidden = self._state.active_index >= VISIBLE_FILE_CHIPS
+        label = ft.Text(texts.BTN_MORE_FILES.format(n=len(documents) - VISIBLE_FILE_CHIPS),
+                        size=13, weight=ft.FontWeight.BOLD if active_hidden else None)
+        trigger = ft.Container(
+            content=ft.Row([label, ft.Icon(ft.Icons.ARROW_DROP_DOWN, size=18)], spacing=2,
+                           tight=True),
+            padding=ft.Padding.symmetric(horizontal=10, vertical=6), border_radius=8,
+            border=ft.Border.all(1, ft.Colors.OUTLINE),
+            bgcolor=ft.Colors.SECONDARY_CONTAINER if active_hidden else None)
+        return ft.PopupMenuButton(content=trigger,
+                                  items=[*select_items, ft.PopupMenuItem(), *close_items])
 
     def _chip_select_handler(self, index: int) -> Callable[[ft.Event[ft.Chip]], None]:
         def handler(e: ft.Event[ft.Chip]) -> None:
@@ -532,9 +619,8 @@ class MainPage:
         self._property_dd.options = []
         self._property_dd.value = None
         self._property_dd.disabled = True
-        self._add_button.disabled = True
+        self._refresh_expression_buttons()
         self._candidate_note.visible = False
-        self._selected_candidate = ""
         self._status_icon.icon = ft.Icons.INFO_OUTLINE
         self._status_icon.color = None
         self._status_text.value = ""
@@ -542,6 +628,18 @@ class MainPage:
         self._settings_link.visible = False
         self._refresh_format_badges()
         self._refresh_multi_file_ui()
+
+    async def _on_paste_button(self, e: ft.Event[ft.Button]) -> None:
+        """未読込の画面の［貼り付け］：クリップボードの内容を 1 つの文書として開く。"""
+        text = await get_clipboard()
+        if text is None:
+            self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_PASTE_FAILED)))
+            self._page.update()
+            return
+        if not text.strip():
+            return
+        self._original.value = text
+        await self._open_pasted()
 
     def _on_open_settings_click(self, e: ft.Event[ft.TextButton]) -> None:
         if self._on_open_settings is not None:
@@ -575,13 +673,10 @@ class MainPage:
         self._indent_field.value = str(value)
         self._page.run_task(self._run)
 
-    def _on_pretty(self, e: ft.Event[ft.Switch]) -> None:
-        self._state.query.pretty_print = bool(e.control.value)
-        self._page.run_task(self._run)
-
     def _on_expression_change(self, e: ft.Event[ft.TextField]) -> None:
         """入力中は検証だけ（再実行はしない）。最後の打鍵から 300 ms 後に 1 回だけ走る。"""
         self._state.query.expression = e.control.value or ""
+        self._refresh_expression_buttons()
         self._validate_token += 1
         token = self._validate_token
 
@@ -616,9 +711,7 @@ class MainPage:
         vm = await self._p.build_candidates()
         self._set_candidates(self._p.filter_candidates(limit=DEFAULT_MAX_ITEMS))
         self._property_dd.value = None
-        self._selected_candidate = ""
         self._property_dd.disabled = vm.is_empty
-        self._add_button.disabled = vm.is_empty
         if vm.note:
             self._candidate_note.value = vm.note
             self._candidate_note.visible = True
@@ -638,24 +731,122 @@ class MainPage:
         expression = e.control.value or ""
         if not expression:
             return
-        self._selected_candidate = expression
         self._expr_field.value = self._p.apply_candidate(expression)
+        self._refresh_expression_buttons()
         self._expr_field.error = None
         self._expr_error.visible = False
         self._page.run_task(self._run)
 
-    def _on_add_to_expression(self, e: ft.Event[ft.Button]) -> None:
-        expression = self._selected_candidate or (self._property_dd.value or "")
-        if not expression:
-            return
-        self._expr_field.value = self._p.apply_candidate(expression, append=True)
-        self._expr_field.error = None
+    def _on_add_pipe(self, e: ft.Event[ft.Button]) -> None:
+        """式欄の末尾に `` | `` を足す。実行はしない（続きを書いてから実行する）。"""
+        self._expr_field.value = self._p.append_pipe()
+        self._expr_field.error = None            # 書きかけの式なので、検証の赤枠は出さない
         self._expr_error.visible = False
-        self._page.run_task(self._run)
+        self._page.update()
+
+    # ------------------------------------------------------------------ 式欄の貼り付け・コピー・クリア
+
+    async def _on_expr_paste(self, e: ft.Event[ft.IconButton]) -> None:
+        text = await get_clipboard()
+        if text is None:
+            self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_PASTE_FAILED)))
+            self._page.update()
+            return
+        if not text.strip():
+            return
+        self._set_expression_text(text)
+        self._page.update()
+
+    async def _on_expr_copy(self, e: ft.Event[ft.IconButton]) -> None:
+        copied = await set_clipboard(self._expr_field.value or "")
+        message = texts.MSG_EXPR_COPIED if copied else texts.MSG_COPY_FAILED
+        self._page.show_dialog(ft.SnackBar(ft.Text(message)))
+
+    def _on_expr_clear(self, e: ft.Event[ft.IconButton]) -> None:
+        self._set_expression_text("")
+        self._page.update()
+
+    def _refresh_expression_buttons(self) -> None:
+        """式が空のあいだは、「+ パイプを追加」と「式を保存」を無効にする。"""
+        empty = not (self._state.query.expression or "").strip()
+        self._add_button.disabled = empty
+        self._save_expr_button.disabled = empty
+
+    def _set_expression_text(self, text: str) -> None:
+        """式欄を外から書き換える（貼り付け・クリア）。式欄が唯一の真実なので、状態と検証も合わせる。"""
+        self._expr_field.value = text
+        self._state.query.expression = text
+        self._refresh_expression_buttons()
+        self._validate_token += 1                 # 走りかけのデバウンスを無効化
+        self._apply_validation(self._p.validate(text))
+
+    # ------------------------------------------------------------------ 式ファイル（.yaqpy）
+
+    async def _on_load_expression(self, e: ft.Event[ft.IconButton]) -> None:
+        """式のファイル（``.yaqpy`` / ``.yq``）を読んで式欄に入れる。検証だけして、実行はしない。"""
+        if self._uploader is not None:
+            await self._load_expression_upload()
+            return
+        files = await self._picker.pick_files(
+            dialog_title=texts.TIP_EXPR_LOAD, allow_multiple=False,
+            file_type=ft.FilePickerFileType.CUSTOM,
+            allowed_extensions=list(expression_file.OPEN_EXTENSIONS))
+        if files:
+            self._apply_loaded_expression(await self._p.load_expression_file(files[0].path))
+        self._page.update()
+
+    async def _load_expression_upload(self) -> None:
+        """Web 版：ブラウザから式のファイルを送らせて読む（データのアップロードとは別の入口）。"""
+        assert self._uploader is not None
+
+        def check_size(size: int) -> str:
+            error = self._p.check_expression_upload_size(size)
+            return error.message if error else ""
+
+        items = await self._uploader.pick(
+            check_size=check_size, dialog_title=texts.TIP_EXPR_LOAD, allow_multiple=False,
+            allowed_extensions=list(expression_file.OPEN_EXTENSIONS))
+        if items:
+            item = items[0]
+            if item.ok:
+                assert item.data is not None
+                self._apply_loaded_expression(self._p.load_expression_bytes(item.name, item.data))
+            else:
+                self._show_error(item.error)
+        self._page.update()
+
+    def _apply_loaded_expression(self, vm: ExpressionFileViewModel) -> None:
+        if not vm.ok:
+            self._show_error(vm.error.message, vm.error.hint)
+            return
+        self._set_expression_text(vm.expression)      # 誤った式でも読み込む（赤枠で知らせる）
+        self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_EXPR_LOADED.format(name=vm.name))))
+
+    async def _on_save_expression(self, e: ft.Event[ft.IconButton]) -> None:
+        """式欄の式を ``.yaqpy`` に保存する（Web 版はダウンロード）。上書きの確認は OS に任せる。"""
+        if self._web:
+            vm = self._p.expression_download()
+            await self._picker.save_file(dialog_title=texts.TIP_EXPR_SAVE, file_name=vm.file_name,
+                                         src_bytes=vm.data)
+            self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_DOWNLOADED.format(name=vm.file_name))))
+            self._page.update()
+            return
+        path = await self._picker.save_file(
+            dialog_title=texts.TIP_EXPR_SAVE, file_name=self._p.default_expression_file_name(),
+            file_type=ft.FilePickerFileType.CUSTOM,
+            allowed_extensions=[expression_file.EXTENSION.lstrip(".")])
+        if path:
+            saved = await self._p.save_expression_file(path)
+            if saved.ok:
+                self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_EXPR_SAVED.format(path=saved.path))))
+            else:
+                self._show_error(saved.error.message, saved.error.hint)
+        self._page.update()
 
     async def _on_run(self, e: ft.Event) -> None:
         self._validate_token += 1            # 走りかけのデバウンスを無効化
         self._apply_validation(self._p.validate(self._state.query.expression))
+        self._record_requested = True        # このボタンで始まった実行だけを記録する（6-1 節）
         await self._run()
 
     def _on_cancel(self, e: ft.Event[ft.Button]) -> None:
@@ -664,54 +855,6 @@ class MainPage:
         # 押したことが伝わるよう、状態バーで受け付けたことを示す。
         self._cancel_button.disabled = True
         self._status_text.value = texts.MSG_CANCELLING
-
-    # ------------------------------------------------------------------ AI への相談文（要望）
-
-    async def _on_open_guide_prompt(self, e: ft.Event[ft.IconButton]) -> None:
-        prompt = await self._p.guide_prompt()
-        self._show_guide_prompt_dialog(prompt)
-        self._page.update()
-
-    def _show_guide_prompt_dialog(self, prompt: str) -> None:
-        """CLI の --guide-prompt の内容を、編集してコピーできるダイアログで出す（要望）。
-
-        MD Slide Studio の「AI プロンプト」画面を参考にした：全文を編集可能な 1 つの欄に入れ、
-        末尾の「## 依頼」をユーザーが書き換えてからコピーする、という使い方を想定している。
-        """
-        field = ft.TextField(value=prompt, multiline=True, min_lines=16, max_lines=16,
-                             text_style=MONO, expand=True)
-        copy_button = ft.TextButton(content=texts.BTN_COPY_PROMPT)
-
-        def close(_: ft.Event) -> None:
-            self._page.pop_dialog()
-
-        async def copy(_: ft.Event) -> None:
-            if not await _set_clipboard(field.value or ""):
-                self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_COPY_FAILED)))
-                self._page.update()
-                return
-            copy_button.content = texts.MSG_COPIED_SHORT
-            self._page.update()
-            await asyncio.sleep(COPY_FEEDBACK_SECONDS)
-            copy_button.content = texts.BTN_COPY_PROMPT
-            self._page.update()
-
-        copy_button.on_click = copy
-
-        dialog = ft.AlertDialog(
-            modal=True,
-            title=ft.Text(texts.DLG_GUIDE_PROMPT_TITLE),
-            content=ft.Column([
-                ft.Text(texts.DLG_GUIDE_PROMPT_HINT, size=12, color=ft.Colors.ON_SURFACE_VARIANT),
-                field,
-            ], width=640, height=460, spacing=8, tight=True),
-            actions=[
-                ft.TextButton(content=texts.BTN_CLOSE, on_click=close),
-                copy_button,
-            ],
-            actions_alignment=ft.MainAxisAlignment.END,
-        )
-        self._page.show_dialog(dialog)
 
     # ------------------------------------------------------------------ 保存（G3）
 
@@ -786,7 +929,7 @@ class MainPage:
         run = self._p.last_run
         if run is None:
             return
-        copied = await _set_clipboard(run.full_text)   # 表示用ではなく全量をコピーする
+        copied = await set_clipboard(run.full_text)   # 表示用ではなく全量をコピーする
         message = texts.MSG_COPIED if copied else texts.MSG_COPY_FAILED
         self._page.show_dialog(ft.SnackBar(ft.Text(message)))
 
@@ -803,20 +946,35 @@ class MainPage:
         こうしないと、実行中に形式を切り替えたときに古い設定の結果が画面に残る。
         """
         if not self._state.document.is_loaded:
+            self._record_requested = False
             return
         if self._state.running:
             self._rerun_requested = True
             return
         while True:
             self._rerun_requested = False
+            record_now, self._record_requested = self._record_requested, False
             self._set_running(True)
             self._page.update()             # 実行前に「実行中」を見せる
             vm = await self._p.run()
+            # 次の await の前に取り出す：記録は別タスクで走り、その間に自動の再実行が
+            # ``last_source`` を書き換えるため、この回の要求を引数で渡す（6-1 節）
+            source = self._p.last_source if vm.ok else None
             self._set_running(False)
             self._apply(vm)
             self._page.update()             # 実行後にも update する（Flet 1.0 の実測）
+            if record_now and source is not None:
+                self._page.run_task(self._record, source, vm)
             if not self._rerun_requested:
                 return
+
+    async def _record(self, source: RecordSource, vm: RunViewModel) -> None:
+        """実行ログへの記録（結果を画面に出した後。失敗しても実行結果には影響させない）。"""
+        result = await self._p.record_run(source, vm)
+        if result.error:
+            self._page.show_dialog(ft.SnackBar(ft.Text(
+                texts.MSG_LOG_WRITE_FAILED.format(reason=result.error))))
+            self._page.update()
 
     def _set_running(self, running: bool) -> None:
         self._progress.visible = running

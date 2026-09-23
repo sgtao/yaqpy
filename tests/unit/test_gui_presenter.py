@@ -450,21 +450,31 @@ class CandidateTests:
         assert p.apply_candidate(".server.port") == ".server.port"
         assert p.state.query.expression == ".server.port"
 
-    async def test_apply_append_joins_with_a_pipe(self) -> None:
+    async def test_apply_twice_replaces_again(self) -> None:
         p = await self._ready()
         p.apply_candidate(".items[]")
-        assert p.apply_candidate(".name", append=True) == ".items[] | .name"
+        assert p.apply_candidate(".name") == ".name"
 
-    async def test_append_does_not_duplicate_the_selected_candidate(self) -> None:
+    async def test_append_pipe_adds_a_pipe_at_the_end(self) -> None:
         p = await self._ready()
-        p.apply_candidate(".items[]")                 # 選ぶと式欄が置き換わる
-        assert p.apply_candidate(".items[]", append=True) == ".items[]"
-        p.apply_candidate(".items[] | .name")
-        assert p.apply_candidate(".name", append=True) == ".items[] | .name"
+        p.apply_candidate(".items[]")
+        assert p.append_pipe() == ".items[] | "
+        assert p.state.query.expression == ".items[] | "
 
-    async def test_append_on_the_identity_expression_replaces(self) -> None:
-        p = await self._ready()                     # 開いた直後の式は "."
-        assert p.apply_candidate(".server", append=True) == ".server"
+    async def test_append_pipe_does_not_stack_pipes(self) -> None:
+        p = await self._ready()
+        p.apply_candidate(".items[]  ")               # 末尾の空白は詰める
+        assert p.append_pipe() == ".items[] | "
+        assert p.append_pipe() == ".items[] | "
+
+    async def test_append_pipe_on_an_empty_expression_does_nothing(self) -> None:
+        p = await self._ready()
+        p.state.query.expression = "  "
+        assert p.append_pipe() == "  "
+
+    async def test_append_pipe_keeps_the_identity_expression(self) -> None:
+        p = await self._ready()                       # 開いた直後の式は "."
+        assert p.append_pipe() == ". | "
 
     async def test_applied_candidate_runs(self) -> None:
         p = await self._ready()

@@ -33,7 +33,7 @@ FORBIDDEN: dict[str, tuple[str, ...]] = {
 GUI_PREFIX = "yaqpy.gui"
 # gui が使ってよい外部パッケージ（G0 でドロップ拡張は見送りになったが、将来の再検討に備えて残す）。
 # uvicorn は Web 版（[web] extra の flet-web が連れてくる）のサーバーを起動する gui/_web.py だけ。
-GUI_ALLOWED_THIRD_PARTY = {"flet", "flet_dropzone", "uvicorn"}
+GUI_ALLOWED_THIRD_PARTY = {"flet", "flet_dropzone", "flet_web", "uvicorn"}
 GUI_UVICORN_MODULES = {"yaqpy.gui._web"}
 # View から切り離してテストするため、flet を import してはいけないモジュール
 GUI_FLET_FREE_MODULES = {
@@ -46,6 +46,11 @@ GUI_FLET_FREE_MODULES = {
     "yaqpy.gui._di",
     "yaqpy.gui.web_config",
     "yaqpy.gui.logo",
+    "yaqpy.gui.web_assets",
+    "yaqpy.gui.ask_ai",
+    "yaqpy.gui.expression_file",
+    "yaqpy.gui.run_log",
+    "yaqpy.gui.log_presenter",
     "yaqpy.gui.app",
 }
 

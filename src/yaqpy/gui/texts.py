@@ -20,17 +20,31 @@ APP_TITLE = "yaqpy"
 # ボタン・ラベル
 BTN_ADD_FILE = "＋ファイルを追加"
 BTN_CLOSE = "閉じる"
+BTN_MORE_FILES = "＋ファイル {n}件"
+BTN_OPEN_FILE = "ファイルを開く"
+TIP_EXPR_PASTE = "クリップボードの内容を式欄に貼り付け（式を置き換えます）"
+TIP_EXPR_COPY = "式をコピー"
+TIP_EXPR_CLEAR = "式をクリア"
+MSG_EXPR_COPIED = "式をクリップボードにコピーしました"
+MSG_LOG_WRITE_FAILED = "実行ログを保存できませんでした：{reason}"
+TIP_EXPR_LOAD = "式を読み込む（.yaqpy）"
+TIP_EXPR_SAVE = "式を保存（.yaqpy）"
+MSG_EXPR_LOADED = "式を読み込みました: {name}"
+MSG_EXPR_SAVED = "式を保存しました: {path}"
+ERR_EXPR_FILE_TOO_LARGE = "式のファイルが大きすぎます（{size} バイト / 上限 {limit} バイト）"
+ERR_EXPR_FILE_NOT_UTF8 = "UTF-8 のテキストとして読めませんでした（式のファイルではないようです）"
+MENU_CLOSE_FILE = "閉じる: {name}"
 BTN_RUN = "実行"
 BTN_CANCEL = "中止"
 BTN_SAVE = "保存"
 BTN_COPY = "コピー"
 BTN_OPEN_SETTINGS = "設定を開く"
-BTN_ADD_TO_EXPR = "式に追加"
+BTN_ADD_PIPE = "+ パイプを追加"
 BTN_QUIT = "終了"
 LBL_INPUT_FORMAT = "入力形式"
 LBL_OUTPUT_FORMAT = "出力形式"
+LBL_AUTO_SAME_AS_INPUT = "auto（入力と同じ）"
 LBL_INDENT = "インデント"
-LBL_PRETTY = "整形 (-P)"
 LBL_EXPRESSION = "式"
 LBL_PROPERTY = "プロパティ"
 LBL_ORIGINAL = "オリジナル"
@@ -60,18 +74,75 @@ MSG_COPIED = "変換結果をクリップボードにコピーしました"
 SET_TITLE = "設定"
 SET_SECURITY = "セキュリティ"
 SET_SECURITY_NOTE = "既定はすべて不許可です。必要なときだけ許可してください"
+SET_SECURITY_WHY = (
+    "env は環境変数を、load はファイルを読む機能です。load の方が読める範囲が広いため、"
+    "別々に許可できるようにしています"
+)
 SET_ALLOW_ENV = "env / strenv 演算子を許可（環境変数を読めるようになります）"
-SET_ALLOW_FILE = "load / loadstr 演算子を許可（他のファイルを読めるようになります）"
+SET_ALLOW_FILE = (
+    "load / loadstr 演算子を許可（他のファイルを読めるようになります）"
+    "（現在この演算子は未実装のため、切り替えても動作に影響しません）"
+)
 SET_SYSTEM_NOTE = "※ system 演算子は GUI では提供しません"
 SET_RUN = "実行"
 SET_TIMEOUT = "タイムアウト（秒）"
 SET_MAX_INPUT = "最大入力（MiB）"
 SET_MAX_LINES = "表示行数の上限"
 SET_VIEW = "表示"
+SET_LOG = "実行ログ"
+SET_LOG_ENABLED = "実行ログを記録する"
+SET_LOG_DIR = "保存先"
+SET_LOG_DIR_HINT = "空欄なら既定の保存先：{path}"
+SET_LOG_MAX_FILES = "保存する件数の上限"
+SET_LOG_MAX_ENTRY = "1件あたりの本文の上限（MiB）"
+SET_LOG_NOTE = (
+    "［実行］ボタンで変換に成功したときだけ、1 回につき 1 ファイルを記録します（ログ画面で見られます）。"
+    "ログには入力データと変換結果が平文で保存されます。機密情報を扱うときは記録をオフにしてください。"
+    "env を許可している場合、環境変数の値が結果に含まれることがあります。"
+    "保存先を変えても、これまでのログは移動しません"
+)
+BTN_BROWSE = "参照…"
+LBL_LOG_SEARCH = "絞り込み（日時・形式・式・ファイル名）"
+TIP_LOG_REFRESH = "一覧を更新"
+TIP_LOG_OPEN_FOLDER = "保存先を開く"
+TIP_LOG_DELETE_ALL = "すべて削除"
+BTN_LOG_RERUN = "再実行"
+BTN_LOG_SAVE_EXPR = "式を .yaqpy に保存"
+BTN_LOG_DELETE = "削除"
+BTN_DIALOG_CANCEL = "やめる"
+BTN_DELETE_OK = "削除する"
+BTN_REPLACE_RERUN = "置き換えて再実行"
+LBL_LOG_INPUT = "入力："
+LBL_LOG_EXPRESSION = "式："
+MSG_LOG_EMPTY = "ログはまだありません。［実行］で変換に成功すると、ここに記録されます"
+MSG_LOG_NO_MATCH = "絞り込みに合うログはありません"
+MSG_LOG_SELECT = "左の一覧からログを選んでください"
+MSG_LOG_STATUS = "全 {total} 件（うち {shown} 件を表示） ／ 保存先：{path}"
+MSG_LOG_CANNOT_RERUN = "このログは再実行できません（本文を省略した・古い形式・壊れている、など）"
+MSG_LOG_RESTORE_FAILED = "ログの入力を元の形式に戻せませんでした：{reason}"
+MSG_LOG_READ_FAILED = "ログを読めませんでした：{reason}"
+MSG_LOG_BROKEN = "このログは読み戻せませんでした（全文だけ表示します）：{reason}"
+MSG_LOG_DELETED = "削除しました"
+MSG_LOG_DELETED_ALL = "{n} 件を削除しました"
+MSG_LOG_FOLDER_FAILED = "保存先を開けませんでした：{reason}"
+MSG_LOG_RERUN_STARTED = "ログから再実行しました（新しい文書として追加しています）"
+DLG_LOG_DELETE_TITLE = "このログを削除しますか？"
+DLG_LOG_DELETE_BODY = "元に戻せません。\n\n{name}"
+DLG_LOG_DELETE_ALL_TITLE = "すべてのログを削除しますか？"
+DLG_LOG_DELETE_ALL_BODY = "{n} 件のログをすべて削除します。元に戻せません。"
+DLG_LOG_REPLACE_TITLE = "開いている文書を置き換えて再実行しますか？"
+DLG_LOG_REPLACE_BODY = (
+    "このログは、複数の文書をまとめて評価したときの記録です。"
+    "開いている文書を閉じて、ログの入力に置き換えて再実行します。"
+)
+BTN_RESET_DEFAULT = "既定に戻す"
+MSG_FOLDER_PICK_FAILED = "フォルダを選べませんでした。保存先のパスを直接入力してください"
 SET_DARK = "ダークテーマ"
 SET_LANGUAGE_NOTE = "変更は次回の起動から有効です"
 NAV_MAIN = "📄 メイン"
 NAV_SETTINGS = "⚙ 設定"
+NAV_ASK_AI = "🤖 AIに相談"
+NAV_LOG = "📜 ログ"
 MSG_DROP_UNSUPPORTED = "この環境ではファイルのドラッグ＆ドロップに対応していません"
 MSG_PASTE_HERE = "ここに YAML / JSON を貼り付けてください"
 MSG_PASTED = "（貼り付けたテキスト）"
@@ -79,14 +150,26 @@ MSG_NO_CANDIDATES = "この文書からはプロパティ候補を作れませ�
 MSG_TOO_MANY_CANDIDATES = "候補が多いため、絞り込んでください"
 MSG_COPIED_SHORT = "コピーしました！"
 
-# AI への相談文（--guide-prompt の GUI 版。追加要望）
-BTN_GUIDE_PROMPT = "AI に相談"
-DLG_GUIDE_PROMPT_TITLE = "AI への相談文"
-DLG_GUIDE_PROMPT_HINT = (
-    "この内容を ChatGPT や Claude などの AI にそのまま貼り付けてください。末尾の「## 依頼」の"
-    "行を、やりたいことに書き換えられます（この欄自体を編集してから貼り付けても構いません）。"
+# 「AIに相談」画面（--guide-prompt の GUI 版。v0.7.0）
+ASK_AI_TITLE = "AI に相談"
+ASK_AI_HINT = (
+    "左に、データの例とやりたい変換を書いて［＋プロンプトに反映］を押すと、右の相談文の"
+    "「## 依頼」に入ります。右の全文をコピーして、ChatGPT や Claude などの AI に貼り付けてください"
+    "（右の欄は自由に編集できます）。"
 )
-BTN_COPY_PROMPT = "プロンプトをコピー"
+LBL_ASK_AI_INPUT = "あなたの入力（データ例・やりたい変換）"
+LBL_ASK_AI_PROMPT = "AIへの相談文（コピーしてAIに貼り付け）"
+PH_ASK_AI_INPUT = "例: この JSON から、price が 500 を超える商品の name だけを取り出したい"
+BTN_PASTE = "貼り付け"
+BTN_CLEAR = "クリア"
+BTN_APPLY_TO_PROMPT = "＋プロンプトに反映"
+BTN_RESET_PROMPT = "初期状態に戻す"
+MSG_PROMPT_LOADING = "相談文を作っています…"
+MSG_APPLY_EMPTY = "左の欄に入力してから、［＋プロンプトに反映］を押してください"
+MSG_PASTE_FAILED = (
+    "クリップボードから貼り付けられませんでした（ブラウザや OS が許可していない可能性があります）。"
+    "欄をクリックして Ctrl + V で貼り付けてください"
+)
 MSG_COPY_FAILED = (
     "クリップボードにコピーできませんでした（ブラウザや OS が許可していない可能性があります）。"
     "欄の文字を選択してコピーしてください"
@@ -163,17 +246,31 @@ _EN: dict[str, str] = {
     "APP_TITLE": "yaqpy",
     "BTN_ADD_FILE": "+ Add File",
     "BTN_CLOSE": "Close",
+    "BTN_MORE_FILES": "+ {n} more",
+    "BTN_OPEN_FILE": "Open File",
+    "TIP_EXPR_PASTE": "Paste the clipboard into the expression box (replaces the expression)",
+    "TIP_EXPR_COPY": "Copy the expression",
+    "TIP_EXPR_CLEAR": "Clear the expression",
+    "MSG_EXPR_COPIED": "Copied the expression to the clipboard",
+    "MSG_LOG_WRITE_FAILED": "Could not save the run log: {reason}",
+    "TIP_EXPR_LOAD": "Load an expression (.yaqpy)",
+    "TIP_EXPR_SAVE": "Save the expression (.yaqpy)",
+    "MSG_EXPR_LOADED": "Loaded the expression: {name}",
+    "MSG_EXPR_SAVED": "Saved the expression: {path}",
+    "ERR_EXPR_FILE_TOO_LARGE": "The expression file is too large ({size} bytes / limit {limit} bytes)",
+    "ERR_EXPR_FILE_NOT_UTF8": "Could not read this as UTF-8 text (it does not look like an expression file)",
+    "MENU_CLOSE_FILE": "Close: {name}",
     "BTN_RUN": "Run",
     "BTN_CANCEL": "Cancel",
     "BTN_SAVE": "Save",
     "BTN_COPY": "Copy",
     "BTN_OPEN_SETTINGS": "Open Settings",
-    "BTN_ADD_TO_EXPR": "Add to Expression",
+    "BTN_ADD_PIPE": "+ Add Pipe",
     "BTN_QUIT": "Quit",
     "LBL_INPUT_FORMAT": "Input Format",
     "LBL_OUTPUT_FORMAT": "Output Format",
+    "LBL_AUTO_SAME_AS_INPUT": "auto (same as input)",
     "LBL_INDENT": "Indent",
-    "LBL_PRETTY": "Pretty-print (-P)",
     "LBL_EXPRESSION": "Expression",
     "LBL_PROPERTY": "Property",
     "LBL_ORIGINAL": "Original",
@@ -203,32 +300,99 @@ _EN: dict[str, str] = {
     "SET_TITLE": "Settings",
     "SET_SECURITY": "Security",
     "SET_SECURITY_NOTE": "Everything is disallowed by default. Enable only what you actually need",
+    "SET_SECURITY_WHY": (
+        "env reads environment variables and load reads files. load can reach much more, "
+        "so the two can be allowed separately"
+    ),
     "SET_ALLOW_ENV": "Allow env / strenv operators (lets expressions read environment variables)",
-    "SET_ALLOW_FILE": "Allow load / loadstr operators (lets expressions read other files)",
+    "SET_ALLOW_FILE": (
+        "Allow load / loadstr operators (lets expressions read other files) "
+        "(these operators are not implemented yet, so this switch has no effect for now)"
+    ),
     "SET_SYSTEM_NOTE": "Note: the system operator is not available in the GUI",
     "SET_RUN": "Run",
     "SET_TIMEOUT": "Timeout (seconds)",
     "SET_MAX_INPUT": "Max input (MiB)",
     "SET_MAX_LINES": "Max lines shown",
     "SET_VIEW": "Display",
+    "SET_LOG": "Run log",
+    "SET_LOG_ENABLED": "Record the run log",
+    "SET_LOG_DIR": "Folder",
+    "SET_LOG_DIR_HINT": "Leave empty for the default folder: {path}",
+    "SET_LOG_MAX_FILES": "Max number of logs to keep",
+    "SET_LOG_MAX_ENTRY": "Max body size per log (MiB)",
+    "SET_LOG_NOTE": (
+        "Only when a conversion succeeds with the [Run] button, one file per run is recorded "
+        "(you can browse them on the Log tab). Logs keep your input data and results as plain text; "
+        "turn recording off when you handle confidential data. If env is allowed, environment "
+        "variable values may appear in the results. Changing the folder does not move existing logs"
+    ),
+    "BTN_BROWSE": "Browse…",
+    "NAV_LOG": "📜 Log",
+    "LBL_LOG_SEARCH": "Filter (time, format, expression, file name)",
+    "TIP_LOG_REFRESH": "Refresh the list",
+    "TIP_LOG_OPEN_FOLDER": "Open the log folder",
+    "TIP_LOG_DELETE_ALL": "Delete all",
+    "BTN_LOG_RERUN": "Run again",
+    "BTN_LOG_SAVE_EXPR": "Save expression as .yaqpy",
+    "BTN_LOG_DELETE": "Delete",
+    "BTN_DIALOG_CANCEL": "Cancel",
+    "BTN_DELETE_OK": "Delete",
+    "BTN_REPLACE_RERUN": "Replace and run again",
+    "LBL_LOG_INPUT": "Input: ",
+    "LBL_LOG_EXPRESSION": "Expression: ",
+    "MSG_LOG_EMPTY": "No logs yet. When a conversion succeeds with [Run], it is recorded here",
+    "MSG_LOG_NO_MATCH": "No log matches the filter",
+    "MSG_LOG_SELECT": "Pick a log from the list on the left",
+    "MSG_LOG_STATUS": "{total} logs ({shown} shown) / folder: {path}",
+    "MSG_LOG_CANNOT_RERUN": ("This log cannot be run again (its body was omitted, it is an "
+                             "unknown version, or it is broken)"),
+    "MSG_LOG_RESTORE_FAILED": "Could not turn the logged input back into its format: {reason}",
+    "MSG_LOG_READ_FAILED": "Could not read the log: {reason}",
+    "MSG_LOG_BROKEN": "This log could not be read back (showing the full text only): {reason}",
+    "MSG_LOG_DELETED": "Deleted",
+    "MSG_LOG_DELETED_ALL": "Deleted {n} logs",
+    "MSG_LOG_FOLDER_FAILED": "Could not open the folder: {reason}",
+    "MSG_LOG_RERUN_STARTED": "Ran it again from the log (added as a new document)",
+    "DLG_LOG_DELETE_TITLE": "Delete this log?",
+    "DLG_LOG_DELETE_BODY": "This cannot be undone.\n\n{name}",
+    "DLG_LOG_DELETE_ALL_TITLE": "Delete all logs?",
+    "DLG_LOG_DELETE_ALL_BODY": "All {n} logs will be deleted. This cannot be undone.",
+    "DLG_LOG_REPLACE_TITLE": "Replace the open documents and run again?",
+    "DLG_LOG_REPLACE_BODY": (
+        "This log was recorded from several documents evaluated together. "
+        "The open documents will be closed and replaced by the logged inputs."
+    ),
+    "BTN_RESET_DEFAULT": "Reset",
+    "MSG_FOLDER_PICK_FAILED": "Could not pick a folder. Type the folder path instead",
     "SET_DARK": "Dark theme",
     "SET_LANGUAGE_NOTE": "Takes effect the next time you start the app",
     "NAV_MAIN": "📄 Main",
     "NAV_SETTINGS": "⚙ Settings",
+    "NAV_ASK_AI": "🤖 Ask AI",
     "MSG_DROP_UNSUPPORTED": "Drag-and-drop is not supported in this environment",
     "MSG_PASTE_HERE": "Paste YAML / JSON here",
     "MSG_PASTED": "(pasted text)",
     "MSG_NO_CANDIDATES": "No property suggestions could be made from this document",
     "MSG_TOO_MANY_CANDIDATES": "Too many suggestions — type to narrow them down",
     "MSG_COPIED_SHORT": "Copied!",
-    "BTN_GUIDE_PROMPT": "Ask AI",
-    "DLG_GUIDE_PROMPT_TITLE": "Prompt for AI",
-    "DLG_GUIDE_PROMPT_HINT": (
-        "Paste this as-is into ChatGPT, Claude, or another AI. You can rewrite the "
-        '"## 依頼" ("Request") line at the end with what you actually want to do '
-        "(or edit this box itself before pasting)."
+    "ASK_AI_TITLE": "Ask AI",
+    "ASK_AI_HINT": (
+        "Write your sample data and what you want to do on the left, then press [+ Add to prompt]: "
+        'it goes into the "## 依頼" ("Request") section of the prompt on the right. Copy the whole '
+        "prompt and paste it into ChatGPT, Claude, or another AI (the right box is freely editable)."
     ),
-    "BTN_COPY_PROMPT": "Copy Prompt",
+    "LBL_ASK_AI_INPUT": "Your input (sample data and what you want to do)",
+    "LBL_ASK_AI_PROMPT": "Prompt for the AI (copy it and paste it into the AI)",
+    "PH_ASK_AI_INPUT": "e.g. From this JSON, I want only the names of items whose price is over 500",
+    "BTN_PASTE": "Paste",
+    "BTN_CLEAR": "Clear",
+    "BTN_APPLY_TO_PROMPT": "+ Add to prompt",
+    "BTN_RESET_PROMPT": "Reset",
+    "MSG_PROMPT_LOADING": "Building the prompt…",
+    "MSG_APPLY_EMPTY": "Type something in the left box, then press [+ Add to prompt]",
+    "MSG_PASTE_FAILED": ("Could not paste from the clipboard (the browser or OS may not allow it). "
+                         "Click the box and press Ctrl + V instead"),
     "MSG_COPY_FAILED": ("Could not copy to the clipboard (the browser or OS may not allow it). "
                         "Select the text in the box and copy it instead"),
     "BTN_DOWNLOAD": "Download",

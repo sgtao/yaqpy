@@ -1,6 +1,6 @@
 [project]
 name = "yaqpy"
-version = "0.6.0"
+version = "0.7.0"
 description = "YAML and more—Query editor in Python: query, update and convert YAML / JSON / XML / CSV / TOML / properties / TOON with the mikefarah/yq expression language, in pure Python (stdlib only)"
 readme = "README.md"
 license = "MIT"

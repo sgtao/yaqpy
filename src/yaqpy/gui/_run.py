@@ -10,14 +10,21 @@ import sys
 import flet as ft
 
 from yaqpy.gui import texts
-from yaqpy.gui._di import make_presenter
+from yaqpy.gui._di import make_log_presenter, make_presenter
 from yaqpy.gui._prefs import load_settings, save_settings
 from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.logo import WINDOW_ICON
+from yaqpy.gui.log_presenter import RerunPayload
+from yaqpy.gui.pages.ask_ai_page import AskAiPage
+from yaqpy.gui.pages.log_page import LogPage
 from yaqpy.gui.pages.main_page import MainPage
 from yaqpy.gui.pages.settings_page import SettingsPage
 from yaqpy.gui.state import GuiState, clamp_settings_to_web_limits
+from yaqpy.gui.web_assets import is_drop_route
 from yaqpy.gui.web_config import WebRuntime
+
+# ページの番号（nav_labels / pages の並び）。末尾に足していくので、既存の番号は動かない
+MAIN, SETTINGS, ASK_AI, LOG = 0, 1, 2, 3
 
 # 窓を閉じてから、クライアントの後始末を待つ時間（秒）
 CLOSE_GRACE_SECONDS = 0.3
@@ -77,7 +84,11 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
         page.run_task(_save)
 
     content = ft.Container(expand=True)
-    nav_labels = [texts.NAV_MAIN, texts.NAV_SETTINGS]
+    # ページの並びは pages / nav_labels（同じ順）。タブの数はここだけで決まる（Web 版とデスクトップ版で
+    # 数が違ってもよい）。ページ番号に頼るコードは MAIN / SETTINGS の定数を使う。
+    nav_labels = [texts.NAV_MAIN, texts.NAV_SETTINGS, texts.NAV_ASK_AI]
+    if web is None:
+        nav_labels.append(texts.NAV_LOG)       # ログ画面はデスクトップ版のみ（末尾。LOG = 3）
     # ft.ButtonStyle は Flet 1.0 で色を受け取れないので、押しているページは文字の色と太さで示す
     nav_texts = [ft.Text(label) for label in nav_labels]
 
@@ -87,9 +98,12 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
             active = i == index
             label.color = ft.Colors.PRIMARY if active else ft.Colors.ON_SURFACE_VARIANT
             label.weight = ft.FontWeight.BOLD if active else ft.FontWeight.NORMAL
+        on_show = getattr(pages[index], "on_show", None)
+        if on_show is not None:                 # 切り替わったときに用意するもの（AI に相談の相談文など）
+            page.run_task(on_show)
 
     def go_to_settings(capability: str = "") -> None:
-        show(1)
+        show(SETTINGS)
         if capability:
             settings_page.focus_capability(capability)
         page.update()
@@ -98,8 +112,19 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
                          on_open_settings=go_to_settings, uploader=uploader)
     settings_page = SettingsPage(page=page, state=state,
                                  on_changed=lambda: page.run_task(main_page.rerun),
-                                 on_persist=persist_settings)
-    pages = [main_page, settings_page]
+                                 on_persist=persist_settings, picker=picker)
+    ask_ai_page = AskAiPage(page=page, presenter=presenter)
+    pages: list = [main_page, settings_page, ask_ai_page]
+
+    async def rerun_from_log(payload: RerunPayload, replace: bool) -> None:
+        """ログ画面の［再実行］：Main 画面へ切り替えて、新しい文書として追加してすぐ実行する。"""
+        show(MAIN)
+        page.update()
+        await main_page.apply_rerun(payload, replace=replace)
+
+    if web is None:
+        pages.append(LogPage(page=page, presenter=make_log_presenter(state), picker=picker,
+                             on_rerun=rerun_from_log))
 
     def ask_quit(e: ft.Event) -> None:
         """要望：終了ボタンはワンクリックで閉じず、確認を挟む。"""
@@ -124,8 +149,8 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
         page.show_dialog(dialog)
 
     nav_items: list[ft.Control] = [
-        ft.TextButton(content=nav_texts[0], on_click=lambda e: show(0)),
-        ft.TextButton(content=nav_texts[1], on_click=lambda e: show(1)),
+        ft.TextButton(content=label, on_click=lambda e, i=i: show(i))
+        for i, label in enumerate(nav_texts)
     ]
     if web is None:
         # Web 版には閉じる窓が無い（タブを閉じればよい。サーバーは起動した端末で Ctrl+C）
@@ -164,9 +189,21 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
             uploader.cleanup()                # Web 版：このタブが受け取ったものを残さない
 
     page.on_close = on_close
+
+    if web is not None:
+        async def on_route_change(e: ft.RouteChangeEvent) -> None:
+            """ファイルのドロップ（``yaqpy-drop.js``）の通知。Main 画面に切り替えて開く。"""
+            if not is_drop_route(e.route):
+                return
+            await page.push_route("/")          # 通知用のルートを URL に残さない
+            show(MAIN)
+            page.update()
+            await main_page.add_dropped_files()
+
+        page.on_route_change = on_route_change
     page.theme_mode = ft.ThemeMode.DARK if state.settings.dark_theme else ft.ThemeMode.LIGHT
 
-    show(0)
+    show(MAIN)
     page.add(content, nav_bar)
     if initial_path:
         # yaqpy --gui a.yaml（U2）。add() の後で走らせ、画面が組み上がってから開く。

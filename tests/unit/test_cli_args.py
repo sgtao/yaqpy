@@ -92,3 +92,27 @@ class BadFormatNameTests:
 
 if __name__ == "__main__":
     pytest.main([__file__])
+
+
+class ExpressionFileTests:
+    """`.yq`（Go 版と同じ）と `.yaqpy`（v0.7.0。GUI が保存する式だけのファイル）を式ファイルとして読む。"""
+
+    @pytest.mark.parametrize("name", ["sel.yq", "sel.yaqpy"])
+    def test_an_existing_first_argument_is_read_as_the_expression(self, name: str) -> None:
+        inv = invoke(name, "a.json", files={name: ".a\r\n| . + 1\r\n", "a.json": '{"a": 1}'})
+        assert inv.request.expression == ".a\n| . + 1\n"           # CRLF は LF にそろえる
+        assert [s.name for s in inv.request.inputs] == ["a.json"]
+
+    def test_from_file_reads_a_yaqpy_file_too(self) -> None:
+        inv = invoke("--from-file", "sel.yaqpy", "a.json",
+                     files={"sel.yaqpy": ".a", "a.json": '{"a": 1}'})
+        assert inv.request.expression == ".a"
+
+    def test_a_missing_yaqpy_argument_is_still_an_expression_as_before(self) -> None:
+        inv = invoke("nothing.yaqpy", "a.json", files={"a.json": '{"a": 1}'})
+        assert inv.request.expression == "nothing.yaqpy"
+        assert [s.name for s in inv.request.inputs] == ["a.json"]
+
+    def test_other_extensions_are_not_expression_files(self) -> None:
+        inv = invoke("sel.txt", "a.json", files={"sel.txt": ".a", "a.json": '{"a": 1}'})
+        assert [s.name for s in inv.request.inputs] == ["sel.txt", "a.json"]

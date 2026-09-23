@@ -34,6 +34,7 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # comments and key order are ke
   - `yaqpy --schema data.yaml` prints a JSON Schema (Draft 2020-12) of the data, as JSON or YAML
   - `yaqpy --recipe openai-to-gemini request.json` converts request bodies between OpenAI, Gemini and Anthropic, and reports what was dropped, added, or does not fit the target schema (results go to stdout; files are written only with `--apply --out-dir`; no API is called)
   - yaqpy describes itself for people and AI: `--print-spec` (the operators that work and those that do not), `--example`, `--guide-prompt` (a prompt that lets an AI write yaqpy expressions) and `--skill-md` (a Claude Code skill)
+- **GUI extras**: an "Ask AI" tab that builds a prompt for an AI to write your expression; expressions saved and loaded as `.yaqpy` files (the command reads them too: `yaqpy sample.yaqpy data.json`); a run log with a Log tab to browse, search and re-run past conversions (desktop only); file drag-and-drop in the web version
 - **Safe defaults**: as a library, operators that read files or environment variables or run commands are all off. The CLI, like the Go version, allows environment variables and file reads (commands stay off). The web version always turns them off
 
 ## Installation
@@ -57,11 +58,11 @@ uv add yaqpy                        # use it as a library in a uv project
 
 > **`uv tool install` / `uvx` and the desktop GUI**: `flet` normally installs its desktop runtime (`flet-desktop`) on first launch. That auto-install targets whatever virtual environment `uv` can find near the current directory, which is **not** the isolated environment `uv tool install` created for `yaqpy` — so it can print "OK" and still leave you with `ModuleNotFoundError: No module named 'flet_desktop'` when you run `yaqpy-gui`. Passing `--with flet-desktop` (as above) puts it in the right place from the start and avoids this entirely. If you already installed without it: `uv tool install --force "yaqpy[gui]" --with flet-desktop`.
 
-**From GitHub Releases** (for example, a version that is not on PyPI): pick a version on [Releases](https://github.com/sgtao/yaqpy/releases) and replace `0.6.0` / `v0.6.0` below with it.
+**From GitHub Releases** (for example, a version that is not on PyPI): pick a version on [Releases](https://github.com/sgtao/yaqpy/releases) and replace `0.7.0` / `v0.7.0` below with it.
 
 ```bash
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.6.0/yaqpy-0.6.0-py3-none-any.whl"
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.6.0"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.0/yaqpy-0.7.0-py3-none-any.whl"
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.0"
 ```
 
 To work on the source, see [DEVELOPMENT.md](https://github.com/sgtao/yaqpy/blob/main/DEVELOPMENT.md) (Japanese).

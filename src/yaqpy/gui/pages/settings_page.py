@@ -6,15 +6,17 @@ from collections.abc import Callable
 
 import flet as ft
 
-from yaqpy.gui import texts
+from yaqpy.gui import run_log, texts
 from yaqpy.gui.state import GuiState
 
 
 class SettingsPage:
     def __init__(self, *, page: ft.Page, state: GuiState,
                  on_changed: Callable[[], None],
-                 on_persist: Callable[[], None] | None = None) -> None:
+                 on_persist: Callable[[], None] | None = None,
+                 picker: ft.FilePicker | None = None) -> None:
         self._page = page
+        self._picker = picker
         self._state = state
         self._on_changed = on_changed
         self._on_persist = on_persist or (lambda: None)
@@ -53,17 +55,49 @@ class SettingsPage:
         self._language_note = ft.Text(texts.SET_LANGUAGE_NOTE, size=12,
                                       color=ft.Colors.ON_SURFACE_VARIANT)
 
+        # 実行ログ（v0.7.0。デスクトップ版のみ）。保存先は直接入力もできる（フォルダ選択の実機確認が
+        # 取れなかったときの代わりにもなる）。空欄は「既定の保存先」
+        default_dir = run_log.default_log_dir()
+        self._log_enabled = ft.Switch(label=texts.SET_LOG_ENABLED, value=s.log_enabled,
+                                      on_change=self._on_log_enabled)
+        self._log_dir = ft.TextField(label=texts.SET_LOG_DIR, value=s.log_dir, expand=True,
+                                     helper=texts.SET_LOG_DIR_HINT.format(path=default_dir),
+                                     on_change=self._on_log_dir)
+        self._log_max_files = ft.TextField(label=texts.SET_LOG_MAX_FILES, width=220,
+                                           value=str(s.log_max_files),
+                                           input_filter=ft.NumbersOnlyInputFilter(),
+                                           on_change=self._on_log_max_files,
+                                           on_blur=self._restore_fields)
+        self._log_max_entry = ft.TextField(label=texts.SET_LOG_MAX_ENTRY, width=220,
+                                           value=str(s.log_max_entry_mib),
+                                           input_filter=ft.NumbersOnlyInputFilter(),
+                                           on_change=self._on_log_max_entry,
+                                           on_blur=self._restore_fields)
+
         note_color = ft.Colors.ON_SURFACE_VARIANT
         web = state.web
         if web is None:
             security: list[ft.Control] = [
                 ft.Text(texts.SET_SECURITY_NOTE, size=12, color=note_color),
+                ft.Text(texts.SET_SECURITY_WHY, size=12, color=note_color),
                 self._boxes["env"],
                 self._boxes["file"],
                 ft.Text(texts.SET_SYSTEM_NOTE, size=12, color=note_color),
             ]
             run_notes: list[ft.Control] = []
             language: list[ft.Control] = [self._language, self._language_note]
+            log_section: list[ft.Control] = [
+                ft.Divider(),
+                ft.Text(texts.SET_LOG, weight=ft.FontWeight.W_600),
+                self._log_enabled,
+                ft.Row([self._log_dir,
+                        ft.Button(content=texts.BTN_BROWSE, icon=ft.Icons.FOLDER_OPEN,
+                                  on_click=self._on_browse_log_dir),
+                        ft.Button(content=texts.BTN_RESET_DEFAULT,
+                                  on_click=self._on_reset_log_dir)], spacing=8),
+                ft.Row([self._log_max_files, self._log_max_entry], spacing=12),
+                ft.Text(texts.SET_LOG_NOTE, size=12, color=note_color),
+            ]
         else:
             # Web 版（v0.6.0）：危険な許可のスイッチは**出さない**（計画書 5-5 節の 2）。
             # 表示言語はサーバーの起動時に固定（セッションごとに変えると文言が混ざるため）。
@@ -72,6 +106,7 @@ class SettingsPage:
                 mib=f"{web.max_input_bytes / 1024 / 1024:g}",
                 seconds=f"{web.timeout_seconds:g}"), size=12, color=note_color)]
             language = [ft.Text(texts.SET_WEB_LANGUAGE_NOTE, size=12, color=note_color)]
+            log_section = []                       # Web 版は実行ログを記録しない（利用者のデータを残さない）
 
         self._root = ft.Column([
             ft.Text(texts.SET_TITLE, size=20, weight=ft.FontWeight.BOLD),
@@ -86,6 +121,7 @@ class SettingsPage:
             ft.Text(texts.SET_VIEW, weight=ft.FontWeight.W_600),
             self._dark,
             *language,
+            *log_section,
         ], scroll=ft.ScrollMode.AUTO, expand=True, spacing=10)
 
     @property
@@ -135,6 +171,52 @@ class SettingsPage:
         self._timeout.value = str(int(s.timeout_seconds))
         self._max_input.value = str(s.max_input_mib)
         self._max_lines.value = str(s.max_display_lines)
+        self._log_max_files.value = str(s.log_max_files)
+        self._log_max_entry.value = str(s.log_max_entry_mib)
+
+    def _on_log_enabled(self, e: ft.Event[ft.Switch]) -> None:
+        self._state.settings.log_enabled = bool(e.control.value)
+        self._on_persist()
+
+    def _on_log_dir(self, e: ft.Event[ft.TextField]) -> None:
+        self._state.settings.log_dir = (e.control.value or "").strip()
+        self._on_persist()
+
+    async def _on_browse_log_dir(self, e: ft.Event[ft.Button]) -> None:
+        """保存先のフォルダを選ぶ。``get_directory_path`` は Flet 1.0 で実機確認が取れていない
+        （docs/flet-1.0-api-notes.md）ので、失敗したらパスの直接入力を案内する。"""
+        chosen: str | None = None
+        try:
+            if self._picker is None:
+                raise RuntimeError("no picker")
+            chosen = await self._picker.get_directory_path(
+                dialog_title=texts.SET_LOG_DIR,
+                initial_directory=self._state.settings.log_dir or None)
+        except Exception:                            # noqa: BLE001 - 直接入力に切り替えてもらう
+            self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_FOLDER_PICK_FAILED)))
+            self._page.update()
+            return
+        if chosen:
+            self._set_log_dir(chosen)
+
+    def _on_reset_log_dir(self, e: ft.Event[ft.Button]) -> None:
+        self._set_log_dir("")
+
+    def _set_log_dir(self, path: str) -> None:
+        self._state.settings.log_dir = path
+        self._log_dir.value = path
+        self._on_persist()
+        self._page.update()
+
+    def _on_log_max_files(self, e: ft.Event[ft.TextField]) -> None:
+        self._state.settings.log_max_files = int(
+            _positive(e.control.value, self._state.settings.log_max_files))
+        self._on_persist()
+
+    def _on_log_max_entry(self, e: ft.Event[ft.TextField]) -> None:
+        self._state.settings.log_max_entry_mib = int(
+            _positive(e.control.value, self._state.settings.log_max_entry_mib))
+        self._on_persist()
 
     def _on_dark(self, e: ft.Event[ft.Switch]) -> None:
         self._state.settings.dark_theme = bool(e.control.value)
