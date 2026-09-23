@@ -31,8 +31,10 @@ FORBIDDEN: dict[str, tuple[str, ...]] = {
 }
 
 GUI_PREFIX = "yaqpy.gui"
-# gui が使ってよい外部パッケージ（G0 でドロップ拡張は見送りになったが、将来の再検討に備えて残す）
-GUI_ALLOWED_THIRD_PARTY = {"flet", "flet_dropzone"}
+# gui が使ってよい外部パッケージ（G0 でドロップ拡張は見送りになったが、将来の再検討に備えて残す）。
+# uvicorn は Web 版（[web] extra の flet-web が連れてくる）のサーバーを起動する gui/_web.py だけ。
+GUI_ALLOWED_THIRD_PARTY = {"flet", "flet_dropzone", "uvicorn"}
+GUI_UVICORN_MODULES = {"yaqpy.gui._web"}
 # View から切り離してテストするため、flet を import してはいけないモジュール
 GUI_FLET_FREE_MODULES = {
     "yaqpy.gui.presenter",
@@ -42,6 +44,9 @@ GUI_FLET_FREE_MODULES = {
     "yaqpy.gui.errors_ja",
     "yaqpy.gui.texts",
     "yaqpy.gui._di",
+    "yaqpy.gui.web_config",
+    "yaqpy.gui.logo",
+    "yaqpy.gui.app",
 }
 
 
@@ -104,6 +109,15 @@ class ArchitectureTests:
             for imported in imports_of(path):
                 top = imported.split(".")[0]
                 assert top == "yaqpy" or top in stdlib or top in GUI_ALLOWED_THIRD_PARTY, f"{module} imports unexpected third-party module {imported}"
+
+    def test_only_the_web_runner_uses_uvicorn(self) -> None:
+        """デスクトップ版（[gui] extra）は uvicorn 無しで動くこと（v0.6.0）。"""
+        for path in self.files:
+            module = module_name(path)
+            if module in GUI_UVICORN_MODULES:
+                continue
+            for imported in imports_of(path):
+                assert imported.split(".")[0] != "uvicorn", f"{module} must not import uvicorn"
 
     def test_gui_logic_stays_flet_free(self) -> None:
         """Presenter 層は flet 抜きで単体テストできること（設計書 G-NFR-05）。"""

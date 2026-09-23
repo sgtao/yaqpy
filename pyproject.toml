@@ -1,24 +1,47 @@
 [project]
 name = "yaqpy"
-version = "0.5.0"
-description = "A pure-Python (stdlib only) implementation of the mikefarah/yq expression language"
+version = "0.6.0"
+description = "YAML and more—Query editor in Python: query, update and convert YAML / JSON / XML / CSV / TOML / properties / TOON with the mikefarah/yq expression language, in pure Python (stdlib only)"
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "sgtao" }]
+keywords = ["yaml", "json", "xml", "csv", "toml", "toon", "yq", "jq", "query", "cli", "json-schema"]
 requires-python = ">=3.13"
 dependencies = []
 classifiers = [
+  "Development Status :: 4 - Beta",
+  "Environment :: Console",
+  "Environment :: Web Environment",
+  "Intended Audience :: Developers",
+  "Intended Audience :: System Administrators",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
   "Programming Language :: Python :: 3.13",
+  "Topic :: Text Processing :: Markup",
+  "Topic :: Utilities",
   "Typing :: Typed",
 ]
 
+[project.urls]
+Homepage = "https://github.com/sgtao/yaqpy"
+Repository = "https://github.com/sgtao/yaqpy"
+Documentation = "https://github.com/sgtao/yaqpy/blob/main/USAGE.ja.md"
+Changelog = "https://github.com/sgtao/yaqpy/blob/main/CHANGELOG.md"
+Issues = "https://github.com/sgtao/yaqpy/issues"
+
 [project.scripts]
 yaqpy = "yaqpy.cli.main:main"
-yaqpy-gui = "yaqpy.gui.app:main_entry"
+yaqpy-gui = "yaqpy.gui.app:cli_entry"
+yaqpy-web = "yaqpy.gui.app:web_cli_entry"
 
 [project.optional-dependencies]
 gui = [
     "flet>=1.0,<2",
+]
+web = [
+    "flet[web]>=1.0,<2",
 ]
 
 [dependency-groups]

@@ -89,7 +89,9 @@ def build_parser() -> _Parser:
   yaqpy --list-recipes                                 # named conversions
   yaqpy --recipe openai-to-gemini request.json         # convert an API request body
   yaqpy --recipe openai-to-gemini --report request.json
-  yaqpy --print-spec | --example | --guide-prompt | --skill-md   # yaqpy describes itself""",
+  yaqpy --print-spec | --example | --guide-prompt | --skill-md   # yaqpy describes itself
+  yaqpy --gui config.yaml                              # desktop GUI (yaqpy-gui --help)
+  yaqpy --web --port 9000                              # GUI in a browser (yaqpy-web --help)""",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         add_help=True,
     )
@@ -225,8 +227,15 @@ def build_parser() -> _Parser:
                    help="set exit status if there are no matches or null or false is returned")
     m.add_argument("-v", "--verbose", action="store_true", help="verbose mode")
     m.add_argument("-V", "--version", action="store_true", help="Print version information and quit")
-    m.add_argument("--gui", action="store_true",
-                   help="Launch the desktop GUI (needs the optional 'flet' package; see the README)")
+    u = parser.add_argument_group(
+        "GUI (optional extras; each has its own options: see `yaqpy-gui --help` / `yaqpy-web --help`)")
+    u.add_argument("--gui", action="store_true",
+                   help="launch the desktop GUI (needs the gui extra: flet). `yaqpy --gui FILE` opens "
+                        "FILE at startup. Same as the yaqpy-gui command")
+    u.add_argument("--web", action="store_true",
+                   help="serve the GUI to a web browser, by default on http://127.0.0.1:8550/ (this PC "
+                        "only; needs the web extra: flet[web]). The other arguments are yaqpy-web's "
+                        "options, e.g. `yaqpy --web --port 9000`. Same as the yaqpy-web command")
     return parser
 
 

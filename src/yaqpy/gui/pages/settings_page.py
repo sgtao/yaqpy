@@ -53,22 +53,39 @@ class SettingsPage:
         self._language_note = ft.Text(texts.SET_LANGUAGE_NOTE, size=12,
                                       color=ft.Colors.ON_SURFACE_VARIANT)
 
+        note_color = ft.Colors.ON_SURFACE_VARIANT
+        web = state.web
+        if web is None:
+            security: list[ft.Control] = [
+                ft.Text(texts.SET_SECURITY_NOTE, size=12, color=note_color),
+                self._boxes["env"],
+                self._boxes["file"],
+                ft.Text(texts.SET_SYSTEM_NOTE, size=12, color=note_color),
+            ]
+            run_notes: list[ft.Control] = []
+            language: list[ft.Control] = [self._language, self._language_note]
+        else:
+            # Web 版（v0.6.0）：危険な許可のスイッチは**出さない**（計画書 5-5 節の 2）。
+            # 表示言語はサーバーの起動時に固定（セッションごとに変えると文言が混ざるため）。
+            security = [ft.Text(texts.SET_WEB_SECURITY_NOTE, size=12, color=note_color)]
+            run_notes = [ft.Text(texts.SET_WEB_LIMITS_NOTE.format(
+                mib=f"{web.max_input_bytes / 1024 / 1024:g}",
+                seconds=f"{web.timeout_seconds:g}"), size=12, color=note_color)]
+            language = [ft.Text(texts.SET_WEB_LANGUAGE_NOTE, size=12, color=note_color)]
+
         self._root = ft.Column([
             ft.Text(texts.SET_TITLE, size=20, weight=ft.FontWeight.BOLD),
             ft.Divider(),
             ft.Text(texts.SET_SECURITY, weight=ft.FontWeight.W_600),
-            ft.Text(texts.SET_SECURITY_NOTE, size=12, color=ft.Colors.ON_SURFACE_VARIANT),
-            self._boxes["env"],
-            self._boxes["file"],
-            ft.Text(texts.SET_SYSTEM_NOTE, size=12, color=ft.Colors.ON_SURFACE_VARIANT),
+            *security,
             ft.Divider(),
             ft.Text(texts.SET_RUN, weight=ft.FontWeight.W_600),
             ft.Row([self._timeout, self._max_input, self._max_lines], spacing=12),
+            *run_notes,
             ft.Divider(),
             ft.Text(texts.SET_VIEW, weight=ft.FontWeight.W_600),
             self._dark,
-            self._language,
-            self._language_note,
+            *language,
         ], scroll=ft.ScrollMode.AUTO, expand=True, spacing=10)
 
     @property

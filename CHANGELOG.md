@@ -1,5 +1,68 @@
-###### [toREADME](./README.md)
+###### [toREADME](./README.ja.md)
 # 変更履歴（CHANGELOG）
+
+---
+[toTop](#toreadme)
+## [0.6.0] - 2026-09-23
+
+**GUI をブラウザで使える版です。** `yaqpy-web`（または `yaqpy --web`）で、デスクトップ版と同じ画面を**自分の PC の小さな Web サーバー**から配り、ブラウザで開けます。ファイルはブラウザから**アップロード**し、変換結果は**ダウンロード**で受け取ります。既定では**この PC からしか開けず**（`127.0.0.1`）、環境変数・ファイルを読む演算子は**常に無効**で、評価はサーバーのファイル・環境変数に届かない仕組みの上で動きます。入れ方は `yaqpy[web]`、使い方は [USAGE-GUI.ja.md の 15 章](USAGE-GUI.ja.md#15-web-版ブラウザで使う)にあります。
+
+**この版から PyPI でも公開します**（`pip install yaqpy` ／ `uv tool install yaqpy`）。README は英語版（`README.md`。PyPI のページにも出ます）と日本語版（`README.ja.md`）に分かれました。
+
+### 新しくできること
+
+| 分類 | 機能 |
+|---|---|
+| **Web 版の起動** | `yaqpy-web` または `yaqpy --web`（既定は `http://127.0.0.1:8550/`、起動したら既定のブラウザを開く）。**ポート番号は `--port`**（`yaqpy-web --port 9000` ／ `yaqpy --web --port 9000`）。ほかに `--host` `--lang ja\|en`（表示言語。すべてのブラウザで共通）`--no-browser` `--no-cdn` `--max-input-mib`（既定 10）`--timeout`（既定 10 秒）`--max-concurrent-runs`（既定 2）。止めるのは起動した端末で `Ctrl + C` |
+| **開く（アップロード）** | `[＋ファイルを追加]` でブラウザからアップロード（複数選択も可）。**上限を超えるファイルは送る前に断る**。サーバー側にも同じ上限（超えたら 413）があり、受け取ったファイルは読んだ直後に消す |
+| **保存（ダウンロード）** | 右上のボタンが `[ダウンロード]` になり、変換結果の**全量**をブラウザのダウンロードで受け取る。サーバーのディスクには書かない（上書き保存は Web 版にはない） |
+| **安全のための決まり** | ① 既定はこの PC からのみ（`127.0.0.1`）。それ以外の `--host` は**認証が無いことの警告**を出す ② `env` / `strenv`・`load` / `loadstr`・`system` は**常に無効**で、設定画面に許可のスイッチも出さない。評価は `SandboxFileSystem`（ファイルはすべて拒否）と空の環境変数の上で動く ③ 入力の大きさ・実行時間・同時実行数の上限（上限を超えた実行は「サーバーが混み合っています」） ④ 式や文書の中身をログに残さない（uvicorn のアクセスログも切る） |
+| **複数のブラウザ・タブ** | タブごとに別の画面（セッション）になり、開いたファイルや式は混ざらない。設定（タイムアウト・最大入力・表示行数・ダークテーマ）は**ブラウザ側**に保存される |
+| **`yaqpy-gui ファイル`** | デスクトップ版も、`yaqpy-gui a.yaml` でファイルを開いた状態で起動できる（`yaqpy --gui a.yaml` と同じ） |
+| **ヘルプ** | `yaqpy-gui --help`（デスクトップ版）と `yaqpy-web --help`（Web 版）は、それぞれ自分の使い方とオプションだけを出す。`yaqpy --help` に `--gui` と `--web` の説明を加え、詳しいオプションは各コマンドのヘルプを見るよう案内する（`yaqpy --web --help` は `yaqpy-web --help` と同じ内容） |
+| **PyPI** | `pip install yaqpy`（`"yaqpy[gui]"` `"yaqpy[web]"`）、`uv tool install yaqpy`、`uvx yaqpy`、`uv add yaqpy` で入れられる。GitHub のリリースからの入れ方も引き続き使える |
+| **ロゴ** | デスクトップ版の窓のアイコン（Windows）と、Web 版のブラウザのタブのアイコン・読み込み中の画面が、Flet のロゴから **yaqpy のロゴ**（リポジトリの `assets/images/`）に変わった |
+
+- Web 版のために、**`[web]` extra**（`flet[web]`：flet と flet-web。flet-web が FastAPI・uvicorn を連れてくる）を追加しました。本体（`pip install yaqpy`）の依存は増えません。デスクトップ版だけなら今までどおり `[gui]` で足ります
+- Web 版の設定画面には、サーバーの上限（最大入力・タイムアウト）が表示されます。ブラウザに保存された値が上限より大きければ、上限まで下げて表示します（効くのは常に小さい方）
+- 画面の描画部品と日本語のフォントは、**既定では CDN（インターネット）から**読み込みます（Flet の既定）。`--no-cdn` で CDN を使わずに動かせますが、**日本語の文字が「□」になります**（実機で確認。`--lang en` と使ってください）
+
+### 変更（挙動が変わるもの）
+
+- **`yaqpy-gui` が引数を解釈するようになりました。** 以前は何を渡しても無視して窓を開いていました。今は、ファイル名を 1 つだけ受け付け、知らないオプション・存在しないファイルはエラー（終了コード 1）になります。`yaqpy --gui` の挙動は変わりません
+- **`yaqpy` の引数に `--web` があると、ほかの引数はすべて `yaqpy-web` のオプションとして扱います**（`yaqpy --web --port 9000`）。式・ファイル・`yaqpy` 自身のオプションとは一緒に使えません。`--gui` と `--web` を同時に付けるとエラーです
+- `yaqpy --help` のオプションの一覧で、`--gui` が「misc」から新しい「GUI」の区分に移りました
+- **`README.md` が英語版になりました。** これまでの日本語の README は `README.ja.md` です（`git log --follow` で履歴をたどれます）。USAGE・USAGE-GUI・DEVELOPMENT・CHANGELOG は日本語のままで、各文書の先頭のリンクと「README のインストール」へのリンクは `README.ja.md` を指します
+- インストールの案内（README・USAGE-GUI、GUI／Web 版の部品が無いときの案内）は、**PyPI から入れる手順が先**になりました（GitHub のリリースから入れる方法は README に残しています）
+- **クリップボードへのコピーが失敗したとき**（ブラウザや OS が許可しないとき）、画面が例外で止まらず「コピーできませんでした。欄の文字を選択してコピーしてください」と案内するようになりました（デスクトップ版も同じ）
+
+### ライブラリ・開発者向けの変更
+
+- `pyproject.toml` の `yaqpy-gui` の行き先を `yaqpy.gui.app:main_entry` から **`yaqpy.gui.app:cli_entry`** に変え（引数の解釈のため）、**`yaqpy-web`（`yaqpy.gui.app:web_cli_entry`）**を加えました。`main_entry` は今までどおり残り、`yaqpy --gui` から呼ばれます。`yaqpy --web` は `web_cli_entry` を `prog="yaqpy --web"` で呼びます
+- `pyproject.toml` に、PyPI のページ用の情報を足しました：説明文（正式名称「YAML and more—Query editor in Python」を含む）、`authors`、`keywords`、`classifiers`、`[project.urls]`。`uv build` と `twine check` が通り、LICENSE と NOTICE が wheel に入ることを確かめています
+- ロゴ：`gui/logo.py`（置き場所の定義。Flet 非依存）と `gui/assets/`（`yaqpy-logo.ico`、Web 用の `web/favicon.png` と `web/icons/loading-animation.png`）。**原本はリポジトリの `assets/images/`** で、wheel に入れるためにコピーしています（内容が同じことを `tests/unit/test_gui_logo.py` が確かめます。原本を差し替えたらコピーも差し替えてください）
+- 新しいモジュール：`gui/web_config.py`（Web 版の設定・上限・同時実行の関門。Flet 非依存）、`gui/_web.py`（`flet.fastapi.app` を uvicorn で起動する。**uvicorn を import してよいのはここだけ**とアーキテクチャ検査に追加）、`gui/_upload.py`（Web 版のアップロード受け取り）
+- **`ft.run(view=WEB_BROWSER)` は使っていません。** Flet 1.0 の `ft.run` は `host` を省くと全インターフェース（`0.0.0.0` と `::`）で待ち受け、アップロードに要る設定（`upload_endpoint_path`・`secret_key`）も渡せないためです（`docs/flet-1.0-api-notes.md` 7 章。W0 の実測）
+- `GuiState.web`（`WebLimits`）、`clamp_settings_to_web_limits`、`build_options` の Web 版での強制無効、`MainPresenter` の `open_upload` / `add_upload` / `check_upload_size` / `prepare_download` と `run_gate`、`intake.from_bytes` / `ensure_size`、`_di.make_web_service` を追加しました
+- 単体テスト 1,168 → **1,287**（Web 版のサーバーを実際に起動して、`127.0.0.1` だけで待ち受けること・署名の無いアップロードを断ることを確かめるテストを含む。`[web]` extra が無い環境では飛ばします）。CLI 受け入れテスト 84 → **86**（`yaqpy --help` の `--web`、`yaqpy --web` の引数の受け渡し）
+
+### 修正
+
+- コピー（変換結果・AI への相談文）で、クリップボードへの書き込みが拒否されると、ボタンの処理が例外で終わっていたのを修正（上の「変更」を参照）。Web 版の調査（W0）で見つかりました
+
+### 互換性の見える化
+
+互換テストの結果は v0.5.0 から変わりません（この版は GUI の配り方の追加で、演算子・形式には触れていません）。
+
+### 既知の制限
+
+- **ブラウザでの動作は、Claude Code デスクトップアプリの組み込みブラウザ（Windows）でだけ確認しました。** 一般のブラウザ（Chrome・Edge・Firefox）と macOS / Linux では未確認です。また、組み込みブラウザは OS のファイル選択ダイアログを出さないため、**アップロードはページ内でファイルの選択を模した操作で確かめました**（ブラウザ → サーバーの受け渡しは本物の経路）。`Ctrl + C` での停止と一時フォルダの削除は、単体テスト（偽のサーバー）で確かめています
+- ブラウザにアプリとして追加（PWA）したときのアイコン（192・512 px）は Flet のままです（ロゴの原本が 200 px の PNG だけのため）。窓のアイコンの変更は Flet 1.0 の仕様で Windows だけに効きます
+- **認証はありません。** ほかの PC に公開するなら、認証つきのリバースプロキシの後ろに置いてください。Dockerfile は用意していません（自分の PC で使う前提）
+- `http://` のまま別の PC から開くと、ブラウザの決まりでクリップボードへのコピーが使えないことがあります
+- 表示言語はサーバーごとに 1 つ（`--lang`）です。エラーの詳しい内容は、これまでどおり日本語のままです
+- 貼り付け・原文の追加編集は WebSocket で届くため、上限（`--max-input-mib`）より少し大きい 1 通まで受け付けるよう uvicorn の `ws_max_size` を設定しています。それを超える貼り付けは接続が切れ、ページの再読み込みが要ります
+- タブごとのアップロード用のフォルダ（中身は読んだ直後に消えて空）は、セッションが破棄されるとき（Flet の既定で、タブを閉じてから約 1 時間後）に消えます。強制終了したサーバーの一時フォルダ（`yaqpy-web-*`）は残ります
 
 ---
 [toTop](#toreadme)
@@ -238,7 +301,7 @@ Go 版の**形式のシナリオ 154 件**（`tests/golden/formats/`）を互換
 
 **初版です。** YAML / JSON をコマンドや Python から、**式で取り出し・更新・変換**できます。Go 版 [yq](https://github.com/mikefarah/yq)（v4.53.6）の式を手本にし、**Python の標準ライブラリだけ**で実装しています。
 
-インストール方法は [README](README.md#インストール) を参照してください（PyPI には公開していません。GitHub のリリースから入れます）。
+インストール方法は [README](README.ja.md#インストール) を参照してください（PyPI には公開していません。GitHub のリリースから入れます）。
 
 ### できること
 

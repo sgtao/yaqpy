@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from yaqpy.app.local import LocalEnvironment, LocalFileSystem
+from yaqpy.app.ports import SandboxFileSystem, StaticEnvironment
 from yaqpy.app.service import YqService
-from yaqpy.gui.presenter import MainPresenter
+from yaqpy.gui.presenter import MainPresenter, RunGatePort
 from yaqpy.gui.state import AUTO, GuiState
 
 _service: YqService | None = None
+_web_service: YqService | None = None
 
 
 def make_service() -> YqService:
@@ -18,7 +20,23 @@ def make_service() -> YqService:
     return _service
 
 
-def make_presenter(state: GuiState) -> MainPresenter:
+def make_web_service() -> YqService:
+    """Web 版のサービス。**サーバー側のファイル・環境変数に構造的に届かない**（v0.6.0）。
+
+    ``build_options`` が ``env`` / ``load`` を強制的に無効にするのに加えて、ファイルは
+    ``SandboxFileSystem``（すべて拒否）、環境変数は空の ``StaticEnvironment`` にする。
+    許可の判定に万一の抜けがあっても、読めるものが無い（計画書 5-5 節の 2、リスク R10）。
+    """
+    global _web_service
+    if _web_service is None:
+        _web_service = YqService(SandboxFileSystem(), StaticEnvironment({}))
+    return _web_service
+
+
+def make_presenter(state: GuiState, *, run_gate: RunGatePort | None = None) -> MainPresenter:
+    if state.is_web:
+        return MainPresenter(service=make_web_service(), fs=SandboxFileSystem(), state=state,
+                             run_gate=run_gate)
     return MainPresenter(service=make_service(), fs=LocalFileSystem(), state=state)
 
 

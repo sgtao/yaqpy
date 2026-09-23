@@ -2,7 +2,13 @@
 
 from __future__ import annotations
 
-from yaqpy.gui.state import GuiState, build_options, truncate_for_display
+from yaqpy.gui.state import (
+    GuiState,
+    WebLimits,
+    build_options,
+    clamp_settings_to_web_limits,
+    truncate_for_display,
+)
 
 
 class BuildOptionsTests:
@@ -48,6 +54,44 @@ class BuildOptionsTests:
         assert build_options(state).limits.max_input_bytes == 2 * 1024 * 1024
 
 
+class WebSessionTests:
+    """Web 版のセッション（v0.6.0）：危険な演算子は強制無効、上限はサーバーの値が勝つ。"""
+
+    MIB = 1024 * 1024
+
+    def web_state(self, *, max_mib: int = 10, timeout: float = 5.0) -> GuiState:
+        return GuiState(web=WebLimits(max_input_bytes=max_mib * self.MIB, timeout_seconds=timeout))
+
+    def test_desktop_is_not_web(self) -> None:
+        assert not GuiState().is_web
+
+    def test_env_and_load_are_forced_off_even_if_the_settings_allow_them(self) -> None:
+        state = self.web_state()
+        state.settings.allow_env = True          # 保存された設定や画面の操作で入っても
+        state.settings.allow_file = True
+        security = build_options(state).security
+        assert not security.allow_env
+        assert not security.allow_file
+        assert not security.allow_system
+
+    def test_the_server_cap_wins_over_a_larger_setting(self) -> None:
+        state = self.web_state(max_mib=10, timeout=5.0)
+        state.settings.max_input_mib = 50        # デスクトップの既定のまま
+        state.settings.timeout_seconds = 60.0
+        limits = build_options(state).limits
+        assert limits.max_input_bytes == 10 * self.MIB
+        assert limits.timeout_seconds == 5.0
+        assert state.max_input_bytes == 10 * self.MIB
+
+    def test_a_smaller_setting_still_applies(self) -> None:
+        state = self.web_state(max_mib=10, timeout=5.0)
+        state.settings.max_input_mib = 1
+        state.settings.timeout_seconds = 2.0
+        limits = build_options(state).limits
+        assert limits.max_input_bytes == 1 * self.MIB
+        assert limits.timeout_seconds == 2.0
+
+
 class TruncateTests:
     def test_short_text_is_untouched(self) -> None:
         text = "a\nb\n"
@@ -75,3 +119,26 @@ class DiTests:
         assert "props" in output_format_choices()
         assert extension_for("json") == "json"
         assert extension_for("props") == "properties"
+
+
+class ClampToWebLimitsTests:
+    MIB = 1024 * 1024
+
+    def test_saved_values_above_the_cap_are_lowered(self) -> None:
+        state = GuiState(web=WebLimits(max_input_bytes=10 * self.MIB, timeout_seconds=10.0))
+        state.settings.max_input_mib = 50
+        state.settings.timeout_seconds = 60.0
+        clamp_settings_to_web_limits(state)
+        assert (state.settings.max_input_mib, state.settings.timeout_seconds) == (10, 10.0)
+
+    def test_smaller_values_are_kept(self) -> None:
+        state = GuiState(web=WebLimits(max_input_bytes=10 * self.MIB, timeout_seconds=10.0))
+        state.settings.max_input_mib = 3
+        state.settings.timeout_seconds = 2.0
+        clamp_settings_to_web_limits(state)
+        assert (state.settings.max_input_mib, state.settings.timeout_seconds) == (3, 2.0)
+
+    def test_desktop_is_untouched(self) -> None:
+        state = GuiState()
+        clamp_settings_to_web_limits(state)
+        assert state.settings.max_input_mib == 50

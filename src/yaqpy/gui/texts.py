@@ -87,6 +87,25 @@ DLG_GUIDE_PROMPT_HINT = (
     "行を、やりたいことに書き換えられます（この欄自体を編集してから貼り付けても構いません）。"
 )
 BTN_COPY_PROMPT = "プロンプトをコピー"
+MSG_COPY_FAILED = (
+    "クリップボードにコピーできませんでした（ブラウザや OS が許可していない可能性があります）。"
+    "欄の文字を選択してコピーしてください"
+)
+
+# Web 版（yaqpy-web。v0.6.0）
+BTN_DOWNLOAD = "ダウンロード"
+MSG_DOWNLOADED = "ダウンロードを開始しました: {name}"
+MSG_UPLOADING = "アップロード中…"
+MSG_WEB_HINT = "ファイルはこのブラウザからサーバーへ送られ、変換結果はダウンロードで受け取ります"
+ERR_UPLOAD_FAILED = "アップロードできませんでした（{name}）"
+ERR_SERVER_BUSY = "サーバーが混み合っています。少し待ってからもう一度実行してください"
+HINT_SECURITY_WEB = "Web 版では {capability} は使えません（サーバー側の情報を読ませないため）"
+SET_WEB_SECURITY_NOTE = (
+    "Web 版では env / strenv・load / loadstr・system の演算子は常に無効です"
+    "（ブラウザからサーバー側の環境変数やファイルを読ませないため）"
+)
+SET_WEB_LIMITS_NOTE = "Web 版の上限（サーバーの起動時に決まります）：最大入力 {mib} MiB・タイムアウト {seconds} 秒"
+SET_WEB_LANGUAGE_NOTE = "Web 版の表示言語は、サーバーの起動時（--lang）に決まります"
 
 # エラー
 ERR_BUSY = "実行中です。終わるまでお待ちください"
@@ -110,11 +129,32 @@ CAP_FILE = "ファイル読み込み（load / loadstr）"
 CAP_UNKNOWN = "この機能"
 
 INSTALL_HINT = (
-    "GUI を使うには flet が必要です。次のどちらかで導入してください:\n"
-    '  pip install "flet>=1.0,<2"     （インストール済みの yaqpy に追加）\n'
-    "  uv sync --extra gui            （リポジトリを clone した開発環境）\n"
-    "GitHub のリリースから GUI つきで入れ直す方法は、README のインストールの節を参照してください:\n"
-    "  https://github.com/sgtao/yaqpy#インストール\n"
+    "GUI を使うには flet が必要です。次のどれかで導入してください:\n"
+    '  pip install "yaqpy[gui]"          （PyPI から GUI つきで入れ直す）\n'
+    '  uv tool install "yaqpy[gui]"      （uv のツールとして入れている場合）\n'
+    '  pip install "flet>=1.0,<2"        （インストール済みの yaqpy に flet だけを追加）\n'
+    "  uv sync --extra gui               （リポジトリを clone した開発環境）\n"
+    "GitHub のリリースから入れる方法などは、README のインストールの節を参照してください:\n"
+    "  https://github.com/sgtao/yaqpy/blob/main/README.ja.md#インストール\n"
+)
+
+WEB_INSTALL_HINT = (
+    "Web 版を使うには flet-web が必要です。次のどれかで導入してください:\n"
+    '  pip install "yaqpy[web]"          （PyPI から Web 版つきで入れ直す）\n'
+    '  uv tool install "yaqpy[web]"      （uv のツールとして入れている場合）\n'
+    '  pip install "flet[web]>=1.0,<2"   （インストール済みの yaqpy に flet-web だけを追加）\n'
+    "  uv sync --extra web               （リポジトリを clone した開発環境）\n"
+)
+WEB_STARTED = "yaqpy の Web 版を起動しました: {url}\n（止めるには、この端末で Ctrl+C）\n"
+WEB_START_FAILED = (
+    "Web 版を起動できませんでした（{host}:{port}）。ポートが使用中なら、--port で別の番号を"
+    "指定してください\n"
+)
+WEB_EXPOSED_WARNING = (
+    "警告: --host {host} は、この PC 以外からも接続できる待ち受けです。\n"
+    "  yaqpy の Web 版には認証がありません。同じネットワークの誰でも画面を開けます。\n"
+    "  公開するなら、認証つきのリバースプロキシの後ろに置いてください。\n"
+    "  （env / load などサーバー側の情報を読む演算子は、Web 版では常に無効です）\n"
 )
 
 _JA: dict[str, str] = {k: v for k, v in globals().items() if k.isupper() and isinstance(v, str)}
@@ -189,6 +229,24 @@ _EN: dict[str, str] = {
         "(or edit this box itself before pasting)."
     ),
     "BTN_COPY_PROMPT": "Copy Prompt",
+    "MSG_COPY_FAILED": ("Could not copy to the clipboard (the browser or OS may not allow it). "
+                        "Select the text in the box and copy it instead"),
+    "BTN_DOWNLOAD": "Download",
+    "MSG_DOWNLOADED": "Download started: {name}",
+    "MSG_UPLOADING": "Uploading…",
+    "MSG_WEB_HINT": ("Files are sent from this browser to the server; you get the result back "
+                     "as a download"),
+    "ERR_UPLOAD_FAILED": "Could not upload ({name})",
+    "ERR_SERVER_BUSY": "The server is busy. Wait a moment and run it again",
+    "HINT_SECURITY_WEB": ("{capability} is not available in the web version (so that the "
+                          "server's own data cannot be read)"),
+    "SET_WEB_SECURITY_NOTE": (
+        "In the web version the env / strenv, load / loadstr and system operators are always "
+        "off (so that a browser cannot read the server's environment variables or files)"
+    ),
+    "SET_WEB_LIMITS_NOTE": ("Web version limits (set when the server starts): max input {mib} MiB, "
+                            "timeout {seconds} s"),
+    "SET_WEB_LANGUAGE_NOTE": "In the web version the display language is set when the server starts (--lang)",
     "ERR_BUSY": "Still running. Please wait for it to finish",
     "ERR_NO_DOCUMENT": "Open a file first",
     "ERR_TOO_LARGE": "The file is too large ({size} / limit {limit})",
@@ -206,11 +264,28 @@ _EN: dict[str, str] = {
     "CAP_UNKNOWN": "this feature",
     "INSTALL_HINT": (
         "The GUI needs flet. Install it one of these ways:\n"
-        '  pip install "flet>=1.0,<2"     (add it to an installed yaqpy)\n'
-        "  uv sync --extra gui            (a development checkout of the repository)\n"
-        "To reinstall with the GUI included from a GitHub release, see the install section "
-        "of the README (Japanese only):\n"
-        "  https://github.com/sgtao/yaqpy#インストール\n"
+        '  pip install "yaqpy[gui]"          (reinstall from PyPI with the GUI)\n'
+        '  uv tool install "yaqpy[gui]"      (if you installed yaqpy as a uv tool)\n'
+        '  pip install "flet>=1.0,<2"        (add only flet to an installed yaqpy)\n'
+        "  uv sync --extra gui               (a development checkout of the repository)\n"
+        "For other ways, such as installing from a GitHub release, see the README:\n"
+        "  https://github.com/sgtao/yaqpy#installation\n"
+    ),
+    "WEB_INSTALL_HINT": (
+        "The web version needs flet-web. Install it one of these ways:\n"
+        '  pip install "yaqpy[web]"          (reinstall from PyPI with the web version)\n'
+        '  uv tool install "yaqpy[web]"      (if you installed yaqpy as a uv tool)\n'
+        '  pip install "flet[web]>=1.0,<2"   (add only flet-web to an installed yaqpy)\n'
+        "  uv sync --extra web               (a development checkout of the repository)\n"
+    ),
+    "WEB_STARTED": "yaqpy web version is running: {url}\n(press Ctrl+C in this terminal to stop it)\n",
+    "WEB_START_FAILED": ("Could not start the web version on {host}:{port}. If the port is in use, "
+                         "choose another one with --port\n"),
+    "WEB_EXPOSED_WARNING": (
+        "Warning: --host {host} accepts connections from other machines, not just this PC.\n"
+        "  The yaqpy web version has no authentication; anyone on the network can open it.\n"
+        "  To publish it, put it behind a reverse proxy that requires authentication.\n"
+        "  (Operators that read the server's own data, such as env / load, are always off.)\n"
     ),
 }
 

@@ -16,6 +16,7 @@ from yaqpy.gui import texts
 DIALOG = "dialog"
 DROP = "drop"
 PASTE = "paste"
+UPLOAD = "upload"          # Web 版：ブラウザから送られた中身（サーバー側のパスは持たない。v0.6.0）
 
 
 class IntakeError(Exception):
@@ -62,6 +63,27 @@ def from_path(fs: FileSystemPort, path: str, *, max_bytes: int,
                                                      limit=_human(max_bytes)))
     return IntakeItem(name=os.path.basename(path), text=text, origin=origin,
                       byte_size=actual, path=path)
+
+
+def ensure_size(size: int, *, max_bytes: int) -> None:
+    """大きすぎれば IntakeError。Web 版はアップロードの**前に**これで断る（中身を送らせない）。"""
+    if size > max_bytes:
+        raise IntakeError(texts.ERR_TOO_LARGE.format(size=_human(size), limit=_human(max_bytes)))
+
+
+def from_bytes(name: str, data: bytes, *, max_bytes: int, origin: str = UPLOAD) -> IntakeItem:
+    """ブラウザから届いたファイルの中身を取り込む（Web 版。v0.6.0）。
+
+    ``name`` は形式の自動判定に使う表示名（ブラウザが教える元のファイル名。パスではない）。
+    文字コードは ``LocalFileSystem.read_text`` と同じく BOM 付きも読める UTF-8。
+    """
+    ensure_size(len(data), max_bytes=max_bytes)
+    try:
+        text = data.decode("utf-8-sig")
+    except UnicodeDecodeError as e:
+        raise IntakeError(texts.ERR_NOT_UTF8) from e
+    return IntakeItem(name=os.path.basename(name), text=text, origin=origin,
+                      byte_size=len(text.encode("utf-8")), path=None)
 
 
 def from_text(text: str, *, name: str = "", origin: str = PASTE) -> IntakeItem:

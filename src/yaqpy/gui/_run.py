@@ -12,9 +12,12 @@ import flet as ft
 from yaqpy.gui import texts
 from yaqpy.gui._di import make_presenter
 from yaqpy.gui._prefs import load_settings, save_settings
+from yaqpy.gui._upload import WebUploader
+from yaqpy.gui.logo import WINDOW_ICON
 from yaqpy.gui.pages.main_page import MainPage
 from yaqpy.gui.pages.settings_page import SettingsPage
-from yaqpy.gui.state import GuiState
+from yaqpy.gui.state import GuiState, clamp_settings_to_web_limits
+from yaqpy.gui.web_config import WebRuntime
 
 # 窓を閉じてから、クライアントの後始末を待つ時間（秒）
 CLOSE_GRACE_SECONDS = 0.3
@@ -34,24 +37,38 @@ def _terminate_process_tree() -> None:
     os._exit(0)                               # taskkill が間に合わなかったときの保険
 
 
-async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
-    page.padding = 12
-    page.window.width = 1180
-    page.window.height = 880          # 未読込の画面（案内＋貼り付け欄）が収まるように少し広げた
-    page.window.min_width = 820
-    page.window.min_height = 620
+async def _main(page: ft.Page, *, initial_path: str | None = None,
+                web: WebRuntime | None = None) -> None:
+    """1 つの画面（デスクトップの窓、または Web 版のブラウザのタブ 1 つ）を組み立てる。
 
-    sp = ft.SharedPreferences()
+    Web 版（``web`` あり。v0.6.0）では、この関数がセッション（タブ）ごとに呼ばれる。
+    窓の操作・終了ボタン・危険な許可・表示言語の切り替えは出さない（W0・計画書 5-5 節）。
+    """
+    page.padding = 12
+    if web is None:
+        page.window.width = 1180
+        page.window.height = 880      # 未読込の画面（案内＋貼り付け欄）が収まるように少し広げた
+        page.window.min_width = 820
+        page.window.min_height = 620
+        page.window.icon = str(WINDOW_ICON)     # yaqpy のロゴ（Flet 1.0 では Windows でだけ効く）
+
+    sp = ft.SharedPreferences()             # Web 版ではブラウザ側に保存される（W0）
     page.services.append(sp)
 
-    state = GuiState()
+    state = GuiState(web=web.config.limits() if web else None)
     state.settings = await load_settings(sp)   # allow_env / allow_file は既定のまま（U1）
-    texts.select_language(state.settings.language)   # 画面を組み立てる前に 1 回だけ（U4）
+    clamp_settings_to_web_limits(state)        # Web 版：保存値をサーバーの上限まで下げて表示する
+    if web is None:
+        # 画面を組み立てる前に 1 回だけ（U4）。Web 版はサーバーの起動時に 1 回だけ選ぶ
+        # （texts はプロセスで共有されるので、タブごとに選ぶと文言が混ざる）。
+        texts.select_language(state.settings.language)
     page.title = texts.APP_TITLE
-    presenter = make_presenter(state)
+    presenter = make_presenter(state, run_gate=web.gate if web else None)
 
     picker = ft.FilePicker()
     page.services.append(picker)           # Flet 1.0: overlay ではなく services
+    uploader = (WebUploader(page=page, picker=picker, upload_dir=web.upload_dir)
+                if web else None)
 
     def persist_settings() -> None:
         async def _save() -> None:
@@ -78,7 +95,7 @@ async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
         page.update()
 
     main_page = MainPage(page=page, presenter=presenter, state=state, picker=picker,
-                         on_open_settings=go_to_settings)
+                         on_open_settings=go_to_settings, uploader=uploader)
     settings_page = SettingsPage(page=page, state=state,
                                  on_changed=lambda: page.run_task(main_page.rerun),
                                  on_persist=persist_settings)
@@ -106,14 +123,19 @@ async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
         )
         page.show_dialog(dialog)
 
-    nav_bar = ft.Container(
-        content=ft.Row([
-            ft.TextButton(content=nav_texts[0], on_click=lambda e: show(0)),
-            ft.TextButton(content=nav_texts[1], on_click=lambda e: show(1)),
+    nav_items: list[ft.Control] = [
+        ft.TextButton(content=nav_texts[0], on_click=lambda e: show(0)),
+        ft.TextButton(content=nav_texts[1], on_click=lambda e: show(1)),
+    ]
+    if web is None:
+        # Web 版には閉じる窓が無い（タブを閉じればよい。サーバーは起動した端末で Ctrl+C）
+        nav_items += [
             ft.Container(expand=True),
             ft.IconButton(icon=ft.Icons.POWER_SETTINGS_NEW, icon_color=ft.Colors.ERROR,
-                         tooltip=texts.BTN_QUIT, on_click=ask_quit),
-        ], alignment=ft.MainAxisAlignment.START),
+                          tooltip=texts.BTN_QUIT, on_click=ask_quit),
+        ]
+    nav_bar = ft.Container(
+        content=ft.Row(nav_items, alignment=ft.MainAxisAlignment.START),
         bgcolor=ft.Colors.SURFACE_CONTAINER_HIGH,
         padding=ft.Padding.symmetric(horizontal=8, vertical=4),
     )
@@ -130,13 +152,16 @@ async def _main(page: ft.Page, *, initial_path: str | None = None) -> None:
             await asyncio.sleep(CLOSE_GRACE_SECONDS)
             _terminate_process_tree()
 
-    # 窓を閉じたときに評価を止めてから終了させる。`page.window.on_event` は OS を問わない
-    # Flet の API（実測は Windows のみ。macOS / Linux は動作未確認。U4）。
-    page.window.prevent_close = True
-    page.window.on_event = on_window_event
+    if web is None:
+        # 窓を閉じたときに評価を止めてから終了させる。`page.window.on_event` は OS を問わない
+        # Flet の API（実測は Windows のみ。macOS / Linux は動作未確認。U4）。
+        page.window.prevent_close = True
+        page.window.on_event = on_window_event
 
     def on_close(e: ft.Event) -> None:
         presenter.cancel()                    # セッションが破棄されるときの保険
+        if uploader is not None:
+            uploader.cleanup()                # Web 版：このタブが受け取ったものを残さない
 
     page.on_close = on_close
     page.theme_mode = ft.ThemeMode.DARK if state.settings.dark_theme else ft.ThemeMode.LIGHT

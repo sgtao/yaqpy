@@ -16,6 +16,7 @@ import flet as ft
 
 from yaqpy.gui import texts
 from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
+from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.errors_ja import caret_line
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
 from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
@@ -45,15 +46,33 @@ def _options(names: list[str]) -> list[ft.DropdownOption]:
     return [ft.DropdownOption(key=n, text=n) for n in names]
 
 
+async def _set_clipboard(text: str) -> bool:
+    """クリップボードに書く。失敗したら False（例外で画面を止めない）。
+
+    W0 の実測で、ブラウザが ``clipboard-write`` を許可していないと
+    ``PlatformException(copy_fail, Clipboard.setData failed.)`` になった。デスクトップでも
+    OS 側の理由で失敗しうるので、どちらも同じく案内に切り替える。
+    """
+    try:
+        await ft.Clipboard().set(text)
+    except Exception:                          # noqa: BLE001 - 失敗は利用者への案内で扱う
+        return False
+    return True
+
+
 class MainPage:
     def __init__(self, *, page: ft.Page, presenter: MainPresenter, state: GuiState,
                  picker: ft.FilePicker,
-                 on_open_settings: Callable[[str], None] | None = None) -> None:
+                 on_open_settings: Callable[[str], None] | None = None,
+                 uploader: WebUploader | None = None) -> None:
         self._on_open_settings = on_open_settings
         self._page = page
         self._p = presenter
         self._state = state
         self._picker = picker
+        # Web 版（v0.6.0）：開くのはアップロード、保存はダウンロード。サーバー側のパスは扱わない
+        self._uploader = uploader
+        self._web = state.is_web
         self._rerun_requested = False
         self._validate_token = 0
 
@@ -153,7 +172,8 @@ class MainPage:
             content=ft.Column([
                 ft.Icon(icon=ft.Icons.UPLOAD_FILE, size=28, color=ft.Colors.ON_SURFACE_VARIANT),
                 ft.Text(texts.MSG_NO_DOCUMENT, size=13),
-                ft.Text(texts.MSG_DROP_UNSUPPORTED, size=11, color=ft.Colors.ON_SURFACE_VARIANT),
+                ft.Text(texts.MSG_WEB_HINT if self._web else texts.MSG_DROP_UNSUPPORTED,
+                        size=11, color=ft.Colors.ON_SURFACE_VARIANT),
             ], horizontal_alignment=ft.CrossAxisAlignment.CENTER, spacing=4),
             alignment=ft.Alignment.CENTER, padding=10, on_click=self._on_add_file,
         )
@@ -163,7 +183,8 @@ class MainPage:
                                        text_style=MONO, border=ft.OutlineInputBorder())
         self._truncated_note = ft.Text("", size=11, color=ft.Colors.ON_SURFACE_VARIANT,
                                        visible=False)
-        self._save_button = ft.Button(content=texts.BTN_SAVE, icon=ft.Icons.SAVE,
+        self._save_button = ft.Button(content=texts.BTN_DOWNLOAD if self._web else texts.BTN_SAVE,
+                                      icon=ft.Icons.DOWNLOAD if self._web else ft.Icons.SAVE,
                                       on_click=self._on_save, disabled=True)
         self._copy_button = ft.IconButton(icon=ft.Icons.CONTENT_COPY, tooltip=texts.BTN_COPY,
                                           on_click=self._on_copy, disabled=True)
@@ -284,6 +305,9 @@ class MainPage:
         すでに開いていれば、選んだものをすべて閉じずに増やす。拡張子では絞らない：開いたら
         内容で形式を判定する（yaqpy 独自の拡張）。
         """
+        if self._uploader is not None:
+            await self._add_uploaded_files()
+            return
         files = await self._picker.pick_files(dialog_title=texts.BTN_ADD_FILE, allow_multiple=True)
         if not files:
             self._page.update()
@@ -310,6 +334,50 @@ class MainPage:
             await self._run()
             await self._reload_candidates()
         self._page.update()                 # async ハンドラは終了時にも update する
+
+    async def _add_uploaded_files(self) -> None:
+        """Web 版の [＋ファイルを追加]：ブラウザから送らせて開く（``_on_add_file`` と同じ規則）。"""
+        assert self._uploader is not None
+
+        def check_size(size: int) -> str:
+            error = self._p.check_upload_size(size)
+            return error.message if error else ""
+
+        def on_start() -> None:
+            self._progress.visible = True
+            self._status_text.value = texts.MSG_UPLOADING
+            self._page.update()
+
+        items = await self._uploader.pick(check_size=check_size, on_start=on_start)
+        self._progress.visible = False
+        if not items:
+            self._page.update()
+            return
+        errors: list[str] = []
+        for item in items:
+            if not item.ok:
+                errors.append(item.error)
+                continue
+            assert item.data is not None
+            if not self._state.documents:
+                vm = await self._p.open_upload(item.name, item.data)
+                if vm.ok:
+                    self._show_loaded()
+                    self._after_open()
+            else:
+                vm = await self._p.add_upload(item.name, item.data)
+            if not vm.ok:
+                errors.append(vm.error.message)
+        if self._state.document.is_loaded:
+            self._sync_active_document_view()
+            self._refresh_multi_file_ui()
+            await self._run()
+            await self._reload_candidates()
+        if errors:
+            self._show_error(" / ".join(errors))     # 実行結果より後に出す（上書きされないように）
+        elif not self._state.document.is_loaded:
+            self._status_text.value = ""
+        self._page.update()
 
     async def _on_select_document(self, index: int) -> None:
         self._p.select_document(index)
@@ -618,7 +686,10 @@ class MainPage:
             self._page.pop_dialog()
 
         async def copy(_: ft.Event) -> None:
-            await ft.Clipboard().set(field.value or "")
+            if not await _set_clipboard(field.value or ""):
+                self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_COPY_FAILED)))
+                self._page.update()
+                return
             copy_button.content = texts.MSG_COPIED_SHORT
             self._page.update()
             await asyncio.sleep(COPY_FEEDBACK_SECONDS)
@@ -645,6 +716,10 @@ class MainPage:
     # ------------------------------------------------------------------ 保存（G3）
 
     async def _on_save(self, e: ft.Event[ft.Button]) -> None:
+        if self._web:
+            await self._download()
+            self._page.update()
+            return
         format_name = self._state.query.output_format
         if format_name in ("", "auto"):
             run = self._p.last_run
@@ -658,6 +733,19 @@ class MainPage:
         if path:
             await self._save_to(path, confirmed=False)
         self._page.update()
+
+    async def _download(self) -> None:
+        """Web 版の保存：ブラウザのダウンロードで渡す（サーバーのディスクには書かない）。
+
+        W0 の実測：``save_file`` は Web では ``src_bytes`` と ``file_name`` が必須で、戻り値は None。
+        """
+        vm = await self._p.prepare_download()
+        if not vm.ok:
+            self._show_error(vm.error.message, vm.error.hint)
+            return
+        await self._picker.save_file(dialog_title=texts.BTN_DOWNLOAD, file_name=vm.file_name,
+                                     src_bytes=vm.data)
+        self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_DOWNLOADED.format(name=vm.file_name))))
 
     async def _save_to(self, path: str, *, confirmed: bool) -> None:
         vm = await self._p.save(path, confirmed=confirmed)
@@ -698,8 +786,9 @@ class MainPage:
         run = self._p.last_run
         if run is None:
             return
-        await ft.Clipboard().set(run.full_text)      # 表示用ではなく全量をコピーする
-        self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_COPIED)))
+        copied = await _set_clipboard(run.full_text)   # 表示用ではなく全量をコピーする
+        message = texts.MSG_COPIED if copied else texts.MSG_COPY_FAILED
+        self._page.show_dialog(ft.SnackBar(ft.Text(message)))
 
     # ------------------------------------------------------------------ 実行
 
@@ -752,7 +841,8 @@ class MainPage:
             self._copy_button.disabled = True
             self._show_error(vm.error.message, vm.error.hint)
             # 許可されていない演算子のときだけ、該当する設定への導線を出す
-            self._settings_link.visible = (vm.error.is_security
+            # Web 版には許可の設定が無いので導線を出さない
+            self._settings_link.visible = (vm.error.is_security and not self._web
                                            and self._on_open_settings is not None)
             if self._settings_link.visible:
                 self._pending_capability = vm.error.capability

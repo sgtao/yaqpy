@@ -361,3 +361,140 @@ class GuidePromptDialogTests:
         page, _presenter, _state = make_page()
         await page._on_open_guide_prompt(mock.MagicMock())
         page._page.show_dialog.assert_called_once()
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class CopyFailureTests:
+    """コピーの失敗で画面を止めない（W0：ブラウザが clipboard-write を拒むと例外になる）。"""
+
+    async def _page_with_result(self):
+        page, presenter, _state = make_page()
+        await presenter.open_path("/w/app.toml")
+        await presenter.run()
+        return page
+
+    async def test_a_refused_clipboard_shows_a_hint_instead_of_raising(self) -> None:
+        from yaqpy.gui import texts
+
+        page = await self._page_with_result()
+        with mock.patch.object(ft.Clipboard, "set", mock.AsyncMock(
+                side_effect=RuntimeError("PlatformException(copy_fail, ...)"))):
+            await page._on_copy(mock.MagicMock())
+        snack = page._page.show_dialog.call_args.args[0]
+        assert snack.content.value == texts.MSG_COPY_FAILED
+
+    async def test_a_successful_copy_says_so(self) -> None:
+        from yaqpy.gui import texts
+
+        page = await self._page_with_result()
+        with mock.patch.object(ft.Clipboard, "set", mock.AsyncMock(return_value=None)) as set_:
+            await page._on_copy(mock.MagicMock())
+        set_.assert_awaited_once()
+        assert page._page.show_dialog.call_args.args[0].content.value == texts.MSG_COPIED
+
+
+def make_web_page(uploaded: list | None = None):
+    """Web 版のセッションの画面（v0.6.0）。本番と同じ組み立てで、アップロードだけ偽物にする。"""
+    from yaqpy.gui._di import make_presenter as make_real_presenter
+    from yaqpy.gui.pages.main_page import MainPage
+    from yaqpy.gui.state import WebLimits
+
+    state = GuiState(web=WebLimits(max_input_bytes=1024 * 1024, timeout_seconds=5.0))
+    presenter = make_real_presenter(state)
+    uploader = mock.MagicMock()
+    uploader.pick = mock.AsyncMock(return_value=uploaded or [])
+    picker = mock.MagicMock()
+    picker.save_file = mock.AsyncMock(return_value=None)
+    page = MainPage(page=mock.MagicMock(), presenter=presenter, state=state, picker=picker,
+                    on_open_settings=lambda capability: None, uploader=uploader)
+    return page, presenter, state
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class WebMainPageTests:
+    """Web 版：開くのはアップロード、保存はダウンロード（W1）。"""
+
+    async def test_the_save_button_is_a_download_button(self) -> None:
+        from yaqpy.gui import texts
+
+        page, _, _ = make_web_page()
+        assert page._save_button.content == texts.BTN_DOWNLOAD
+
+    async def test_uploaded_files_open_the_first_and_add_the_rest(self) -> None:
+        from yaqpy.gui._upload import Uploaded
+
+        page, _, state = make_web_page([Uploaded("shop.xml", b"<shop><item>pen</item></shop>\n"),
+                                        Uploaded("app.toml", b"[db]\nport = 1\n")])
+        await page._on_add_file(mock.MagicMock())
+        assert [d.name for d in state.documents] == ["shop.xml", "app.toml"]
+        assert all(d.path is None for d in state.documents)      # サーバー側のパスは持たない
+        page._picker.pick_files.assert_not_called()                # パスを返すダイアログは使わない
+        assert page._files_row.visible
+
+    async def test_a_refused_file_is_reported_and_the_others_still_open(self) -> None:
+        from yaqpy.gui._upload import Uploaded
+
+        page, _, state = make_web_page([Uploaded("big.yaml", error="ファイルが大きすぎます"),
+                                        Uploaded("app.toml", b"[db]\nport = 1\n")])
+        await page._on_add_file(mock.MagicMock())
+        assert [d.name for d in state.documents] == ["app.toml"]
+        assert "大きすぎます" in page._status_text.value
+
+    async def test_the_size_check_uses_the_server_cap(self) -> None:
+        page, _, _ = make_web_page()
+        await page._on_add_file(mock.MagicMock())
+        check_size = page._uploader.pick.call_args.kwargs["check_size"]
+        assert check_size(1024 * 1024) == ""
+        assert check_size(1024 * 1024 + 1) != ""
+
+    async def test_save_downloads_the_full_result(self) -> None:
+        from yaqpy.gui._upload import Uploaded
+
+        page, presenter, state = make_web_page([Uploaded("app.toml", b"[db]\nport = 1\n")])
+        await page._on_add_file(mock.MagicMock())
+        state.query.output_format = "json"
+        await presenter.run()
+        await page._on_save(mock.MagicMock())
+        kwargs = page._picker.save_file.call_args.kwargs
+        assert kwargs["file_name"] == "app.json"
+        assert kwargs["src_bytes"] == presenter.last_run.full_text.encode("utf-8")
+
+    async def test_no_settings_link_for_a_security_error(self) -> None:
+        page, presenter, state = make_web_page()
+        presenter.open_text("a: 1\n")
+        page._after_open()
+        state.query.expression = 'env("PATH")'
+        await page._run()
+        assert not page._settings_link.visible                     # 許可する手段が無い
+        assert "Web" in page._status_text.value
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class WebSettingsPageTests:
+    """Web 版の設定画面：危険な許可のスイッチと言語の切り替えを出さない（計画書 5-5 節の 2）。"""
+
+    def _controls(self, web: bool):
+        from yaqpy.gui.pages.settings_page import SettingsPage
+        from yaqpy.gui.state import WebLimits
+
+        state = GuiState(web=WebLimits(max_input_bytes=10 * 1024 * 1024, timeout_seconds=10.0)
+                         if web else None)
+        settings = SettingsPage(page=mock.MagicMock(), state=state, on_changed=lambda: None)
+        return settings, settings.control.controls
+
+    def test_desktop_still_has_the_switches(self) -> None:
+        settings, controls = self._controls(web=False)
+        assert settings._boxes["env"] in controls
+        assert settings._language in controls
+
+    def test_web_hides_the_security_switches_and_the_language(self) -> None:
+        from yaqpy.gui import texts
+
+        settings, controls = self._controls(web=True)
+        assert settings._boxes["env"] not in controls
+        assert settings._boxes["file"] not in controls
+        assert settings._language not in controls
+        values = [getattr(c, "value", None) for c in controls]
+        assert texts.SET_WEB_SECURITY_NOTE in values
+        assert texts.SET_WEB_LANGUAGE_NOTE in values
+        assert any(isinstance(v, str) and "10 MiB" in v for v in values)

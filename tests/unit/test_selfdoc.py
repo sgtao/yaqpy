@@ -301,9 +301,11 @@ class DocumentationTests:
             assert flag in text
 
     def test_the_readme_mentions_the_new_features(self) -> None:
-        text = self.read("README.md")
-        for feature in ("--recipe", "--print-spec", "--skill-md", "--apply --out-dir"):
-            assert feature in text
+        """英語版（README.md。PyPI にも出る）と日本語版（README.ja.md）の両方。v0.6.0 で分けた。"""
+        for name in ("README.md", "README.ja.md"):
+            text = self.read(name)
+            for feature in ("--recipe", "--print-spec", "--skill-md", "--apply --out-dir"):
+                assert feature in text, f"{name} does not mention {feature}"
 
     def test_every_flag_the_parser_has_for_these_features_is_in_the_guide(self) -> None:
         from yaqpy.cli.parser import build_parser

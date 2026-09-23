@@ -413,6 +413,24 @@ class GuiFlagTests(CliTestCase):
         assert r.returncode == 1
         assert "cannot be combined" in r.stderr
 
+    def test_web_flag_is_listed_in_help_with_pointers_to_the_details(self) -> None:
+        """v0.6.0 の要望：--help に --gui と --web。詳しいオプションは各コマンドのヘルプへ。"""
+        r = yq("--help")
+        assert r.returncode == 0
+        assert "--web" in r.stdout
+        assert "yaqpy-gui --help" in r.stdout and "yaqpy-web --help" in r.stdout
+
+    def test_web_flag_passes_yaqpy_web_options_and_rejects_bad_ones(self) -> None:
+        """サーバーを起動しない引数だけを使う（不正なポート・式・--help）。"""
+        r = yq("--web", "--port", "0")
+        assert r.returncode == 1
+        assert "--port" in r.stderr
+        r = yq("--web", ".a")
+        assert r.returncode == 1
+        r = yq("--web", "--help")
+        assert r.returncode == 0
+        assert r.stdout.startswith("usage: yaqpy --web")
+
     def test_gui_flag_rejects_a_file_with_an_expression(self) -> None:
         path = self.write("a.yaml", "a: 1\n")
         r = yq("--gui", ".a", path)

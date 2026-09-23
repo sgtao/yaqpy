@@ -1,4 +1,4 @@
-###### [toREADME](./README.md)
+###### [toREADME](./README.ja.md)
 # yaqpy 開発者向けガイド
 
 ---
@@ -10,7 +10,7 @@
 ```bash
 git clone https://github.com/sgtao/yaqpy
 cd yaqpy
-uv sync                  # GUI も開発する場合は: uv sync --extra gui
+uv sync                  # GUI も開発する場合は: uv sync --extra gui（Web 版も: uv sync --extra gui --extra web）
 uv run yaqpy '.server.port' examples/sample.yaml
 ```
 
@@ -18,7 +18,8 @@ uv run yaqpy '.server.port' examples/sample.yaml
 [toTop](#toreadme)
 ## 設計の概要
 
-- **ヘキサゴナル（Ports & Adapters）**：CLI・GUI・ライブラリが共通の `YqService` を呼びます。API（WSGI）は今後追加予定です
+- **ヘキサゴナル（Ports & Adapters）**：CLI・GUI（デスクトップ・Web 版）・ライブラリが共通の `YqService` を呼びます。API（WSGI）は今後追加予定です
+- **Web 版の GUI も同じ画面**：`yaqpy-web`（`yaqpy --web`）は、デスクトップ版（`yaqpy-gui`）と同じ Flet の画面を `flet.fastapi` ＋ uvicorn で配ります（`gui/_web.py`）。評価は `SandboxFileSystem` と空の環境変数の上で動き、サーバーのファイル・環境変数に届きません（`gui/_di.py` の `make_web_service`）。Flet の Web 表示の実測は `docs/flet-1.0-api-notes.md` の 7 章
 - **YAML は自前実装**：コメント・キー順・アンカー・スカラーの元の書き方（`0x1F`、`1.50`、クォート）を保持するパーサー／エミッタ
 - **依存方向はテストで検査**：実行時の依存ゼロ（`dependencies = []`）と、レイヤ間の import 方向を `tests/unit/test_architecture.py` が検査します
 
@@ -32,10 +33,10 @@ uv run yaqpy '.server.port' examples/sample.yaml
 # 全部まとめて（並列。pytest-xdist）
 uv run pytest -n auto
 
-# ユニットテスト（1,064 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・入力形式の自動判定・GUI の Presenter など。実際にウィンドウは開きません）
+# ユニットテスト（1,287 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・入力形式の自動判定・GUI の Presenter など。実際にウィンドウは開きません。Web 版のサーバーは、[web] extra があれば 127.0.0.1 の空きポートで実際に起動して確かめます）
 uv run pytest tests/unit -n auto
 
-# CLI 受け入れテスト（83 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など））
+# CLI 受け入れテスト（86 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など））
 uv run pytest tests/acceptance -n auto
 
 # Go 版シナリオのゴールデンテスト（演算子 1,091 件・形式 154 件）
@@ -88,7 +89,7 @@ src/yaqpy/
 │   └── builtin/                                   … 同梱の 6 レシピ（*.yaqpy ＋ *.recipe.yaml）と、3 つの API の目標スキーマ（*.schema.json）
 ├── app/                            … YqService、DTO、ポート（FileSystem/Environment）、printer（-s の SplitWriter を含む）、RecipeService（レシピの実行。常に SecurityPolicy.strict()）、selfdoc / examples（自己説明。登録表から自動生成し、例は実行して確かめる）、recipe_text（報告の文章）
 ├── cli/                            … argparse、引数解釈（純粋関数）、main、recipe_cli（--recipe ほか）、describe_cli（--print-spec ほか）
-└── gui/                            … Flet の GUI（任意依存。presenter は Flet 非依存）
+└── gui/                            … Flet の GUI（任意依存。presenter は Flet 非依存）。_run（画面の組み立て。デスクトップ・Web 共通）、_web（Web 版のサーバー。uvicorn を使うのはここだけ）、_upload（Web 版のアップロード受け取り）、web_config（Web 版の設定・上限。Flet 非依存）、app（yaqpy-gui / yaqpy-web の入口とヘルプ）、logo と assets/（ロゴ。原本はリポジトリの assets/images で、コピーが一致することをテストで確認）
 tests/
 ├── unit/  acceptance/  golden/     … pytest（tests/conftest.py が golden/acceptance/gui にマーカーを付ける）
 ├── golden/formats/                 … Go 版の形式シナリオ（抽出した JSON）と formats_manifest.json
