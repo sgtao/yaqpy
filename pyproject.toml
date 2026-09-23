@@ -20,6 +20,9 @@ yaqpy-gui = "yaqpy.gui.app:main_entry"
 gui = [
     "flet>=1.0,<2",
 ]
+web = [
+    "flet[web]>=1.0,<2",
+]
 
 [dependency-groups]
 dev = [
