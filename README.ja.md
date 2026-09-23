@@ -123,6 +123,8 @@ yaqpy-web                # ブラウザで使う（http://127.0.0.1:8550/。yaqp
 yaqpy-web --port 9000    # ポートを変える（オプションは yaqpy-web --help）
 ```
 
+![image:yaqpy GUI](assets/images/screenshot-yaqpy-gui.png)
+
 ## ドキュメント
 
 | 内容 | ファイル |

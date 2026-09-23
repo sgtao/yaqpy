@@ -108,6 +108,8 @@ yaqpy-web                # the same screens in your browser at http://127.0.0.1:
 yaqpy-web --port 9000    # another port; see yaqpy-web --help for the options
 ```
 
+![image:yaqpy GUI](assets/images/screenshot-yaqpy-gui.png)
+
 The web version listens on this PC only by default and has no authentication. Files are uploaded from the browser and results come back as downloads.
 
 ## Documentation
