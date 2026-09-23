@@ -185,8 +185,9 @@ class YamlEmitter:
         prefix = pad + "- " if is_seq_item else pad
         inner_col = col + 2 if is_seq_item else col + 2
         if value.kind in (Kind.SCALAR, Kind.ALIAS):
-            text = self._props(value) + self._scalar_text(value, inner_col if is_seq_item else col,
-                                                          in_flow=False)
+            # ブロックスカラーの本文は「親（ダッシュ・キーの桁）＋インデント」。ダッシュの桁を渡す
+            # （以前はダッシュの桁＋2 を渡していて、本文が 2 桁深くなり、桁の指定つきの `|2` が読み戻せなかった）
+            text = self._props(value) + self._scalar_text(value, col, in_flow=False)
             if text.startswith(("|", ">")):
                 header, _, body = text.partition("\n")
                 lines.append(prefix + header + self._line_comment(value))
@@ -285,11 +286,15 @@ class YamlEmitter:
         if style & Style.SINGLE_QUOTED:
             return _double_quote(value)
         if style & Style.LITERAL and not in_flow and not is_key:
+            if not _block_scalar_safe(value):
+                return _double_quote(value)
             return self._block_scalar(value, col, literal=True)
         if style & Style.FOLDED and not in_flow and not is_key:
+            if not _block_scalar_safe(value):
+                return _double_quote(value)
             return self._block_scalar(value, col, literal=False)
         if "\n" in value:
-            if in_flow or is_key:
+            if in_flow or is_key or not _block_scalar_safe(value):
                 return _double_quote(value)
             return self._block_scalar(value, col, literal=True)
         explicit_tag = bool(style & Style.TAGGED) or (tag != "" and not tag.startswith("!!"))
@@ -354,6 +359,24 @@ class YamlEmitter:
         if content == "" and chomp == "":
             return header + "\n"
         return header + "\n" + "\n".join(lines)
+
+
+_BLANK_LINE_RE = re.compile(r"(?:^|\n)[ \t]+(?:\n|$)")
+
+
+def _block_scalar_safe(value: str) -> bool:
+    """literal / folded のブロックで書いて、読み戻しても同じ値になる文字列か。
+
+    次のときは値が変わってしまう（v0.3.0 から残っていた不具合。v0.7.0 で修正）ので、
+    ``"..."`` で書く：空白（スペース・タブ）だけの行がある、行頭がタブの行がある、
+    制御文字や ``\\r`` を含む。Go 版（go-yaml）も、行末の空白や「空白＋改行」を含む
+    文字列はブロックにしない。
+    """
+    if _PRINTABLE_RE.search(value) or "\r" in value:
+        return False
+    if _BLANK_LINE_RE.search(value):
+        return False
+    return not any(line.startswith("\t") for line in value.split("\n"))
 
 
 def _ensure_hash(text: str) -> str:
