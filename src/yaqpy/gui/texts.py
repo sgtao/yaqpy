@@ -62,8 +62,15 @@ MSG_COPIED = "変換結果をクリップボードにコピーしました"
 SET_TITLE = "設定"
 SET_SECURITY = "セキュリティ"
 SET_SECURITY_NOTE = "既定はすべて不許可です。必要なときだけ許可してください"
+SET_SECURITY_WHY = (
+    "env は環境変数を、load はファイルを読む機能です。load の方が読める範囲が広いため、"
+    "別々に許可できるようにしています"
+)
 SET_ALLOW_ENV = "env / strenv 演算子を許可（環境変数を読めるようになります）"
-SET_ALLOW_FILE = "load / loadstr 演算子を許可（他のファイルを読めるようになります）"
+SET_ALLOW_FILE = (
+    "load / loadstr 演算子を許可（他のファイルを読めるようになります）"
+    "（現在この演算子は未実装のため、切り替えても動作に影響しません）"
+)
 SET_SYSTEM_NOTE = "※ system 演算子は GUI では提供しません"
 SET_RUN = "実行"
 SET_TIMEOUT = "タイムアウト（秒）"
@@ -220,8 +227,15 @@ _EN: dict[str, str] = {
     "SET_TITLE": "Settings",
     "SET_SECURITY": "Security",
     "SET_SECURITY_NOTE": "Everything is disallowed by default. Enable only what you actually need",
+    "SET_SECURITY_WHY": (
+        "env reads environment variables and load reads files. load can reach much more, "
+        "so the two can be allowed separately"
+    ),
     "SET_ALLOW_ENV": "Allow env / strenv operators (lets expressions read environment variables)",
-    "SET_ALLOW_FILE": "Allow load / loadstr operators (lets expressions read other files)",
+    "SET_ALLOW_FILE": (
+        "Allow load / loadstr operators (lets expressions read other files) "
+        "(these operators are not implemented yet, so this switch has no effect for now)"
+    ),
     "SET_SYSTEM_NOTE": "Note: the system operator is not available in the GUI",
     "SET_RUN": "Run",
     "SET_TIMEOUT": "Timeout (seconds)",

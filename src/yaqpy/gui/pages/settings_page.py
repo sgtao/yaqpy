@@ -58,6 +58,7 @@ class SettingsPage:
         if web is None:
             security: list[ft.Control] = [
                 ft.Text(texts.SET_SECURITY_NOTE, size=12, color=note_color),
+                ft.Text(texts.SET_SECURITY_WHY, size=12, color=note_color),
                 self._boxes["env"],
                 self._boxes["file"],
                 ft.Text(texts.SET_SYSTEM_NOTE, size=12, color=note_color),

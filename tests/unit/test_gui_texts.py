@@ -67,3 +67,25 @@ class LanguageTests:
         assert texts.CAP_ENV and texts.CAP_FILE
         texts.select_language("en")
         assert texts.CAP_ENV and texts.CAP_FILE
+
+
+class SecurityExplanationTests:
+    """v0.7.0：env と load を別々に許可する理由と、load が未実装であることを設定画面で伝える。"""
+
+    @pytest.mark.parametrize("language", ["ja", "en"])
+    def test_the_file_switch_says_the_operator_is_not_implemented(self, language: str) -> None:
+        texts.select_language(language)
+        assert ("未実装" if language == "ja" else "not implemented") in texts.SET_ALLOW_FILE
+
+    @pytest.mark.parametrize("language", ["ja", "en"])
+    def test_the_reason_for_two_switches_is_shown(self, language: str) -> None:
+        texts.select_language(language)
+        assert texts.SET_SECURITY_WHY
+        assert texts._EN["SET_SECURITY_WHY"] != texts._JA["SET_SECURITY_WHY"]
+
+    def test_the_claim_matches_reality_load_is_not_implemented(self) -> None:
+        """設定画面の注記が事実であること（load を実装したら、この注記と検査を見直す）。"""
+        from yaqpy.app.selfdoc import operator_table
+
+        info = {i.name: i.implemented for i in operator_table()}
+        assert info["load"] is False and info["load_str"] is False
