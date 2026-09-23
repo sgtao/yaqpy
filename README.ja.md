@@ -60,10 +60,12 @@ pip install "yaqpy[web]"            # ＋ブラウザで使う Web 版（Flet �
 
 ```bash
 uv tool install yaqpy               # yaqpy コマンドとして入れる
-uv tool install "yaqpy[gui,web]"    # yaqpy-gui・yaqpy-web を使うための部品も一緒に
+uv tool install "yaqpy[gui,web]" --with flet-desktop  # yaqpy-gui・yaqpy-web を使うための部品も一緒に
 uvx yaqpy '.server.port' config.yaml   # 入れずに 1 回だけ実行する
 uv add yaqpy                        # uv のプロジェクトでライブラリとして使う
 ```
+
+> **`uv tool install` / `uvx` でデスクトップ GUI を使う場合の注意**：Flet は `flet-desktop`（実際に窓を描画する部品）を、初回起動時に自動でインストールしようとします。この自動インストールは、`uv tool install` が `yaqpy` 用に作った**隔離された環境とは別の場所**（実行したときのカレントディレクトリ付近にたまたまある `.venv` など）に入ってしまうことがあり、「OK」と表示されるのに `yaqpy-gui` を実行すると `ModuleNotFoundError: No module named 'flet_desktop'` になります。上のように **`--with flet-desktop` を付けて入れる**と、最初から正しい場所に入るのでこの問題を避けられます。すでに付けずに入れてしまった場合は `uv tool install --force "yaqpy[gui]" --with flet-desktop` で入れ直してください。
 
 新しい版に更新するときは、`pip install -U yaqpy` や `uv tool upgrade yaqpy` を実行します。
 

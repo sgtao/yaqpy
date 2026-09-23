@@ -33,12 +33,14 @@ YAML / JSON のファイルを開いて、**必要な部分だけを取り出し
 **PyPI から入れる場合**（GitHub のリリースから入れる方法などは [README のインストール](README.ja.md#インストール)）
 
 ```bash
-pip install "yaqpy[gui]"          # または: uv tool install "yaqpy[gui]"
+pip install "yaqpy[gui]"          # または: uv tool install "yaqpy[gui]" --with flet-desktop
 yaqpy-gui                 # 専用コマンドで起動
 yaqpy --gui               # こちらでも同じ画面が開きます
 ```
 
 すでに GUI なしで入れている場合は、部品（flet）だけを足すこともできます：`pip install "flet>=1.0,<2"`。
+
+> **`uv tool install` / `uvx` で入れる場合は `--with flet-desktop` を付けてください。** 付けずに入れると、`yaqpy-gui` の初回起動時に Flet が `flet-desktop`（窓を描画する部品）を自動で入れようとしますが、その先が `yaqpy` 用の隔離環境とは別の場所（実行時のカレントディレクトリ付近の無関係な `.venv` など）になることがあります。この場合「OK」と表示されたのに `ModuleNotFoundError: No module named 'flet_desktop'` で起動に失敗します（[12 章](#12-困ったときqa)）。
 
 **リポジトリを clone した場合**
 
@@ -591,6 +593,9 @@ server:
 ---
 [toTop](#toreadme)
 ## 12. 困ったとき（Q&A）
+
+**Q. `uv tool install` / `uvx` で `yaqpy-gui` を起動すると、`Installing flet-desktop ... OK` と出たのに `ModuleNotFoundError: No module named 'flet_desktop'` で終了します**
+A. `flet-desktop`（窓を描画する部品）の自動インストール先が、`yaqpy` 用の隔離された実行環境とは違う場所（起動したときのカレントディレクトリ付近にたまたまある、無関係な `.venv` など）になってしまったことが原因です。「OK」と出るのはそちらへのインストールが成功しているためで、`yaqpy` 自身の実行環境には入っていません。**`uv tool install --force "yaqpy[gui]" --with flet-desktop`** で入れ直してください（[1 章](#1-起動する)）。`pip install` の場合は `pip install "yaqpy[gui]" "flet-desktop==<入っている flet と同じ版>"` のように明示的に入れると同じ問題を避けられます。
 
 **Q. 式を打っても何も起きません**
 A. 打っただけでは実行されません。**Enter**（または `[▶ 実行]`）を押してください。ただし、プルダウンで候補を選んだとき、形式・インデント・整形を変えたときは、自動で実行されます。

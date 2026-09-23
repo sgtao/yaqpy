@@ -50,10 +50,12 @@ With [uv](https://docs.astral.sh/uv/):
 
 ```bash
 uv tool install yaqpy               # install the yaqpy command
-uv tool install "yaqpy[gui,web]"    # ... with what yaqpy-gui and yaqpy-web need
+uv tool install "yaqpy[gui,web]" --with flet-desktop  # ... with what yaqpy-gui and yaqpy-web need
 uvx yaqpy '.server.port' config.yaml   # run it once without installing
 uv add yaqpy                        # use it as a library in a uv project
 ```
+
+> **`uv tool install` / `uvx` and the desktop GUI**: `flet` normally installs its desktop runtime (`flet-desktop`) on first launch. That auto-install targets whatever virtual environment `uv` can find near the current directory, which is **not** the isolated environment `uv tool install` created for `yaqpy` — so it can print "OK" and still leave you with `ModuleNotFoundError: No module named 'flet_desktop'` when you run `yaqpy-gui`. Passing `--with flet-desktop` (as above) puts it in the right place from the start and avoids this entirely. If you already installed without it: `uv tool install --force "yaqpy[gui]" --with flet-desktop`.
 
 **From GitHub Releases** (for example, a version that is not on PyPI): pick a version on [Releases](https://github.com/sgtao/yaqpy/releases) and replace `0.6.0` / `v0.6.0` below with it.
 
