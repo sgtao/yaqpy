@@ -5,8 +5,9 @@ from __future__ import annotations
 from yaqpy.app.local import LocalEnvironment, LocalFileSystem
 from yaqpy.app.ports import SandboxFileSystem, StaticEnvironment
 from yaqpy.app.service import YqService
+from yaqpy.gui.log_presenter import LogPresenter
 from yaqpy.gui.presenter import MainPresenter, RunGatePort
-from yaqpy.gui.state import AUTO, GuiState
+from yaqpy.gui.state import AUTO, GuiState, build_options
 
 _service: YqService | None = None
 _web_service: YqService | None = None
@@ -38,6 +39,14 @@ def make_presenter(state: GuiState, *, run_gate: RunGatePort | None = None) -> M
         return MainPresenter(service=make_web_service(), fs=SandboxFileSystem(), state=state,
                              run_gate=run_gate)
     return MainPresenter(service=make_service(), fs=LocalFileSystem(), state=state)
+
+
+def make_log_presenter(state: GuiState) -> LogPresenter:
+    """ログ画面の Presenter（デスクトップ版のみ。Web 版には実行ログが無い）。"""
+    presenter = MainPresenter(service=make_service(), fs=LocalFileSystem(), state=state)
+    return LogPresenter(fs=LocalFileSystem(), log_dir=presenter.log_dir,
+                        options=lambda: build_options(state),
+                        max_display_lines=lambda: state.settings.max_display_lines)
 
 
 def input_format_choices() -> list[str]:

@@ -18,6 +18,7 @@ from yaqpy.core.engine.limits import StepBudget
 from yaqpy.errors import UnknownFormatError
 from yaqpy.gui import expression_file, intake, run_log, texts
 from yaqpy.gui.errors_ja import ErrorViewModel, to_view_model
+from yaqpy.gui.log_presenter import RerunPayload
 from yaqpy.gui.paths import DEFAULT_MAX_DEPTH, DEFAULT_MAX_ITEMS, PathCandidate, collect_paths
 from yaqpy.gui.state import AUTO, DocumentState, GuiState, build_options, truncate_for_display
 
@@ -462,6 +463,36 @@ class MainPresenter:
             return self._service.formats.get(name).name
         except UnknownFormatError:
             return name
+
+    # ------------------------------------------------------------------ ログからの再実行（v0.7.0）
+
+    def apply_rerun(self, payload: RerunPayload, *, replace: bool = False) -> ErrorViewModel | None:
+        """ログの内容を、**新しい文書として追加**して、式・形式・インデントを復元する（決定 M）。
+
+        ``replace=True`` のときだけ、開いている文書をすべて閉じて置き換える（決定 Z：
+        ``eval_all`` で記録したログは、ログに無い文書を巻き込まないため）。
+        実行はしない（画面が実行する。記録もしない：決定 S）。失敗したら、状態を変えずに理由を返す。
+        """
+        for name, text in payload.inputs:
+            try:
+                intake.ensure_size(len(text.encode("utf-8")), max_bytes=self.state.max_input_bytes)
+            except intake.IntakeError as e:
+                return ErrorViewModel("intake", f"{name}: {e}")
+        if replace:
+            self.close_document()
+        for name, text in payload.inputs:
+            item = intake.from_text(text, name=name)
+            if not self.state.documents:
+                self._accept(item)
+            else:
+                self._append(item)
+        q = self.state.query
+        q.expression = payload.expression
+        q.input_format = payload.input_format
+        q.output_format = payload.output_format
+        q.indent = payload.indent
+        self.state.eval_all = bool(payload.eval_all) and self.state.has_multiple_documents
+        return None
 
     # ------------------------------------------------------------------ 式のファイル（.yaqpy。v0.7.0）
 

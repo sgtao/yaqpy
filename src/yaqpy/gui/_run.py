@@ -10,11 +10,13 @@ import sys
 import flet as ft
 
 from yaqpy.gui import texts
-from yaqpy.gui._di import make_presenter
+from yaqpy.gui._di import make_log_presenter, make_presenter
 from yaqpy.gui._prefs import load_settings, save_settings
 from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.logo import WINDOW_ICON
+from yaqpy.gui.log_presenter import RerunPayload
 from yaqpy.gui.pages.ask_ai_page import AskAiPage
+from yaqpy.gui.pages.log_page import LogPage
 from yaqpy.gui.pages.main_page import MainPage
 from yaqpy.gui.pages.settings_page import SettingsPage
 from yaqpy.gui.state import GuiState, clamp_settings_to_web_limits
@@ -22,7 +24,7 @@ from yaqpy.gui.web_assets import is_drop_route
 from yaqpy.gui.web_config import WebRuntime
 
 # ページの番号（nav_labels / pages の並び）。末尾に足していくので、既存の番号は動かない
-MAIN, SETTINGS, ASK_AI = 0, 1, 2
+MAIN, SETTINGS, ASK_AI, LOG = 0, 1, 2, 3
 
 # 窓を閉じてから、クライアントの後始末を待つ時間（秒）
 CLOSE_GRACE_SECONDS = 0.3
@@ -85,6 +87,8 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
     # ページの並びは pages / nav_labels（同じ順）。タブの数はここだけで決まる（Web 版とデスクトップ版で
     # 数が違ってもよい）。ページ番号に頼るコードは MAIN / SETTINGS の定数を使う。
     nav_labels = [texts.NAV_MAIN, texts.NAV_SETTINGS, texts.NAV_ASK_AI]
+    if web is None:
+        nav_labels.append(texts.NAV_LOG)       # ログ画面はデスクトップ版のみ（末尾。LOG = 3）
     # ft.ButtonStyle は Flet 1.0 で色を受け取れないので、押しているページは文字の色と太さで示す
     nav_texts = [ft.Text(label) for label in nav_labels]
 
@@ -110,7 +114,17 @@ async def _main(page: ft.Page, *, initial_path: str | None = None,
                                  on_changed=lambda: page.run_task(main_page.rerun),
                                  on_persist=persist_settings, picker=picker)
     ask_ai_page = AskAiPage(page=page, presenter=presenter)
-    pages = [main_page, settings_page, ask_ai_page]
+    pages: list = [main_page, settings_page, ask_ai_page]
+
+    async def rerun_from_log(payload: RerunPayload, replace: bool) -> None:
+        """ログ画面の［再実行］：Main 画面へ切り替えて、新しい文書として追加してすぐ実行する。"""
+        show(MAIN)
+        page.update()
+        await main_page.apply_rerun(payload, replace=replace)
+
+    if web is None:
+        pages.append(LogPage(page=page, presenter=make_log_presenter(state), picker=picker,
+                             on_rerun=rerun_from_log))
 
     def ask_quit(e: ft.Event) -> None:
         """要望：終了ボタンはワンクリックで閉じず、確認を挟む。"""

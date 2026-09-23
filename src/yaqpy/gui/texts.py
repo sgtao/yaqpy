@@ -102,6 +102,39 @@ SET_LOG_NOTE = (
     "保存先を変えても、これまでのログは移動しません"
 )
 BTN_BROWSE = "参照…"
+LBL_LOG_SEARCH = "絞り込み（日時・形式・式・ファイル名）"
+TIP_LOG_REFRESH = "一覧を更新"
+TIP_LOG_OPEN_FOLDER = "保存先を開く"
+TIP_LOG_DELETE_ALL = "すべて削除"
+BTN_LOG_RERUN = "再実行"
+BTN_LOG_SAVE_EXPR = "式を .yaqpy に保存"
+BTN_LOG_DELETE = "削除"
+BTN_DIALOG_CANCEL = "やめる"
+BTN_DELETE_OK = "削除する"
+BTN_REPLACE_RERUN = "置き換えて再実行"
+LBL_LOG_INPUT = "入力："
+LBL_LOG_EXPRESSION = "式："
+MSG_LOG_EMPTY = "ログはまだありません。［実行］で変換に成功すると、ここに記録されます"
+MSG_LOG_NO_MATCH = "絞り込みに合うログはありません"
+MSG_LOG_SELECT = "左の一覧からログを選んでください"
+MSG_LOG_STATUS = "全 {total} 件（うち {shown} 件を表示） ／ 保存先：{path}"
+MSG_LOG_CANNOT_RERUN = "このログは再実行できません（本文を省略した・古い形式・壊れている、など）"
+MSG_LOG_RESTORE_FAILED = "ログの入力を元の形式に戻せませんでした：{reason}"
+MSG_LOG_READ_FAILED = "ログを読めませんでした：{reason}"
+MSG_LOG_BROKEN = "このログは読み戻せませんでした（全文だけ表示します）：{reason}"
+MSG_LOG_DELETED = "削除しました"
+MSG_LOG_DELETED_ALL = "{n} 件を削除しました"
+MSG_LOG_FOLDER_FAILED = "保存先を開けませんでした：{reason}"
+MSG_LOG_RERUN_STARTED = "ログから再実行しました（新しい文書として追加しています）"
+DLG_LOG_DELETE_TITLE = "このログを削除しますか？"
+DLG_LOG_DELETE_BODY = "元に戻せません。\n\n{name}"
+DLG_LOG_DELETE_ALL_TITLE = "すべてのログを削除しますか？"
+DLG_LOG_DELETE_ALL_BODY = "{n} 件のログをすべて削除します。元に戻せません。"
+DLG_LOG_REPLACE_TITLE = "開いている文書を置き換えて再実行しますか？"
+DLG_LOG_REPLACE_BODY = (
+    "このログは、複数の文書をまとめて評価したときの記録です。"
+    "開いている文書を閉じて、ログの入力に置き換えて再実行します。"
+)
 BTN_RESET_DEFAULT = "既定に戻す"
 MSG_FOLDER_PICK_FAILED = "フォルダを選べませんでした。保存先のパスを直接入力してください"
 SET_DARK = "ダークテーマ"
@@ -109,6 +142,7 @@ SET_LANGUAGE_NOTE = "変更は次回の起動から有効です"
 NAV_MAIN = "📄 メイン"
 NAV_SETTINGS = "⚙ 設定"
 NAV_ASK_AI = "🤖 AIに相談"
+NAV_LOG = "📜 ログ"
 MSG_DROP_UNSUPPORTED = "この環境ではファイルのドラッグ＆ドロップに対応していません"
 MSG_PASTE_HERE = "ここに YAML / JSON を貼り付けてください"
 MSG_PASTED = "（貼り付けたテキスト）"
@@ -294,6 +328,41 @@ _EN: dict[str, str] = {
         "variable values may appear in the results. Changing the folder does not move existing logs"
     ),
     "BTN_BROWSE": "Browse…",
+    "NAV_LOG": "📜 Log",
+    "LBL_LOG_SEARCH": "Filter (time, format, expression, file name)",
+    "TIP_LOG_REFRESH": "Refresh the list",
+    "TIP_LOG_OPEN_FOLDER": "Open the log folder",
+    "TIP_LOG_DELETE_ALL": "Delete all",
+    "BTN_LOG_RERUN": "Run again",
+    "BTN_LOG_SAVE_EXPR": "Save expression as .yaqpy",
+    "BTN_LOG_DELETE": "Delete",
+    "BTN_DIALOG_CANCEL": "Cancel",
+    "BTN_DELETE_OK": "Delete",
+    "BTN_REPLACE_RERUN": "Replace and run again",
+    "LBL_LOG_INPUT": "Input: ",
+    "LBL_LOG_EXPRESSION": "Expression: ",
+    "MSG_LOG_EMPTY": "No logs yet. When a conversion succeeds with [Run], it is recorded here",
+    "MSG_LOG_NO_MATCH": "No log matches the filter",
+    "MSG_LOG_SELECT": "Pick a log from the list on the left",
+    "MSG_LOG_STATUS": "{total} logs ({shown} shown) / folder: {path}",
+    "MSG_LOG_CANNOT_RERUN": ("This log cannot be run again (its body was omitted, it is an "
+                             "unknown version, or it is broken)"),
+    "MSG_LOG_RESTORE_FAILED": "Could not turn the logged input back into its format: {reason}",
+    "MSG_LOG_READ_FAILED": "Could not read the log: {reason}",
+    "MSG_LOG_BROKEN": "This log could not be read back (showing the full text only): {reason}",
+    "MSG_LOG_DELETED": "Deleted",
+    "MSG_LOG_DELETED_ALL": "Deleted {n} logs",
+    "MSG_LOG_FOLDER_FAILED": "Could not open the folder: {reason}",
+    "MSG_LOG_RERUN_STARTED": "Ran it again from the log (added as a new document)",
+    "DLG_LOG_DELETE_TITLE": "Delete this log?",
+    "DLG_LOG_DELETE_BODY": "This cannot be undone.\n\n{name}",
+    "DLG_LOG_DELETE_ALL_TITLE": "Delete all logs?",
+    "DLG_LOG_DELETE_ALL_BODY": "All {n} logs will be deleted. This cannot be undone.",
+    "DLG_LOG_REPLACE_TITLE": "Replace the open documents and run again?",
+    "DLG_LOG_REPLACE_BODY": (
+        "This log was recorded from several documents evaluated together. "
+        "The open documents will be closed and replaced by the logged inputs."
+    ),
     "BTN_RESET_DEFAULT": "Reset",
     "MSG_FOLDER_PICK_FAILED": "Could not pick a folder. Type the folder path instead",
     "SET_DARK": "Dark theme",

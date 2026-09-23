@@ -50,6 +50,7 @@ GUI_FLET_FREE_MODULES = {
     "yaqpy.gui.ask_ai",
     "yaqpy.gui.expression_file",
     "yaqpy.gui.run_log",
+    "yaqpy.gui.log_presenter",
     "yaqpy.gui.app",
 }
 

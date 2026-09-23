@@ -18,6 +18,7 @@ from yaqpy.gui import expression_file, texts
 from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
 from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.errors_ja import caret_line
+from yaqpy.gui.log_presenter import RerunPayload
 from yaqpy.gui.pages.clipboard import get_clipboard, set_clipboard
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
 from yaqpy.gui.presenter import (
@@ -277,6 +278,30 @@ class MainPage:
     async def open_startup_file(self, path: str) -> None:
         """起動引数で渡されたファイルを開く（``yaqpy --gui a.yaml``。U2）。"""
         await self._load(path)
+        self._page.update()
+
+    async def apply_rerun(self, payload: RerunPayload, *, replace: bool = False) -> None:
+        """ログ画面の［再実行］：ログの内容を新しい文書として加え、式・形式を戻してすぐ実行する。
+
+        実行は「記録なし」（決定 S）：ログから開いた入力は整形が変わるので重複除外に掛からず、
+        再実行のたびに同じ内容のログが増えてしまうため。あとで［実行］を押せば通常どおり記録される。
+        """
+        error = self._p.apply_rerun(payload, replace=replace)
+        if error is not None:
+            self._show_error(error.message, error.hint)
+            self._page.update()
+            return
+        q = self._state.query
+        self._input_dd.value = q.input_format
+        self._output_dd.value = q.output_format
+        self._indent_field.value = str(q.indent)
+        self._show_loaded()
+        self._sync_active_document_view()
+        self._after_open()
+        self._refresh_expression_buttons()
+        self._apply_validation(self._p.validate(q.expression))
+        await self._run()
+        await self._reload_candidates()
         self._page.update()
 
     async def _load(self, path: str) -> None:
