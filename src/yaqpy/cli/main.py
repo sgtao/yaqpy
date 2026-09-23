@@ -67,11 +67,32 @@ def _launch_gui(ns: argparse.Namespace, err: TextIO) -> int:
     return gui_app.main_entry(stderr=err, initial_path=initial_path)
 
 
+def _launch_web(argv: list[str], err: TextIO) -> int:
+    """``yaqpy --web [yaqpy-web のオプション]``: hand over to the web version of the GUI.
+
+    Checked before the normal argument parsing: everything else on the command line belongs to
+    ``yaqpy-web`` (``--port``, ``--host``, ...), not to yaqpy's own parser, so ``yaqpy --web
+    --port 9000`` behaves exactly like ``yaqpy-web --port 9000`` (including ``--help``, which shows
+    yaqpy-web's options under the name ``yaqpy --web``). An expression or a file is rejected by
+    yaqpy-web's parser: the web version never opens files from the server's disk. The import is
+    lazy for the same reason as in ``_launch_gui``.
+    """
+    rest = [arg for arg in argv if arg != "--web"]
+    if "--gui" in rest:
+        err.write("Error: --gui and --web cannot be used together\n")
+        return EXIT_ERROR
+    from yaqpy.gui import app as gui_app
+
+    return gui_app.web_cli_entry(rest, stderr=err, prog="yaqpy --web")
+
+
 def main(argv: list[str] | None = None, *, stdout: TextIO | None = None,
          stderr: TextIO | None = None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     out = stdout or _configure_streams()
     err = stderr or sys.stderr
+    if "--web" in argv:
+        return _launch_web(argv, err)
     try:
         ns = parse_args(argv)
     except ArgumentError as e:
