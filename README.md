@@ -1,71 +1,72 @@
-# yaqpy
+**English** | [日本語](https://github.com/sgtao/yaqpy/blob/main/README.ja.md)
 
-YAML / JSON をコマンドや Python から、**式で取り出し・更新・変換**するための軽量ツールです。
-- 人気の CLI ツール [mikefarah/yq](https://github.com/mikefarah/yq)（Go 版 v4.53.6）の式言語を模倣
-- **Python の標準ライブラリだけ**で再実装してます
+<p align="center">
+  <img src="https://raw.githubusercontent.com/sgtao/yaqpy/main/logo.svg" alt="yaqpy — YAML and more, Query editor in Python" width="600">
+</p>
+
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/sgtao/yaqpy/blob/main/LICENSE)
+[![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)](https://www.python.org/downloads/)
+[![GitHub release](https://img.shields.io/github/v/release/sgtao/yaqpy.svg)](https://github.com/sgtao/yaqpy/releases)
+
+# yaqpy — YAML and more, Query editor in Python
+
+A lightweight tool to **query, update and convert** YAML, JSON and more with expressions, from the command line or from Python.
+
+- It follows the expression language of the popular CLI tool [mikefarah/yq](https://github.com/mikefarah/yq) (Go, v4.53.6)
+- It is re-implemented with **nothing but the Python standard library**
+- The name stands for **Y**AML **A**nd more, **Q**uery editor in **PY**thon
 
 ```console
 $ yaqpy '.server.port' config.yaml
 8080
-$ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順はそのまま
+$ yaqpy -i '.server.port = 9090' config.yaml     # comments and key order are kept
 ```
 
-## 概要
+## Features
 
-- **書式を壊さない**：コメント、キーの並び順、アンカー（`&` / `*`）、数値やクォートの元の書き方（`0x1F`、`1.50`、`'yes'`）を保持したまま更新できます
-- **依存ライブラリなし**：実行に必要なのは Python 3.13 以上だけです（GUI を使うときだけ任意で Flet を追加。ブラウザで使う Web 版は flet-web も）
-- **3 通りの使い方**：コマンド（`yaqpy`）／ Python ライブラリ（`import yaqpy`）／ GUI（デスクトップの `yaqpy-gui`、ブラウザで使う `yaqpy-web`）
-- **対応フォーマット**：
+- **Keeps your formatting**: comments, key order, anchors (`&` / `*`) and the way numbers and quotes were written (`0x1F`, `1.50`, `'yes'`) survive an update
+- **No dependencies**: all it needs is Python 3.13 or later. The GUI is an optional extra (Flet); the web version adds flet-web
+- **Four ways to use it**: the `yaqpy` command, the Python library (`import yaqpy`), a desktop GUI (`yaqpy-gui`) and the same GUI in a web browser (`yaqpy-web`)
+- **Formats**: YAML, JSON, XML, CSV / TSV, TOML, properties and TOON (a token-saving format for LLMs), both in and out. TOML comments are not kept, so `-i` on TOML is refused by default
+- **Compatible with yq**: 1,091 test scenarios of the Go version are run as compatibility tests (1,047 of the 1,051 comparable ones match). Every operator works except `load` and friends, `eval`, `envsubst`, `system` and `error`
+- **Beyond yq** (not in the Go version):
+  - the input format is detected from the content when the file extension does not tell it
+  - `yaqpy --schema data.yaml` prints a JSON Schema (Draft 2020-12) of the data, as JSON or YAML
+  - `yaqpy --recipe openai-to-gemini request.json` converts request bodies between OpenAI, Gemini and Anthropic, and reports what was dropped, added, or does not fit the target schema (results go to stdout; files are written only with `--apply --out-dir`; no API is called)
+  - yaqpy describes itself for people and AI: `--print-spec` (the operators that work and those that do not), `--example`, `--guide-prompt` (a prompt that lets an AI write yaqpy expressions) and `--skill-md` (a Claude Code skill)
+- **Safe defaults**: as a library, operators that read files or environment variables or run commands are all off. The CLI, like the Go version, allows environment variables and file reads (commands stay off). The web version always turns them off
 
-  | 形式 | 入力 | 出力 |
-  |---|:-:|:-:|
-  | YAML | ○ | ○ |
-  | JSON | ○ | ○ |
-  | XML | ○ | ○ |
-  | CSV / TSV | ○ | ○ |
-  | TOML（読むときコメントは保持しない。`-i` は既定で拒否） | ○ | ○ |
-  | properties | ○ | ○ |
-  | TOON（LLM に渡すためトークン数を減らす形式。Go 版にない拡張） | ○ | ○ |
+## Installation
 
-- **入力形式の自動判定**（Go 版にない拡張）：拡張子で決まらないとき（標準入力、拡張子なし・未知の拡張子のファイル、貼り付けたテキスト）は、中身を見て `json` `xml` `toml` `props` `csv` `tsv` を見分けます（見分けられなければ、これまでどおり YAML）。拡張子が分かるときの挙動は変わりません。ライブラリでは `yaqpy.detect_format(text)`
-- **スキーマの出力**（Go 版にない拡張）：`yaqpy --schema data.yaml` で、データを表す JSON Schema（Draft 2020-12）を JSON でも YAML でも出せます
-- **変換レシピ**（Go 版にない拡張）：`yaqpy --recipe openai-to-gemini request.json` で、OpenAI・Gemini・Anthropic の**リクエストボディを相互に変換**します。落とした項目・補った項目・変換先のスキーマに合わない箇所を**報告**します（既定では標準出力へ結果を出すだけ。ファイルに書くのは `--apply --out-dir` のときだけ。実際の API は呼びません）。[使い方](USAGE.ja.md#変換レシピapi-のリクエストを別の-api-用にするgo-版にはない拡張)
-- **yaqpy が自分を説明する**：`--print-spec`（使える・使えない演算子の一覧）`--example`（実行済みの例）`--guide-prompt`（AI に式を書かせるお願い文）`--skill-md`（Claude Code のスキル）。演算子の一覧は実装から自動生成です
-
-- **Go 版 yq との互換性**：Go 版のテストシナリオ 1,091 件を互換テストにしています（結果を比べられる 1,051 件のうち 1,047 件が一致）。文字列・配列・`@base64` などの encode/decode・日時・`-s`（分割出力）を含め、**`load` 系・`eval`・`envsubst`・`system`・`error` を除く演算子が使えます**（これらは実行すると `Error: unknown operator ...` で終了します）。一覧は [Go 版 yq との違い](USAGE.ja.md#go-版-yq-との違い) を参照してください
-- **安全側の既定**：ライブラリとして使うときは、ファイル読み込み・環境変数・外部コマンドの演算子が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込みが有効です（外部コマンドは無効）
-
-## インストール
-
-Python 3.13 以上が必要です。yaqpy は PyPI には公開していないので、**GitHub のリリース**から入れます。
-
-1. [Releases](https://github.com/sgtao/yaqpy/releases) で、入れたい版を選びます（最新版が一番上です）
-2. 次のコマンドの **`0.5.0`（と `v0.5.0`）を、選んだ版の番号に読み替えて**実行します
+Python 3.13 or later is required.
 
 ```bash
-# ビルド済みの wheel から入れる（Git は不要）
-pip install https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl
-
-# GUI も使う場合（Flet が追加されます）
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl"
-
-# コマンドとして入れる場合（uv）
-uv tool install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl"
+pip install yaqpy                   # the yaqpy command and the library (no dependencies)
+pip install "yaqpy[gui]"            # + the desktop GUI (adds Flet)
+pip install "yaqpy[web]"            # + the GUI in a web browser (adds Flet and flet-web)
 ```
 
-Git がある場合は、タグを指定して入れることもできます。
+With [uv](https://docs.astral.sh/uv/):
 
 ```bash
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.5.0"
+uv tool install yaqpy               # install the yaqpy command
+uv tool install "yaqpy[gui,web]"    # ... with yaqpy-gui and yaqpy-web as well
+uvx yaqpy '.server.port' config.yaml   # run it once without installing
+uv add yaqpy                        # use it as a library in a uv project
 ```
 
-ブラウザで使う Web 版（v0.6.0 から）を入れるときは、`yaqpy[gui]` を **`yaqpy[web]`**（両方なら `yaqpy[gui,web]`）に読み替えます。
+**From GitHub Releases** (for example, a version that is not on PyPI): pick a version on [Releases](https://github.com/sgtao/yaqpy/releases) and replace `0.6.0` / `v0.6.0` below with it.
 
-新しい版に更新するときは、新しい版の番号で同じコマンドを実行します。ソースを見たい・改造したい場合は [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。
+```bash
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.6.0/yaqpy-0.6.0-py3-none-any.whl"
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.6.0"
+```
 
-## クイックスタート
+To work on the source, see [DEVELOPMENT.md](https://github.com/sgtao/yaqpy/blob/main/DEVELOPMENT.md) (Japanese).
 
-次の `config.yaml` を例にします。
+## Quick start
+
+Take this `config.yaml`:
 
 ```yaml
 # server settings
@@ -77,16 +78,16 @@ items:
   - {name: book, price: 980}
 ```
 
-**コマンド**
+**Command line**
 
 ```bash
-yaqpy '.server.port' config.yaml                              # 取得 → 8080
-yaqpy '.items[] | select(.price > 500) | .name' config.yaml   # 絞り込み → book
-yaqpy -i '.server.port = 9090' config.yaml                    # 更新（コメント・並び順はそのまま）
-yaqpy -o json '.server' config.yaml                           # 形式変換（yaml / json / xml / csv / tsv / toml / props / toon）
+yaqpy '.server.port' config.yaml                              # read -> 8080
+yaqpy '.items[] | select(.price > 500) | .name' config.yaml   # filter -> book
+yaqpy -i '.server.port = 9090' config.yaml                    # update (comments and key order are kept)
+yaqpy -o json '.server' config.yaml                           # convert (yaml / json / xml / csv / tsv / toml / props / toon)
 ```
 
-**Python ライブラリ**
+**Python library**
 
 ```python
 import yaqpy
@@ -99,25 +100,32 @@ yaqpy.update(".server.port = 9090", {"server": {"port": 8080}})  # {'server': {'
 **GUI**
 
 ```bash
-yaqpy-gui                # または: yaqpy --gui
-yaqpy-web                # ブラウザで使う（http://127.0.0.1:8550/。yaqpy[web] が必要）。または: yaqpy --web
-yaqpy-web --port 9000    # ポートを変える（オプションは yaqpy-web --help）
+yaqpy-gui                # desktop window (or: yaqpy --gui)
+yaqpy-web                # the same screens in your browser at http://127.0.0.1:8550/ (or: yaqpy --web)
+yaqpy-web --port 9000    # another port; see yaqpy-web --help for the options
 ```
 
-## ドキュメント
+The web version listens on this PC only by default and has no authentication. Files are uploaded from the browser and results come back as downloads.
 
-| 内容 | ファイル |
+## Documentation
+
+The detailed guides are written in **Japanese**.
+
+| Contents | File |
 |---|---|
-| コマンド・各形式（XML・CSV・TOML・properties・TOON）・スキーマの出力・ライブラリの使い方、対応演算子、Go 版 yq との違い | [USAGE.ja.md](USAGE.ja.md) |
-| GUI の使い方（画面の見方、式の書き方、保存・設定・エラー） | [USAGE-GUI.ja.md](USAGE-GUI.ja.md) |
-| 開発者向け（セットアップ、設計、テスト、リポジトリ構成） | [DEVELOPMENT.md](DEVELOPMENT.md) |
-| 版ごとの変更（できること、既知の制限） | [CHANGELOG.md](CHANGELOG.md) |
+| This README in Japanese | [README.ja.md](https://github.com/sgtao/yaqpy/blob/main/README.ja.md) |
+| The command, each format, JSON Schema output, recipes, the library, the operators, and the differences from Go yq | [USAGE.ja.md](https://github.com/sgtao/yaqpy/blob/main/USAGE.ja.md) |
+| The GUI (desktop and web) | [USAGE-GUI.ja.md](https://github.com/sgtao/yaqpy/blob/main/USAGE-GUI.ja.md) |
+| For developers (setup, design, tests, repository layout) | [DEVELOPMENT.md](https://github.com/sgtao/yaqpy/blob/main/DEVELOPMENT.md) |
+| Changes in each version (features, known limitations) | [CHANGELOG.md](https://github.com/sgtao/yaqpy/blob/main/CHANGELOG.md) |
+
+`yaqpy --help`, `yaqpy-gui --help` and `yaqpy-web --help` are in English.
 
 ## License
 
-[MIT License](LICENSE)
+[MIT License](https://github.com/sgtao/yaqpy/blob/main/LICENSE)
 
-Go 版 yq（MIT）の設計・テストシナリオを参考にしています（[NOTICE](NOTICE)）。
+The design and the test scenarios draw on Go yq (MIT); see [NOTICE](https://github.com/sgtao/yaqpy/blob/main/NOTICE).
 
 ---
 

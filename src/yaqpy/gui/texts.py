@@ -129,16 +129,20 @@ CAP_FILE = "ファイル読み込み（load / loadstr）"
 CAP_UNKNOWN = "この機能"
 
 INSTALL_HINT = (
-    "GUI を使うには flet が必要です。次のどちらかで導入してください:\n"
-    '  pip install "flet>=1.0,<2"     （インストール済みの yaqpy に追加）\n'
-    "  uv sync --extra gui            （リポジトリを clone した開発環境）\n"
-    "GitHub のリリースから GUI つきで入れ直す方法は、README のインストールの節を参照してください:\n"
-    "  https://github.com/sgtao/yaqpy#インストール\n"
+    "GUI を使うには flet が必要です。次のどれかで導入してください:\n"
+    '  pip install "yaqpy[gui]"          （PyPI から GUI つきで入れ直す）\n'
+    '  uv tool install "yaqpy[gui]"      （uv のツールとして入れている場合）\n'
+    '  pip install "flet>=1.0,<2"        （インストール済みの yaqpy に flet だけを追加）\n'
+    "  uv sync --extra gui               （リポジトリを clone した開発環境）\n"
+    "GitHub のリリースから入れる方法などは、README のインストールの節を参照してください:\n"
+    "  https://github.com/sgtao/yaqpy/blob/main/README.ja.md#インストール\n"
 )
 
 WEB_INSTALL_HINT = (
-    "Web 版を使うには flet-web が必要です。次のどちらかで導入してください:\n"
-    '  pip install "flet[web]>=1.0,<2"   （インストール済みの yaqpy に追加）\n'
+    "Web 版を使うには flet-web が必要です。次のどれかで導入してください:\n"
+    '  pip install "yaqpy[web]"          （PyPI から Web 版つきで入れ直す）\n'
+    '  uv tool install "yaqpy[web]"      （uv のツールとして入れている場合）\n'
+    '  pip install "flet[web]>=1.0,<2"   （インストール済みの yaqpy に flet-web だけを追加）\n'
     "  uv sync --extra web               （リポジトリを clone した開発環境）\n"
 )
 WEB_STARTED = "yaqpy の Web 版を起動しました: {url}\n（止めるには、この端末で Ctrl+C）\n"
@@ -260,15 +264,18 @@ _EN: dict[str, str] = {
     "CAP_UNKNOWN": "this feature",
     "INSTALL_HINT": (
         "The GUI needs flet. Install it one of these ways:\n"
-        '  pip install "flet>=1.0,<2"     (add it to an installed yaqpy)\n'
-        "  uv sync --extra gui            (a development checkout of the repository)\n"
-        "To reinstall with the GUI included from a GitHub release, see the install section "
-        "of the README (Japanese only):\n"
-        "  https://github.com/sgtao/yaqpy#インストール\n"
+        '  pip install "yaqpy[gui]"          (reinstall from PyPI with the GUI)\n'
+        '  uv tool install "yaqpy[gui]"      (if you installed yaqpy as a uv tool)\n'
+        '  pip install "flet>=1.0,<2"        (add only flet to an installed yaqpy)\n'
+        "  uv sync --extra gui               (a development checkout of the repository)\n"
+        "For other ways, such as installing from a GitHub release, see the README:\n"
+        "  https://github.com/sgtao/yaqpy#installation\n"
     ),
     "WEB_INSTALL_HINT": (
         "The web version needs flet-web. Install it one of these ways:\n"
-        '  pip install "flet[web]>=1.0,<2"   (add it to an installed yaqpy)\n'
+        '  pip install "yaqpy[web]"          (reinstall from PyPI with the web version)\n'
+        '  uv tool install "yaqpy[web]"      (if you installed yaqpy as a uv tool)\n'
+        '  pip install "flet[web]>=1.0,<2"   (add only flet-web to an installed yaqpy)\n'
         "  uv sync --extra web               (a development checkout of the repository)\n"
     ),
     "WEB_STARTED": "yaqpy web version is running: {url}\n(press Ctrl+C in this terminal to stop it)\n",

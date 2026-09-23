@@ -1,4 +1,4 @@
-###### [toREADME](./README.md)
+###### [toREADME](./README.ja.md)
 # 変更履歴（CHANGELOG）
 
 ---
@@ -295,7 +295,7 @@ Go 版の**形式のシナリオ 154 件**（`tests/golden/formats/`）を互換
 
 **初版です。** YAML / JSON をコマンドや Python から、**式で取り出し・更新・変換**できます。Go 版 [yq](https://github.com/mikefarah/yq)（v4.53.6）の式を手本にし、**Python の標準ライブラリだけ**で実装しています。
 
-インストール方法は [README](README.md#インストール) を参照してください（PyPI には公開していません。GitHub のリリースから入れます）。
+インストール方法は [README](README.ja.md#インストール) を参照してください（PyPI には公開していません。GitHub のリリースから入れます）。
 
 ### できること
 

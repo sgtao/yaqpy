@@ -113,6 +113,7 @@ class WebEntryTests:
             code = app.web_entry(WebConfig(), stderr=err)
         texts.select_language("ja")
         assert code == 1
+        assert 'pip install "yaqpy[web]"' in err.getvalue()
         assert 'pip install "flet[web]>=1.0,<2"' in err.getvalue()
         assert "uv sync --extra web" in err.getvalue()
 

@@ -1,7 +1,7 @@
-###### [toREADME](./README.md)
+###### [toREADME](./README.ja.md)
 # yaqpy 使い方ガイド
 
-> 例は、リポジトリを clone した状態（`uv run yaqpy ... examples/sample.yaml`）で書いています。[GitHub のリリースからインストール](README.md#インストール)した場合は、`uv run yaqpy` を `yaqpy` に読み替え、`examples/sample.yaml` は手元の YAML ファイルに置き換えてください。
+> 例は、リポジトリを clone した状態（`uv run yaqpy ... examples/sample.yaml`）で書いています。[GitHub のリリースからインストール](README.ja.md#インストール)した場合は、`uv run yaqpy` を `yaqpy` に読み替え、`examples/sample.yaml` は手元の YAML ファイルに置き換えてください。
 
 ---
 [toTop](#toreadme)

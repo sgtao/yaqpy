@@ -21,9 +21,10 @@ class EntryGuardTests:
         with mock.patch.object(app, "flet_available", return_value=False):
             code = app.main_entry(stderr=err)
         assert code == 1
+        assert 'pip install "yaqpy[gui]"' in err.getvalue()          # PyPI から（v0.6.0）
         assert 'pip install "flet>=1.0,<2"' in err.getvalue()
         assert "uv sync --extra gui" in err.getvalue()
-        assert "https://github.com/sgtao/yaqpy" in err.getvalue()   # リリースからの導入案内
+        assert "https://github.com/sgtao/yaqpy/blob/main/README.ja.md#インストール" in err.getvalue()
 
     @pytest.mark.skipif(ft is None, reason="flet is not installed")
     def test_initial_path_reaches_run_app(self) -> None:

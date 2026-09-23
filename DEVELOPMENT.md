@@ -1,4 +1,4 @@
-###### [toREADME](./README.md)
+###### [toREADME](./README.ja.md)
 # yaqpy 開発者向けガイド
 
 ---

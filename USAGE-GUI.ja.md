@@ -1,4 +1,4 @@
-###### [toREADME](./README.md)
+###### [toREADME](./README.ja.md)
 ###### [toUSAGE](./USAGE.ja.md)
 # yaqpy GUI 使い方ガイド
 
@@ -30,7 +30,7 @@ YAML / JSON のファイルを開いて、**必要な部分だけを取り出し
 [toTop](#toreadme)
 ## 1. 起動する
 
-**GitHub のリリースから入れた場合**（詳しくは [README のインストール](README.md#インストール)）。`0.5.0` は入れた版の番号に読み替えます。
+**GitHub のリリースから入れた場合**（詳しくは [README のインストール](README.ja.md#インストール)）。`0.5.0` は入れた版の番号に読み替えます。
 
 ```bash
 pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.5.0/yaqpy-0.5.0-py3-none-any.whl"
