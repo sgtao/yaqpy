@@ -202,7 +202,7 @@ def build_options(state: GuiState) -> Options:
         input_format=q.input_format or AUTO,
         output_format=q.output_format or AUTO,
         indent=indent,
-        pretty_print=False,          # 整形 (-P) の切り替えは v0.7.0 で GUI から外した（式の style="" で同じ効果）
+        pretty_print=False,          # 整形 (-P) の切り替えは v0.7.0 で GUI から外した（式 `.. style=""` で同じ効果）
         yaml=YamlOptions(indent=indent),
         json=JsonOptions(indent=indent),
         toon=ToonOptions(indent=indent if indent >= 1 else 2),
