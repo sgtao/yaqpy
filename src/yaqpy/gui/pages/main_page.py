@@ -45,6 +45,20 @@ def _options(names: list[str]) -> list[ft.DropdownOption]:
     return [ft.DropdownOption(key=n, text=n) for n in names]
 
 
+async def _set_clipboard(text: str) -> bool:
+    """クリップボードに書く。失敗したら False（例外で画面を止めない）。
+
+    W0 の実測で、ブラウザが ``clipboard-write`` を許可していないと
+    ``PlatformException(copy_fail, Clipboard.setData failed.)`` になった。デスクトップでも
+    OS 側の理由で失敗しうるので、どちらも同じく案内に切り替える。
+    """
+    try:
+        await ft.Clipboard().set(text)
+    except Exception:                          # noqa: BLE001 - 失敗は利用者への案内で扱う
+        return False
+    return True
+
+
 class MainPage:
     def __init__(self, *, page: ft.Page, presenter: MainPresenter, state: GuiState,
                  picker: ft.FilePicker,
@@ -618,7 +632,10 @@ class MainPage:
             self._page.pop_dialog()
 
         async def copy(_: ft.Event) -> None:
-            await ft.Clipboard().set(field.value or "")
+            if not await _set_clipboard(field.value or ""):
+                self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_COPY_FAILED)))
+                self._page.update()
+                return
             copy_button.content = texts.MSG_COPIED_SHORT
             self._page.update()
             await asyncio.sleep(COPY_FEEDBACK_SECONDS)
@@ -698,8 +715,9 @@ class MainPage:
         run = self._p.last_run
         if run is None:
             return
-        await ft.Clipboard().set(run.full_text)      # 表示用ではなく全量をコピーする
-        self._page.show_dialog(ft.SnackBar(ft.Text(texts.MSG_COPIED)))
+        copied = await _set_clipboard(run.full_text)   # 表示用ではなく全量をコピーする
+        message = texts.MSG_COPIED if copied else texts.MSG_COPY_FAILED
+        self._page.show_dialog(ft.SnackBar(ft.Text(message)))
 
     # ------------------------------------------------------------------ 実行
 

@@ -361,3 +361,33 @@ class GuidePromptDialogTests:
         page, _presenter, _state = make_page()
         await page._on_open_guide_prompt(mock.MagicMock())
         page._page.show_dialog.assert_called_once()
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class CopyFailureTests:
+    """コピーの失敗で画面を止めない（W0：ブラウザが clipboard-write を拒むと例外になる）。"""
+
+    async def _page_with_result(self):
+        page, presenter, _state = make_page()
+        await presenter.open_path("/w/app.toml")
+        await presenter.run()
+        return page
+
+    async def test_a_refused_clipboard_shows_a_hint_instead_of_raising(self) -> None:
+        from yaqpy.gui import texts
+
+        page = await self._page_with_result()
+        with mock.patch.object(ft.Clipboard, "set", mock.AsyncMock(
+                side_effect=RuntimeError("PlatformException(copy_fail, ...)"))):
+            await page._on_copy(mock.MagicMock())
+        snack = page._page.show_dialog.call_args.args[0]
+        assert snack.content.value == texts.MSG_COPY_FAILED
+
+    async def test_a_successful_copy_says_so(self) -> None:
+        from yaqpy.gui import texts
+
+        page = await self._page_with_result()
+        with mock.patch.object(ft.Clipboard, "set", mock.AsyncMock(return_value=None)) as set_:
+            await page._on_copy(mock.MagicMock())
+        set_.assert_awaited_once()
+        assert page._page.show_dialog.call_args.args[0].content.value == texts.MSG_COPIED
