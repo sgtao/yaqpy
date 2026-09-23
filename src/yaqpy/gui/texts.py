@@ -136,6 +136,19 @@ INSTALL_HINT = (
     "  https://github.com/sgtao/yaqpy#インストール\n"
 )
 
+WEB_INSTALL_HINT = (
+    "Web 版を使うには flet-web が必要です。次のどちらかで導入してください:\n"
+    '  pip install "flet[web]>=1.0,<2"   （インストール済みの yaqpy に追加）\n'
+    "  uv sync --extra web               （リポジトリを clone した開発環境）\n"
+)
+WEB_STARTED = "yaqpy の Web 版を起動しました: {url}\n（止めるには、この端末で Ctrl+C）\n"
+WEB_EXPOSED_WARNING = (
+    "警告: --host {host} は、この PC 以外からも接続できる待ち受けです。\n"
+    "  yaqpy の Web 版には認証がありません。同じネットワークの誰でも画面を開けます。\n"
+    "  公開するなら、認証つきのリバースプロキシの後ろに置いてください。\n"
+    "  （env / load などサーバー側の情報を読む演算子は、Web 版では常に無効です）\n"
+)
+
 _JA: dict[str, str] = {k: v for k, v in globals().items() if k.isupper() and isinstance(v, str)}
 
 _EN: dict[str, str] = {
@@ -248,6 +261,18 @@ _EN: dict[str, str] = {
         "To reinstall with the GUI included from a GitHub release, see the install section "
         "of the README (Japanese only):\n"
         "  https://github.com/sgtao/yaqpy#インストール\n"
+    ),
+    "WEB_INSTALL_HINT": (
+        "The web version needs flet-web. Install it one of these ways:\n"
+        '  pip install "flet[web]>=1.0,<2"   (add it to an installed yaqpy)\n'
+        "  uv sync --extra web               (a development checkout of the repository)\n"
+    ),
+    "WEB_STARTED": "yaqpy web version is running: {url}\n(press Ctrl+C in this terminal to stop it)\n",
+    "WEB_EXPOSED_WARNING": (
+        "Warning: --host {host} accepts connections from other machines, not just this PC.\n"
+        "  The yaqpy web version has no authentication; anyone on the network can open it.\n"
+        "  To publish it, put it behind a reverse proxy that requires authentication.\n"
+        "  (Operators that read the server's own data, such as env / load, are always off.)\n"
     ),
 }
 

@@ -109,3 +109,12 @@ class RunGate:
 
     def leave(self) -> None:
         self._semaphore.release()
+
+
+@dataclass(frozen=True, slots=True)
+class WebRuntime:
+    """サーバー 1 つにつき 1 個、全セッションで共有するもの（``gui/_web.py`` が作る）。"""
+
+    config: WebConfig
+    gate: RunGate
+    upload_dir: str          # アップロードを一時的に受ける場所（サーバー終了時に消す）
