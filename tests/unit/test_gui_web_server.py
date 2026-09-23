@@ -101,3 +101,42 @@ class WsMaxSizeTests:
         from yaqpy.gui._web import ws_max_size
 
         assert ws_max_size(WebConfig(max_input_mib=30)) > 30 * 1024 * 1024
+
+
+class ServeTests:
+    """serve() の前後処理：起動の案内・公開時の警告・終了時の一時フォルダの削除。"""
+
+    def _serve(self, monkeypatch, **config: object) -> tuple[str, list[str]]:
+        import io
+
+        from yaqpy.gui import _web, texts
+
+        seen: list[str] = []
+
+        class FakeServer:
+            def __init__(self, runtime) -> None:
+                self.runtime = runtime
+
+            async def serve(self) -> None:
+                seen.append(self.runtime.upload_dir)
+                assert os.path.isdir(self.runtime.upload_dir)     # 動いている間はある
+                raise KeyboardInterrupt                           # Ctrl+C で止めた扱い
+
+        monkeypatch.setattr(_web, "make_server", FakeServer)
+        err = io.StringIO()
+        try:
+            _web.serve(WebConfig(open_browser=False, **config), stderr=err)  # type: ignore[arg-type]
+        finally:
+            texts.select_language("ja")
+        return err.getvalue(), seen
+
+    def test_announces_the_url_and_removes_the_upload_folder_on_exit(self, monkeypatch) -> None:
+        out, seen = self._serve(monkeypatch)
+        assert "http://127.0.0.1:8550/" in out
+        assert "警告" not in out
+        assert len(seen) == 1 and not os.path.exists(seen[0])
+
+    def test_warns_when_reachable_from_other_machines(self, monkeypatch) -> None:
+        out, _ = self._serve(monkeypatch, host="0.0.0.0", language="en")
+        assert "Warning: --host 0.0.0.0" in out
+        assert "no authentication" in out
