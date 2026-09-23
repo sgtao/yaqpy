@@ -19,11 +19,12 @@ from yaqpy.gui.state import GuiState
 FILES = {"/w/shop.xml": "<shop><item>pen</item></shop>\n", "/w/app.toml": "[db]\nport = 1\n"}
 
 
-def make_page():
+def make_page(output_format: str = "auto"):
     from yaqpy.gui.pages.main_page import MainPage
 
     fs = InMemoryFileSystem(dict(FILES))
     state = GuiState()
+    state.query.output_format = output_format
     presenter = MainPresenter(service=YqService(fs, StaticEnvironment({})), fs=fs, state=state,
                               size_of=lambda p: len(fs.files[p].encode("utf-8")))
     page = MainPage(page=mock.MagicMock(), presenter=presenter, state=state, picker=mock.MagicMock())
@@ -498,3 +499,32 @@ class WebSettingsPageTests:
         assert texts.SET_WEB_SECURITY_NOTE in values
         assert texts.SET_WEB_LANGUAGE_NOTE in values
         assert any(isinstance(v, str) and "10 MiB" in v for v in values)
+
+
+@pytest.mark.skipif(ft is None, reason="flet is not installed")
+class OutputFormatDefaultTests:
+    """v0.7.0：出力形式の既定は YAML。「auto」は「入力と同じ」と分かる表示にする。"""
+
+    def test_a_new_state_starts_with_yaml(self) -> None:
+        assert GuiState().query.output_format == "yaml"
+
+    def test_the_output_dropdown_starts_on_yaml_and_the_badge_follows(self) -> None:
+        page, presenter, _ = make_page(output_format=GuiState().query.output_format)
+        assert page._output_dd.value == "yaml"
+
+    async def test_an_xml_file_is_shown_as_yaml_by_default(self) -> None:
+        page, presenter, _ = make_page(output_format=GuiState().query.output_format)
+        await presenter.open_path("/w/shop.xml")
+        page._after_open()
+        assert badge(page, "original") == (True, "xml")
+        assert badge(page, "converted") == (True, "yaml")
+
+    def test_only_the_output_auto_option_says_same_as_input(self) -> None:
+        from yaqpy.gui import texts
+
+        page, _, _ = make_page()
+        output = {o.key: o.text for o in page._output_dd.options}
+        input_ = {o.key: o.text for o in page._input_dd.options}
+        assert output["auto"] == texts.LBL_AUTO_SAME_AS_INPUT
+        assert input_["auto"] == "auto"                       # 入力の auto は自動判定の意味のまま
+        assert output["json"] == "json"

@@ -28,7 +28,9 @@ FILES = {
 def make_presenter() -> MainPresenter:
     fs = InMemoryFileSystem(dict(FILES))
     service = YqService(fs, StaticEnvironment({}))
-    return MainPresenter(service=service, fs=fs, state=GuiState(),
+    state = GuiState()
+    state.query.output_format = "auto"        # 既定は yaml（v0.7.0）。ここは「auto ＝入力と同じ」の検査
+    return MainPresenter(service=service, fs=fs, state=state,
                          size_of=lambda p: len(fs.files[p].encode("utf-8")))
 
 

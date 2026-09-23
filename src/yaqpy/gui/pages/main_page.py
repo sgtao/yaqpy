@@ -20,7 +20,7 @@ from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.errors_ja import caret_line
 from yaqpy.gui.paths import DEFAULT_MAX_ITEMS, PathCandidate
 from yaqpy.gui.presenter import MainPresenter, RunViewModel, ValidationViewModel
-from yaqpy.gui.state import GuiState
+from yaqpy.gui.state import AUTO, GuiState
 
 VALIDATE_DEBOUNCE_SECONDS = 0.3
 PASTE_DEBOUNCE_SECONDS = 0.3
@@ -44,6 +44,15 @@ def _format_badge() -> tuple[ft.Container, ft.Text]:
 
 def _options(names: list[str]) -> list[ft.DropdownOption]:
     return [ft.DropdownOption(key=n, text=n) for n in names]
+
+
+def _output_format_options(names: list[str]) -> list[ft.DropdownOption]:
+    """出力形式の選択肢。「auto」は「入力と同じ」だと分かる表示にする（key は auto のまま）。
+
+    入力形式の「auto」は「中身から自動判定」という別の意味なので、そちらは変えない。
+    """
+    return [ft.DropdownOption(key=n, text=texts.LBL_AUTO_SAME_AS_INPUT if n == AUTO else n)
+            for n in names]
 
 
 async def _set_clipboard(text: str) -> bool:
@@ -99,7 +108,7 @@ class MainPage:
                                      on_select=self._on_input_format)
         self._output_dd = ft.Dropdown(label=texts.LBL_OUTPUT_FORMAT, width=170,
                                       value=state.query.output_format,
-                                      options=_options(output_format_choices()),
+                                      options=_output_format_options(output_format_choices()),
                                       on_select=self._on_output_format)
         # インデントは数字欄に直接打つほか、±ボタンでも操作できる（要望）。Flet に専用の
         # スピナー部品は無いので、IconButton を左右に添える形で組む。

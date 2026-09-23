@@ -29,6 +29,7 @@ BTN_ADD_TO_EXPR = "式に追加"
 BTN_QUIT = "終了"
 LBL_INPUT_FORMAT = "入力形式"
 LBL_OUTPUT_FORMAT = "出力形式"
+LBL_AUTO_SAME_AS_INPUT = "auto（入力と同じ）"
 LBL_INDENT = "インデント"
 LBL_PRETTY = "整形 (-P)"
 LBL_EXPRESSION = "式"
@@ -172,6 +173,7 @@ _EN: dict[str, str] = {
     "BTN_QUIT": "Quit",
     "LBL_INPUT_FORMAT": "Input Format",
     "LBL_OUTPUT_FORMAT": "Output Format",
+    "LBL_AUTO_SAME_AS_INPUT": "auto (same as input)",
     "LBL_INDENT": "Indent",
     "LBL_PRETTY": "Pretty-print (-P)",
     "LBL_EXPRESSION": "Expression",

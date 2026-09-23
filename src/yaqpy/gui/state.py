@@ -35,7 +35,7 @@ class QueryState:
 
     expression: str = "."
     input_format: str = AUTO
-    output_format: str = AUTO
+    output_format: str = "yaml"      # 既定は YAML（v0.7.0）。「auto」は入力と同じ形式（GUI の表示だけの既定）
     indent: int = 2
     pretty_print: bool = False
 
