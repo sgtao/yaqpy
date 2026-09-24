@@ -4,8 +4,13 @@
   <img src="https://raw.githubusercontent.com/sgtao/yaqpy/main/logo.svg" alt="yaqpy — YAML and more, Query editor in Python" width="600">
 </p>
 
+```bash
+pip install yaqpy            # the yaqpy command and the library (no dependencies)
+pip install "yaqpy[gui]"     # + the desktop GUI (adds Flet)
+```
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/sgtao/yaqpy/blob/main/LICENSE)
-[![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![GitHub release](https://img.shields.io/github/v/release/sgtao/yaqpy.svg)](https://github.com/sgtao/yaqpy/releases)
 
 # yaqpy — YAML and more, Query editor in Python
@@ -25,7 +30,7 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # comments and key order are ke
 ## Features
 
 - **Keeps your formatting**: comments, key order, anchors (`&` / `*`) and the way numbers and quotes were written (`0x1F`, `1.50`, `'yes'`) survive an update
-- **No dependencies**: all it needs is Python 3.13 or later. The GUI is an optional extra (Flet); the web version adds flet-web
+- **No dependencies**: all it needs is Python 3.11 or later. The GUI is an optional extra (Flet); the web version adds flet-web
 - **Four ways to use it**: the `yaqpy` command, the Python library (`import yaqpy`), a desktop GUI (`yaqpy-gui`) and the same GUI in a web browser (`yaqpy-web`)
 - **Formats**: YAML, JSON, XML, CSV / TSV, TOML, properties and TOON (a token-saving format for LLMs), both in and out. TOML comments are not kept, so `-i` on TOML is refused by default
 - **Compatible with yq**: 1,091 test scenarios of the Go version are run as compatibility tests (1,047 of the 1,051 comparable ones match). Every operator works except `load` and friends, `eval`, `envsubst`, `system` and `error`
@@ -39,7 +44,7 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # comments and key order are ke
 
 ## Installation
 
-Python 3.13 or later is required.
+Python 3.11 or later is required (tested on 3.11, 3.12 and 3.13).
 
 ```bash
 pip install yaqpy                   # the yaqpy command and the library (no dependencies)

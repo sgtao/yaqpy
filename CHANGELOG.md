@@ -3,6 +3,29 @@
 
 ---
 [toTop](#toreadme)
+## [0.7.1] - 2026-09-24
+
+**Python 3.11 と 3.12 でも使えるようになった版です。** 必要な Python が「3.13 以上」から「**3.11 以上**」になりました（3.11・3.12・3.13 で動作確認）。機能の追加・変更はありません。PyPI のページの先頭に、インストールのコマンド（`pip install yaqpy` と `pip install "yaqpy[gui]"`）も載せました。
+
+### 変更
+
+- **`requires-python` を `>=3.13` から `>=3.11` に下げました。** 3.12 以降でしか書けない `type X = ...` 文が 3 か所（`core/engine/helpers.py`、`core/lang/ast.py`、`core/lang/lex_rules.py`）にあったので、`X: TypeAlias = ...` に書き換えました（動作は同じ）。PyPI の分類（classifiers）に 3.11・3.12 を追加し、ruff の対象版を `py311` にしました
+- README（英語・日本語）の先頭に、`pip install yaqpy` と `pip install "yaqpy[gui]"` を並べた 1 つのコードブロックを置きました。PyPI のページの `pip install` の枠は PyPI が自動で作る固定表示で変えられないため、その下の説明（README）に載せています。バッジも「Python 3.11+」にしました
+
+### ライブラリ・開発者向けの変更
+
+- **3 つの版でのテスト**：`tools/check_pythons.py` を追加（下限の検査 `vermin` ＋ 3.11・3.12・3.13 で全テスト。版ごとに別の環境を作るので、開発用の `.venv` は変わりません）。使い方と、3.12 以降の機能を使わない決まりは [DEVELOPMENT.md](DEVELOPMENT.md) の「対応する Python の版」
+- **`examples/` の実変換のテスト**：`tests/acceptance/test_examples.py` を追加（YAML・JSON・CSV・XML・properties・TOML の読み取り・変換・更新、`--schema`、`--recipe`。CLI 受け入れテスト 87 → **103**）
+- `uv.lock` を作り直しました（対応する版が広がったため）。`.gitignore` に `.venv-*/` を追加
+
+### 確認したこと
+
+- Python 3.11.15・3.12.13・3.13.12 の**それぞれで、全テストが通ります**（1,817 件合格・62 件スキップ。スキップは、Go 版に由来する既知の非互換と、`[web]` の extra が要るテスト）
+- Web 版（`[web]` の extra）のテストは、3.11 で走らせて通りました（3.12・3.13 の通常の実行では、extra が無いので skip）
+- **未確認**：Python 3.14 以降
+
+---
+[toTop](#toreadme)
 ## [0.7.0] - 2026-09-24
 
 **GUI を使いやすくする版です。** AI に式を書かせる文面を組み立てる「AIに相談」タブ、式のファイル（`.yaqpy`）の保存・読み込み、成功した変換を記録して見返し・再実行できる**ログ画面**（デスクトップ版のみ）、Web 版でのファイルの**ドラッグ＆ドロップ**が入りました。出力形式の既定は **YAML** になり、整形（-P）のスイッチは画面から外れました。使い方は [USAGE-GUI.ja.md](USAGE-GUI.ja.md)（新しい 8-4 節・16 章）にあります。
