@@ -29,6 +29,8 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # comments and key order are ke
 
 ## Features
 
+<details><summary>Feature items</summary>
+
 - **Keeps your formatting**: comments, key order, anchors (`&` / `*`) and the way numbers and quotes were written (`0x1F`, `1.50`, `'yes'`) survive an update
 - **No dependencies**: all it needs is Python 3.11 or later. The GUI is an optional extra (Flet); the web version adds flet-web
 - **Four ways to use it**: the `yaqpy` command, the Python library (`import yaqpy`), a desktop GUI (`yaqpy-gui`) and the same GUI in a web browser (`yaqpy-web`)
@@ -41,6 +43,8 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # comments and key order are ke
   - yaqpy describes itself for people and AI: `--print-spec` (the operators that work and those that do not), `--example`, `--guide-prompt` (a prompt that lets an AI write yaqpy expressions) and `--skill-md` (a Claude Code skill)
 - **GUI extras**: an "Ask AI" tab that builds a prompt for an AI to write your expression; expressions saved and loaded as `.yaqpy` files (the command reads them too: `yaqpy sample.yaqpy data.json`); a run log with a Log tab to browse, search and re-run past conversions (desktop only); file drag-and-drop in the web version
 - **Safe defaults**: as a library, operators that read files or environment variables or run commands are all off. The CLI, like the Go version, allows environment variables and file reads (commands stay off). The web version always turns them off
+
+</details>
 
 ## Installation
 
