@@ -10,7 +10,7 @@ from __future__ import annotations
 import re
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypeAlias
 
 from yaqpy.core.lang import prefs as P
 from yaqpy.core.lang.ast import Operation
@@ -19,7 +19,7 @@ from yaqpy.core.model.node import Node
 from yaqpy.errors import ExpressionSyntaxError
 
 # An action receives the matched text and a registry lookup and returns a Token.
-type LexAction = Callable[[str, Callable[[str], Any]], Token] | None
+LexAction: TypeAlias = Callable[[str, Callable[[str], Any]], Token] | None
 
 
 @dataclass(frozen=True, slots=True)

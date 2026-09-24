@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from typing import TypeAlias
 
 from yaqpy.core.engine.context import Context
 from yaqpy.core.engine.navigator import Navigator
@@ -11,8 +12,8 @@ from yaqpy.core.lang.ast import ExprNode, Operation
 from yaqpy.core.lang.prefs import AssignPrefs, MultiplyPrefs
 from yaqpy.core.model.node import Kind, Node
 
-type Calculation = Callable[[Navigator, Context, Node | None, Node | None], Node | None]
-type LhsShortcut = Callable[[Node | None], Node | None]
+Calculation: TypeAlias = Callable[[Navigator, Context, Node | None, Node | None], Node | None]
+LhsShortcut: TypeAlias = Callable[[Node | None], Node | None]
 
 
 def truthy(node: Node | None) -> bool:

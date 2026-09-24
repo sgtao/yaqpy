@@ -36,7 +36,7 @@ uv run pytest -n auto
 # ユニットテスト（1,722 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・入力形式の自動判定・GUI の Presenter・実行ログ・ログ画面など。実際にウィンドウは開きません。Web 版のサーバーは、[web] extra があれば 127.0.0.1 の空きポートで実際に起動して確かめます）
 uv run pytest tests/unit -n auto
 
-# CLI 受け入れテスト（87 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など））
+# CLI 受け入れテスト（103 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など）＋`examples/` の実ファイルの変換（`test_examples.py`））
 uv run pytest tests/acceptance -n auto
 
 # Go 版シナリオのゴールデンテスト（演算子 1,091 件・形式 154 件）
@@ -64,6 +64,27 @@ uv build
 Go 版の演算子のテストシナリオ 1,091 件の内訳は、一致 1,047 件（完全一致 1,016 ＋ 意味的に一致 31）、既知の差異 4 件（`shuffle` の並び。理由は `tests/support/golden.py` の `KNOWN_DIFFERENCES`）、未実装の演算子に当たるもの 28 件（`load` `envsubst` `eval`）、そのほか（環境や外部コマンドに依存して比べられない 12 件）です。形式のシナリオ 154 件（XML 52・CSV/TSV 18・TOML 62・properties 22）は、149 件が一致します（不一致 5 件は TOML のコメント保持）。`now` を含むシナリオは、Go のテストと同じく時計を固定して（`GO_TEST_NOW`）実行します。
 
 IANA の時間帯名を使うテスト（`tz("Australia/Sydney")` など）には、OS の時間帯データが要ります。Windows では、`uv sync` が入れる dev グループの `tzdata` が担います（実行時の依存ではありません。なければそのテストだけスキップされます）。不一致の記録は `tests/golden/formats_manifest.json` にあり、形式ごとの最低合格率は `tests/golden/test_formats.py` の `MIN_PASS_RATE` で守っています。
+
+---
+[toTop](#toreadme)
+## 対応する Python の版（3.11・3.12・3.13）
+
+`requires-python = ">=3.11"` で、**3.11・3.12・3.13 で動作を確認**します（開発用の `.venv` と `.python-version` は 3.13）。3.11 が下限なので、次の 3.12 以降の機能は **使わない**でください。
+
+- `type X = ...` 文 → `X: TypeAlias = ...`、PEP 695 のジェネリクス（`def f[T]`、`class C[T]`）→ `TypeVar`
+- `typing.override`、`itertools.batched`、`Path.walk`、`copy.replace`、`warnings.deprecated`、`argparse` の `deprecated=`
+- 入れ子の引用符を含む f 文字列（PEP 701）
+
+```bash
+uv run python tools/check_pythons.py             # 下限の検査（vermin）＋ 3 つの版で全テスト（約 6 分）
+uv run python tools/check_pythons.py 3.11        # 1 つの版だけ
+uv run python tools/check_pythons.py --quick     # tests/acceptance（examples/ の実変換）だけ
+```
+
+- 版ごとに別の環境（`.venv-py3.11` など。`.gitignore` 済み）を作り、開発用の `.venv` を壊しません。Python 本体は uv が取得します（`mise` などは不要）
+- `examples/` のファイルを実際に変換して期待どおりか調べるのは `tests/acceptance/test_examples.py`（期待値は 3.13 の出力を目で確かめたもの）。3 つの版で同じテストが通ることが「実変換が期待どおり」の確認です
+- 3.14 以降を名乗るときは、同じ手順で通してから `pyproject.toml` の classifiers と `tools/check_pythons.py` の `VERSIONS` に足します
+- Web 版のテスト（`flet-web` が要る）は、`--extra web` を付けた版でだけ走ります（既定では skip）
 
 ---
 [toTop](#toreadme)

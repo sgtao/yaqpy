@@ -14,4 +14,4 @@ License:
     Copyright (c) 2017 Mike Farah
 
 No code from yq is compiled into or linked with yaqpy; yaqpy has zero runtime
-dependencies beyond the Python 3.13 standard library.
+dependencies beyond the Python 3.11 standard library.

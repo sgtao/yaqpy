@@ -4,8 +4,13 @@
   <img src="logo.svg" alt="yaqpy — YAML and more, Query editor in Python" width="600">
 </p>
 
+```bash
+pip install yaqpy            # yaqpy コマンドとライブラリ（依存なし）
+pip install "yaqpy[gui]"     # + デスクトップ GUI（Flet が入る）
+```
+
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.13+](https://img.shields.io/badge/python-3.13%2B-blue.svg)](https://www.python.org/downloads/)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11%2B-blue.svg)](https://www.python.org/downloads/)
 [![GitHub release](https://img.shields.io/github/v/release/sgtao/yaqpy.svg)](https://github.com/sgtao/yaqpy/releases)
 
 # yaqpy — YAML and more, Query editor in Python
@@ -24,7 +29,7 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 ## 概要
 
 - **書式を壊さない**：コメント、キーの並び順、アンカー（`&` / `*`）、数値やクォートの元の書き方（`0x1F`、`1.50`、`'yes'`）を保持したまま更新できます
-- **依存ライブラリなし**：実行に必要なのは Python 3.13 以上だけです（GUI を使うときだけ任意で Flet を追加。ブラウザで使う Web 版は flet-web も）
+- **依存ライブラリなし**：実行に必要なのは Python 3.11 以上だけです（GUI を使うときだけ任意で Flet を追加。ブラウザで使う Web 版は flet-web も）
 - **3 通りの使い方**：コマンド（`yaqpy`）／ Python ライブラリ（`import yaqpy`）／ GUI（デスクトップの `yaqpy-gui`、ブラウザで使う `yaqpy-web`）
 - **対応フォーマット**：
 
@@ -49,7 +54,7 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 
 ## インストール
 
-Python 3.13 以上が必要です。**PyPI** から `pip` か `uv` で入れます。
+Python 3.11 以上が必要です（3.11・3.12・3.13 で動作確認しています）。**PyPI** から `pip` か `uv` で入れます。
 
 ```bash
 pip install yaqpy                   # コマンドとライブラリ（依存ライブラリなし）
@@ -70,14 +75,14 @@ uv add yaqpy                        # uv のプロジェクトでライブラリ
 
 新しい版に更新するときは、`pip install -U yaqpy` や `uv tool upgrade yaqpy` を実行します。
 
-**GitHub のリリースから入れる**（PyPI に無い版を入れたいときなど）：[Releases](https://github.com/sgtao/yaqpy/releases) で入れたい版を選び、次のコマンドの **`0.7.0`（と `v0.7.0`）を、選んだ版の番号に読み替えて**実行します。
+**GitHub のリリースから入れる**（PyPI に無い版を入れたいときなど）：[Releases](https://github.com/sgtao/yaqpy/releases) で入れたい版を選び、次のコマンドの **`0.7.1`（と `v0.7.1`）を、選んだ版の番号に読み替えて**実行します。
 
 ```bash
 # ビルド済みの wheel から入れる（Git は不要）
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.0/yaqpy-0.7.0-py3-none-any.whl"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.1/yaqpy-0.7.1-py3-none-any.whl"
 
 # Git がある場合は、タグを指定して
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.0"
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.1"
 ```
 
 `[gui]` の部分は、入れたいものに合わせて外す・`[web]`・`[gui,web]` に変えられます（`[web]` は v0.6.0 から）。ソースを見たい・改造したい場合は [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。

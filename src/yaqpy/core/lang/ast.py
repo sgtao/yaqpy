@@ -4,13 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, TypeAlias
 
 from yaqpy.core.model.node import Node
 
 # The real signature is (Navigator, Context, ExprNode) -> Context; ``Any`` keeps
 # core.lang free of an import on core.engine (design doc 4-2).
-type OperatorHandler = Callable[[Any, Any, "ExprNode"], Any]
+OperatorHandler: TypeAlias = Callable[[Any, Any, "ExprNode"], Any]
 
 
 @dataclass(frozen=True, slots=True)
