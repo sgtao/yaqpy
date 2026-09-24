@@ -75,14 +75,14 @@ uv add yaqpy                        # uv のプロジェクトでライブラリ
 
 新しい版に更新するときは、`pip install -U yaqpy` や `uv tool upgrade yaqpy` を実行します。
 
-**GitHub のリリースから入れる**（PyPI に無い版を入れたいときなど）：[Releases](https://github.com/sgtao/yaqpy/releases) で入れたい版を選び、次のコマンドの **`0.7.0`（と `v0.7.0`）を、選んだ版の番号に読み替えて**実行します。
+**GitHub のリリースから入れる**（PyPI に無い版を入れたいときなど）：[Releases](https://github.com/sgtao/yaqpy/releases) で入れたい版を選び、次のコマンドの **`0.7.1`（と `v0.7.1`）を、選んだ版の番号に読み替えて**実行します。
 
 ```bash
 # ビルド済みの wheel から入れる（Git は不要）
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.0/yaqpy-0.7.0-py3-none-any.whl"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.1/yaqpy-0.7.1-py3-none-any.whl"
 
 # Git がある場合は、タグを指定して
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.0"
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.1"
 ```
 
 `[gui]` の部分は、入れたいものに合わせて外す・`[web]`・`[gui,web]` に変えられます（`[web]` は v0.6.0 から）。ソースを見たい・改造したい場合は [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。

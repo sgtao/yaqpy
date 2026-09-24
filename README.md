@@ -63,11 +63,11 @@ uv add yaqpy                        # use it as a library in a uv project
 
 > **`uv tool install` / `uvx` and the desktop GUI**: `flet` normally installs its desktop runtime (`flet-desktop`) on first launch. That auto-install targets whatever virtual environment `uv` can find near the current directory, which is **not** the isolated environment `uv tool install` created for `yaqpy` — so it can print "OK" and still leave you with `ModuleNotFoundError: No module named 'flet_desktop'` when you run `yaqpy-gui`. Passing `--with flet-desktop` (as above) puts it in the right place from the start and avoids this entirely. If you already installed without it: `uv tool install --force "yaqpy[gui]" --with flet-desktop`.
 
-**From GitHub Releases** (for example, a version that is not on PyPI): pick a version on [Releases](https://github.com/sgtao/yaqpy/releases) and replace `0.7.0` / `v0.7.0` below with it.
+**From GitHub Releases** (for example, a version that is not on PyPI): pick a version on [Releases](https://github.com/sgtao/yaqpy/releases) and replace `0.7.1` / `v0.7.1` below with it.
 
 ```bash
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.0/yaqpy-0.7.0-py3-none-any.whl"
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.0"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.1/yaqpy-0.7.1-py3-none-any.whl"
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.1"
 ```
 
 To work on the source, see [DEVELOPMENT.md](https://github.com/sgtao/yaqpy/blob/main/DEVELOPMENT.md) (Japanese).
