@@ -34,7 +34,7 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 
 - **書式を壊さない**：コメント、キーの並び順、アンカー（`&` / `*`）、数値やクォートの元の書き方（`0x1F`、`1.50`、`'yes'`）を保持したまま更新できます
 - **依存ライブラリなし**：実行に必要なのは Python 3.11 以上だけです（GUI を使うときだけ任意で Flet を追加。ブラウザで使う Web 版は flet-web も）
-- **3 通りの使い方**：コマンド（`yaqpy`）／ Python ライブラリ（`import yaqpy`）／ GUI（デスクトップの `yaqpy-gui`、ブラウザで使う `yaqpy-web`）
+- **4 通りの使い方**：コマンド（`yaqpy`）／ Python ライブラリ（`import yaqpy`）／ デスクトップの GUI（`yaqpy-gui`）／ ブラウザで使う同じ GUI（`yaqpy-web`）
 - **対応フォーマット**：
 
   | 形式 | 入力 | 出力 |
@@ -55,7 +55,7 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 - **GUI の便利機能**：AI に式を書かせるお願い文を組み立てる「AIに相談」タブ、式を `.yaqpy` ファイルに保存・読み込み（コマンドでも `yaqpy sample.yaqpy data.json` の形で使えます）、成功した変換を記録して見返し・再実行できる**ログ画面**（デスクトップ版のみ）、Web 版でのファイルのドラッグ＆ドロップ、`examples/` のデータ（3 社の API リクエストを含む）をファイルを探さずに開ける［サンプル］メニュー。[GUI の使い方](USAGE-GUI.ja.md)
 - **Go 版 yq との互換性**：Go 版のテストシナリオ 1,091 件を互換テストにしています（結果を比べられる 1,051 件のうち 1,047 件が一致）。文字列・配列・`@base64` などの encode/decode・日時・`-s`（分割出力）を含め、**`load` 系・`eval`・`envsubst`・`system` を除く演算子が使えます**（これらは実行すると `Error: unknown operator ...` で終了します）。一覧は [Go 版 yq との違い](USAGE.ja.md#go-版-yq-との違い) を参照してください
 - **jq に寄せた書き方**（v0.8.0 で追加。既定の yq 方言のまま使えます）：`error` `empty`、型のフィルタ（`numbers` `strings` など）、`startswith` `gsub` `scan` `splits` など文字列の関数、bare な `add`・`any(f)`・`range`・`limit` など配列・オブジェクトの関数、`getpath` `path(f)`、`$ENV`、単項の `-`、数学関数（`sqrt` `pow` `sin` など）、`--arg` `--argjson` `--slurp` などの CLI フラグ、黙った誤りへの警告（`--lint`）。詳しくは [jq に寄せた書き方](USAGE.ja.md#jq-に寄せた書き方v080-で追加) を参照してください
-- **安全側の既定**：ライブラリとして使うときは、ファイル読み込み・環境変数・外部コマンドの演算子が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込みが有効です（外部コマンドは無効）
+- **安全側の既定**：ライブラリとして使うときは、ファイル読み込み・環境変数・外部コマンドの演算子が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込みが有効です（外部コマンドは無効）。Web 版は常にすべて無効です
 
 </details>
 
@@ -137,15 +137,19 @@ yaqpy-web --port 9000    # ポートを変える（オプションは yaqpy-web 
 
 ![image:yaqpy GUI](assets/images/screenshot-yaqpy-gui.png)
 
+Web 版は既定でこの PC だけが待ち受け、認証はありません。ファイルはブラウザからアップロードし、結果はダウンロードとして返ってきます。
+
 ## ドキュメント
 
 | 内容 | ファイル |
 |---|---|
-| コマンド・各形式（XML・CSV・TOML・properties・TOON）・スキーマの出力・ライブラリの使い方、対応演算子、Go 版 yq との違い | [USAGE.ja.md](USAGE.ja.md) |
+| コマンド・各形式（XML・CSV・TOML・properties・TOON）・スキーマの出力・変換レシピ・ライブラリの使い方、対応演算子、Go 版 yq との違い | [USAGE.ja.md](USAGE.ja.md) |
 | GUI の使い方（画面の見方、式の書き方、保存・設定・エラー） | [USAGE-GUI.ja.md](USAGE-GUI.ja.md) |
 | 開発者向け（セットアップ、設計、テスト、リポジトリ構成） | [DEVELOPMENT.md](DEVELOPMENT.md) |
 | この README の英語版（PyPI のページにも表示） | [README.md](README.md) |
 | 版ごとの変更（できること、既知の制限） | [CHANGELOG.md](CHANGELOG.md) |
+
+`yaqpy --help`・`yaqpy-gui --help`・`yaqpy-web --help` は英語です。
 
 ## License
 
