@@ -102,7 +102,11 @@ def test_api_request_samples_convert_to_the_other_vendors(source: str, target: s
     text = r.stdout
     assert "get_weather" in text and "1024" in text
     assert "NOT HANDLED" not in r.stderr
-    # a target that requires a model gets the hint (the recipe never picks one), and only such a target
-    assert ("hint: the recipe does not choose a model." in r.stderr) == (target != "gemini")
+    # the model never crosses over, and each target says what to do about it: a body that requires
+    # one gets a way to add it, Gemini (which takes it in the URL) says so
+    if target == "gemini":
+        assert "hint: Gemini takes the model in the URL, not in the body" in r.stderr
+    else:
+        assert "hint: the recipe does not choose a model." in r.stderr
     # a model in the input is dropped, with the reason
     assert ("dropped .model" in r.stderr) == (source != "gemini")

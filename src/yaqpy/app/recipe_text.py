@@ -19,9 +19,11 @@ def short(value: Any, limit: int = 48) -> str:
 def hint_lines(run: RecipeRun) -> list[str]:
     """The recipe's own advice (``hints:`` in its metadata) for the schema issues of this run."""
     report = run.report
-    if report is None or not report.issues:
+    if report is None:
         return []
-    return [f"hint: {text}" for text in hints_for(run.recipe, report.issues, input_name=run.input_name)]
+    dropped = [item.path for item in report.dropped if item.declared]
+    return [f"hint: {text}" for text in hints_for(run.recipe, report.issues,
+                                                  input_name=run.input_name, dropped=dropped)]
 
 
 def summary_lines(run: RecipeRun) -> list[str]:

@@ -25,17 +25,19 @@ class AddRule:
 
 @dataclass(frozen=True, slots=True)
 class HintRule:
-    """A piece of advice the recipe gives when the result does not fit the target schema.
+    """A piece of advice the recipe gives after a conversion.
 
-    ``issue`` (a kind of schema issue: missing, extra, type, ...) and ``path`` (where; ``[]`` stands
-    for any list position) narrow when it applies; a rule with neither applies to every issue. ``text``
-    may use ``{recipe}`` (the recipe's name), ``{input}`` (the input's name) and ``{path}`` (the path
-    of the issue).
+    It applies to a schema issue (the result does not fit the target): ``issue`` (a kind: missing,
+    extra, type, ...) and ``path`` (where; ``[]`` stands for any list position) narrow it, and a rule
+    with neither applies to every issue. Or it applies to a declared drop: ``dropped`` names the
+    ``drops`` path (as written there) that was found in the input. ``text`` may use ``{recipe}`` (the
+    recipe's name), ``{input}`` (the input's name) and ``{path}`` (the path of the issue or the drop).
     """
 
     text: str
     issue: str = ""
     path: str = ""
+    dropped: str = ""
 
 
 @dataclass(frozen=True, slots=True)

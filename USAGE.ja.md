@@ -472,6 +472,7 @@ uv run yaqpy --recipe openai-to-gemini examples/api-openai-request.json
 recipe openai-to-gemini: examples/api-openai-request.json
   dropped .model - Gemini takes the model in the URL of the call (models/{model}:generateContent), and model names do not carry over between vendors
   dropped .messages[].content[type!=text] - only text parts are converted; images, audio and files are dropped
+  hint: Gemini takes the model in the URL, not in the body: POST https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent (for example gemini-2.5-flash).
 ```
 
 ```json
@@ -548,7 +549,7 @@ recipe gemini-to-openai: examples/api-gemini-request.json
 | `NOT HANDLED パス` | 入力にあるが、レシピが運ぶとも落とすとも言っていない項目（**書き足すか、利用者が確かめてください**） |
 | `added パス = 値 - 理由` | 入力になく、レシピが自分で補った |
 | `target schema: パス: …` | 変換結果が、変換先のスキーマに合わない（不足・余分・型・値・範囲・個数） |
-| `hint: …` | 利用者が自分で直すことの案内。レシピの `hints:`（[案内を付ける](#案内を付けるhints)）に書いたものが、当てはまる目標スキーマの食い違いがあったときに出ます（`--report` では `Hint:`）。同梱のレシピでは、変換先が必須とする `model` が結果にないとき、足し方を案内します |
+| `hint: …` | 利用者が自分で直すことの案内。レシピの `hints:`（[案内を付ける](#案内を付けるhints)）に書いたものが、当てはまる目標スキーマの食い違い、または落とした項目があったときに出ます（`--report` では `Hint:`）。同梱のレシピでは、変換先が `model` を必須とするのに結果にないとき（OpenAI・Anthropic 向け）は足し方を、Gemini 向けで入力の `model` を落としたときは「モデルは URL で指定する」ことを案内します |
 
 `--report` を付けると、変換結果の代わりに、詳しい報告を標準出力へ出します。
 
@@ -648,7 +649,7 @@ uv run yaqpy --recipe ./my.yaqpy --recipe-test       # tests: に書いたケー
 
 #### 案内を付ける：`hints`
 
-変換結果が目標スキーマに合わないとき、**利用者が自分で直すための案内**を、報告の最後に添えられます（同梱のレシピが、`model` の足し方を案内しているのと同じ仕組みです）。案内は Python のコードではなく、レシピの説明のファイルに書きます。
+変換結果が目標スキーマに合わないとき、または特定の項目を落としたとき、**利用者が自分で対処するための案内**を、報告の最後に添えられます（同梱のレシピが、`model` の足し方を案内しているのと同じ仕組みです）。案内は Python のコードではなく、レシピの説明のファイルに書きます。
 
 ```yaml
 hints:
@@ -657,10 +658,11 @@ hints:
 ```
 
 - `when.issue`：食い違いの種類。`missing`（不足）`extra`（余分）`type`（型）`value`（値）`range`（範囲）`size`（個数）のどれか
+- `when.dropped`：**落とした項目**に対する案内。`drops` に書いたパス（例：`.model`）が入力にあったときに出ます（`issue`・`path` とは一緒に書けません）。Gemini 向けの同梱レシピが、`model` を落としたときに使っています
 - `when.path`：食い違いの場所。`.model` や `.messages[].role`（`[]` は配列のどの位置にも当てはまる）の形です。`[0]` のような位置の指定や、`[key=値]` の絞り込みは書けません
-- `text`：案内の文。`{recipe}`（レシピの名前）`{input}`（入力の名前。空白があれば引用符で囲みます）`{path}`（食い違いの場所）を使えます。ほかの `{` `}` はそのまま出ます
-- 当てはまる案内は、書いた順に、同じ文は 1 度だけ出します。目標スキーマとの食い違いがなければ、何も出ません（`drops` や `NOT HANDLED` に結びつける書き方は、まだありません）
-- **書き間違いはエラー**です（知らないキー・`text` がない・`issue` の種類違い・`path` の形の違い）
+- `text`：案内の文。`{recipe}`（レシピの名前）`{input}`（入力の名前。空白があれば引用符で囲みます）`{path}`（食い違いの場所。`dropped` なら落とした項目のパス）を使えます。ほかの `{` `}` はそのまま出ます
+- 当てはまる案内は、書いた順に、同じ文は 1 度だけ出します。当てはまるものがなければ、何も出ません（`NOT HANDLED` に結びつける書き方は、まだありません）
+- **書き間違いはエラー**です（知らないキー・`text` がない・`issue` の種類違い・`path` の形の違い・`dropped` と `issue`/`path` の併用）
 
 #### 式の書き方の規約
 

@@ -27,6 +27,9 @@ drops:
   - {path: ".system[type!=text]", reason: "only text blocks are converted"}
   - {path: ".tools[type!=custom].type", reason: "only tools that have an input_schema are converted; server tools are dropped"}
   - {path: .thinking, reason: "not converted; the target has other reasoning settings"}
+hints:
+  - when: {dropped: .model}
+    text: 'Gemini takes the model in the URL, not in the body: POST https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent (for example gemini-2.5-flash).'
 notes:
   - "The system prompt becomes systemInstruction. tool_choice: auto/none/any become mode AUTO/NONE/ANY; a named tool becomes mode ANY with allowedFunctionNames."
   - "Tool input schemas go to parametersJsonSchema, which takes a JSON Schema as it is."

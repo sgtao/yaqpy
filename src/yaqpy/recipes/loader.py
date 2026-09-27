@@ -88,9 +88,18 @@ def _hints(data: dict[str, Any], origin: str) -> tuple[HintRule, ...]:
         if not isinstance(text, str) or not text.strip():
             raise RecipeError(f"{origin}: hint {index} needs a 'text'")
         when = entry.get("when") or {}
-        if not isinstance(when, dict) or set(when) - {"issue", "path"}:
-            raise RecipeError(f"{origin}: 'when' of hint {index} takes 'issue' and 'path'")
-        issue, path = when.get("issue", ""), when.get("path", "")
+        if not isinstance(when, dict) or set(when) - {"issue", "path", "dropped"}:
+            raise RecipeError(f"{origin}: 'when' of hint {index} takes 'issue' and 'path', "
+                              f"or 'dropped'")
+        issue, path, dropped = when.get("issue", ""), when.get("path", ""), when.get("dropped", "")
+        if dropped:
+            if issue or path:
+                raise RecipeError(f"{origin}: 'when' of hint {index}: 'dropped' cannot go with "
+                                  f"'issue' or 'path'")
+            if not isinstance(dropped, str):
+                raise RecipeError(f"{origin}: 'dropped' of hint {index} must be a path")
+            rules.append(HintRule(text, dropped=_pattern_ok(dropped, "hints", origin)))
+            continue
         if issue and issue not in ISSUE_KINDS:
             raise RecipeError(f"{origin}: 'issue' of hint {index} is one of "
                               f"{', '.join(ISSUE_KINDS)}, not {issue!r}")

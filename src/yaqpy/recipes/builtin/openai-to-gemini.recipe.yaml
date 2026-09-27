@@ -40,6 +40,9 @@ drops:
   - {path: ".messages[].name", reason: "the target has no participant names"}
   - {path: ".messages[].refusal", reason: "the target has no counterpart"}
   - {path: ".tools[type!=function]", reason: "only function tools are converted"}
+hints:
+  - when: {dropped: .model}
+    text: 'Gemini takes the model in the URL, not in the body: POST https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent (for example gemini-2.5-flash).'
 notes:
   - "Function parameters go to parametersJsonSchema, which takes a JSON Schema as it is."
   - "tool_choice: auto/none/required become mode AUTO/NONE/ANY; a named function becomes mode ANY with allowedFunctionNames."

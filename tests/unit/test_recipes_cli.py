@@ -323,7 +323,15 @@ class ModelHintTests(CliTestCase):
         _, out, _ = self.run_cli("--recipe", "gemini-to-openai", "--report", source)
         assert "\nHint: the recipe does not choose a model." in out
 
-    def test_no_hint_when_the_target_needs_no_model(self) -> None:
+    def test_gemini_says_the_model_goes_in_the_url(self) -> None:
         source = self.write("o.json", '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hi"}]}')
+        _, _, err = self.run_cli("--recipe", "openai-to-gemini", source)
+        assert "hint: Gemini takes the model in the URL, not in the body: POST " \
+               "https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent " \
+               "(for example gemini-2.5-flash)." in err
+        assert "does not choose a model" not in err
+
+    def test_no_url_hint_when_the_input_had_no_model_to_drop(self) -> None:
+        source = self.write("o.json", '{"messages": [{"role": "user", "content": "Hi"}]}')
         _, _, err = self.run_cli("--recipe", "openai-to-gemini", source)
         assert "hint:" not in err

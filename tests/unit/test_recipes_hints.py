@@ -31,6 +31,10 @@ class ParseTests:
         recipe = recipe_with("hints:\n  - text: check the target\n")
         assert recipe.hints == (HintRule("check the target"),)
 
+    def test_a_hint_can_be_about_a_declared_drop(self) -> None:
+        recipe = recipe_with("hints:\n  - when: {dropped: .model}\n    text: put it in the URL\n")
+        assert recipe.hints == (HintRule("put it in the URL", dropped=".model"),)
+
     def test_no_hints_by_default(self) -> None:
         assert recipe_with("").hints == ()
 
@@ -40,6 +44,9 @@ class ParseTests:
         ("hints:\n  - text: ''\n", "needs a 'text'"),
         ("hints:\n  - text: a\n    why: b\n", "unknown key in hint 1: why"),
         ("hints:\n  - when: {issue: missing, kind: x}\n    text: a\n", "'when' of hint 1 takes"),
+        ("hints:\n  - when: {dropped: .a, issue: missing}\n    text: a\n", "'dropped' cannot go with"),
+        ("hints:\n  - when: {dropped: a}\n    text: a\n", "'hints': a path pattern starts with"),
+        ("hints:\n  - when: {dropped: [.a]}\n    text: a\n", "'dropped' of hint 1 must be a path"),
         ("hints:\n  - when: {issue: gone}\n    text: a\n", "is one of missing, extra, type"),
         ("hints:\n  - when: {path: model}\n    text: a\n", "'path' of hint 1 is like"),
         ("hints:\n  - when: {path: '.a[0]'}\n    text: a\n", "'path' of hint 1 is like"),
@@ -104,6 +111,17 @@ class TextTests:
     def test_no_issue_no_hint(self) -> None:
         assert hints_for(self.make(), [], input_name="-") == []
 
+    def test_a_dropped_hint_fits_only_a_drop_never_an_issue(self) -> None:
+        recipe = recipe_with("hints:\n  - when: {dropped: .model}\n    text: 'the model went: {path}'\n")
+        issues = [Issue(".model", MISSING, "m")]
+        assert hints_for(recipe, issues, input_name="-") == []
+        assert hints_for(recipe, [], input_name="-", dropped=[".model"]) == ["the model went: .model"]
+        assert hints_for(recipe, [], input_name="-", dropped=[".n"]) == []
+
+    def test_an_issue_hint_never_fits_a_drop(self) -> None:
+        recipe = recipe_with("hints:\n  - text: any issue\n")
+        assert hints_for(recipe, [], input_name="-", dropped=[".model"]) == []
+
 
 class BuiltinTests:
     """The four recipes that write to an API that requires a model say how to add one."""
@@ -120,9 +138,17 @@ class BuiltinTests:
                          f"yaqpy --recipe {name} req.json | yaqpy '.model = \"{example}\"'"]
 
     @pytest.mark.parametrize("name", ["openai-to-gemini", "anthropic-to-gemini"])
-    def test_gemini_needs_no_model_in_the_body_so_no_hint(self, name: str) -> None:
+    def test_gemini_takes_the_model_in_the_url_and_the_dropped_model_says_so(self, name: str) -> None:
         recipe = find_builtin(name)
-        assert recipe.hints == ()
+        assert recipe.hints == (HintRule(
+            "Gemini takes the model in the URL, not in the body: POST "
+            "https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent "
+            "(for example gemini-2.5-flash).", dropped=".model"),)
+        assert hints_for(recipe, [], input_name="a.json", dropped=[".model"]) == [recipe.hints[0].text]
+
+    @pytest.mark.parametrize("name", ["openai-to-gemini", "anthropic-to-gemini"])
+    def test_no_hint_about_the_url_when_the_input_had_no_model(self, name: str) -> None:
+        assert hints_for(find_builtin(name), [], input_name="a.json", dropped=[".stream"]) == []
 
 
 class OwnRecipeTests:
