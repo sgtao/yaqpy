@@ -244,10 +244,20 @@ def _compile(pattern: str) -> re.Pattern[str]:
         raise EvaluationError(str(e)) from None
 
 
+_SUPPORTED_MATCH_FLAGS = "ixs"     # g is handled separately below; n is not supported (see E3)
+
+
 def _extract_match_arguments(nav: Navigator, ctx: Context, expr: ExprNode) -> tuple[re.Pattern[str], bool]:
-    """The compiled pattern and whether ``"g"`` (all matches) was asked for."""
+    """The compiled pattern and whether ``"g"`` (all matches) was asked for.
+
+    E3 (0926-03 3-8): ``test``/``match``/``capture`` now accept the ``i`` ``x`` ``s`` flags
+    (translated to a leading ``(?ixs)`` inline group, which ``compile_go`` already knows how
+    to read) in addition to ``g``. ``n`` (Oniguruma's "no empty matches") has no equivalent in
+    Python's ``re`` and is still rejected, like any other unrecognised flag.
+    """
     pattern_exp = expr.rhs
     is_global = False
+    extra_flags = ""
     assert expr.rhs is not None
     if expr.rhs.operation.spec.type == "BLOCK":     # match(regex; params)
         pattern_exp = expr.rhs.lhs
@@ -255,13 +265,16 @@ def _extract_match_arguments(nav: Navigator, ctx: Context, expr: ExprNode) -> tu
         if "g" in params:
             params = params.replace("g", "")
             is_global = True
-        if "i" in params:
-            raise EvaluationError("'i' is not a valid option for match. "
-                                  'To ignore case, use an expression like match("(?i)cat")')
+        for flag in _SUPPORTED_MATCH_FLAGS:
+            if flag in params:
+                extra_flags += flag
+                params = params.replace(flag, "")
         if params:
             raise EvaluationError(
                 f"unrecognised match params '{params}', please see docs at {_MATCH_DOCS}")
     pattern = _first_value(nav.evaluate(ctx.readonly_clone(), pattern_exp))
+    if extra_flags:
+        pattern = f"(?{extra_flags}){pattern}"
     return _compile(pattern), is_global
 
 

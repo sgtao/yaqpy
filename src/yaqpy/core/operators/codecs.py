@@ -15,6 +15,7 @@ import urllib.parse
 from dataclasses import replace
 
 from yaqpy.core.engine.context import Context
+from yaqpy.core.engine.helpers import yaml_string
 from yaqpy.core.engine.navigator import Navigator
 from yaqpy.core.lang.ast import ExprNode
 from yaqpy.core.lang.prefs import DecoderPrefs, EncoderPrefs
@@ -144,7 +145,30 @@ def _encode(nav: Navigator, node: Node, prefs: EncoderPrefs) -> str:
         return encode_uri(node)
     if prefs.format == "sh":
         return encode_sh(node)
+    if prefs.format == "text":
+        return encode_text(nav, node)
+    if prefs.format == "html":
+        return encode_html(nav, node)
     return _encode_with_format(nav, node, prefs.format, prefs.indent)
+
+
+# ----------------------------------------------------------------------------- @text / @html (E3)
+# New in v0.8.0 (0926-03 3-9): `@text` is jq's `tostring`; `@html` is that same text, HTML-escaped.
+
+_HTML_ESCAPES = (("&", "&amp;"), ("<", "&lt;"), (">", "&gt;"), ("'", "&#39;"), ('"', "&quot;"))
+
+
+def encode_text(nav: Navigator, node: Node) -> str:
+    if node.kind is Kind.SCALAR:
+        return node.value
+    return yaml_string(nav, node)
+
+
+def encode_html(nav: Navigator, node: Node) -> str:
+    text = encode_text(nav, node)
+    for char, escaped in _HTML_ESCAPES:
+        text = text.replace(char, escaped)
+    return text
 
 
 def _decoded_key(node: Node) -> str:

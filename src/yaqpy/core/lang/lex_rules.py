@@ -361,6 +361,8 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     LexRule("Urid", r"@urid", _decode("uri")),
     LexRule("Uri", r"@uri", _encode("uri", 0)),
     LexRule("SH", r"@sh", _encode("sh", 0)),
+    LexRule("HtmlEncode", r"@html", _encode("html", 0)),
+    LexRule("TextEncode", r"@text", _encode("text", 0)),
     LexRule("LoadXML", r"load_?xml|xml_?load", _load("xml")),
     LexRule("LoadBase64", r"load_?base64", _load("base64")),
     LexRule("LoadProperties", r"load_?props", _load("props")),
@@ -380,6 +382,10 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     _simple("ireduce", "REDUCE"),
     _simple("join", "JOIN"),
     _simple("sub", "SUBSTR"),
+    # jq's `gsub` is always-full-replace, exactly like yq's `sub` (E3, 0926-03 3-8) - same
+    # operator, no new handler needed.
+    _simple("gsub", "SUBSTR"),
+    _word("scan", "SCAN"),
     _simple("match", "MATCH"),
     _simple("capture", "CAPTURE"),
     _simple("test", "TEST"),
@@ -393,6 +399,8 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     _simple("all_c", "ALL_CONDITION"),
     _simple("all", "ALL"),
     _simple("contains", "CONTAINS"),
+    # "splits" must come before "split" below (a prefix of it).
+    _word("splits", "SPLITS"),
     _simple("split", "SPLIT"),
     _simple("parents", "GET_PARENTS"),
     LexRule("ParentWithLevel", r"parent\(-?[0-9]+\)", _parent_with_level),
@@ -424,6 +432,14 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     LexRule("DocumentIndex", r"documentIndex|document_?index|di", _op("GET_DOCUMENT_INDEX")),
     LexRule("Uppercase", r"upcase|ascii_?upcase", _op("CHANGE_CASE", True)),
     LexRule("Downcase", r"downcase|ascii_?downcase", _op("CHANGE_CASE", False)),
+    _word("startswith", "STARTSWITH"),
+    _word("endswith", "ENDSWITH"),
+    # "ltrimstr"/"rtrimstr" must come before "ltrim"/"rtrim" (a prefix of them).
+    _word("ltrimstr", "LTRIMSTR"),
+    _word("rtrimstr", "RTRIMSTR"),
+    _word("ltrim", "LTRIM"),
+    _word("rtrim", "RTRIM"),
+    _word("implode", "IMPLODE"),
     _simple("trim", "TRIM"),
     _simple("to_?string", "TO_STRING"),
     # jq's type filters (E3, 0926-03 3-7 / 3-9): `.[] | numbers` keeps only the numbers, etc.

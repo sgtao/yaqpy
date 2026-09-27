@@ -49,6 +49,8 @@ def _leading_flags(pattern: str) -> tuple[str, int, bool]:
                 multiline = True
             elif letter == "s":
                 flags |= re.DOTALL
+            elif letter == "x":
+                flags |= re.VERBOSE
             elif letter == "U":
                 raise RegexError("the (?U) flag (ungreedy) is not supported")
             else:

@@ -180,3 +180,49 @@ class TypeFilterTests:
         assert yaqpy.query("nulls", None) == [None]
         with pytest.raises(ExpressionSyntaxError):
             yaqpy.query("nullsy", None)
+
+
+class StringBuiltinTests:
+    """`startswith endswith ltrimstr rtrimstr ltrim rtrim splits scan implode gsub @html @text`
+    (E3, 0926-03 3-8/3-9)."""
+
+    def test_startswith_endswith(self) -> None:
+        assert yaqpy.query('startswith("he")', "hello") == [True]
+        assert yaqpy.query('endswith("lo")', "hello") == [True]
+        assert yaqpy.query('startswith("x")', "hello") == [False]
+
+    def test_ltrimstr_rtrimstr_leave_a_mismatch_unchanged(self) -> None:
+        assert yaqpy.query('ltrimstr("hello ")', "hello world") == ["world"]
+        assert yaqpy.query('rtrimstr(" world")', "hello world") == ["hello"]
+        assert yaqpy.query('ltrimstr("xyz")', "hello") == ["hello"]
+        assert yaqpy.query('rtrimstr("xyz")', "hello") == ["hello"]
+
+    def test_ltrimstr_on_a_non_string_is_unchanged_not_an_error(self) -> None:
+        assert yaqpy.query('ltrimstr("x")', 5) == [5]
+
+    def test_ltrim_rtrim(self) -> None:
+        assert yaqpy.query("ltrim", "  hi  ") == ["hi  "]
+        assert yaqpy.query("rtrim", "  hi  ") == ["  hi"]
+
+    def test_splits_is_a_stream_not_an_array(self) -> None:
+        assert yaqpy.query('[splits("-")]', "a-b-c") == [["a", "b", "c"]]
+
+    def test_scan_without_groups_returns_whole_matches(self) -> None:
+        assert yaqpy.query('[scan("[a-z]")]', "a1b2c3") == [["a", "b", "c"]]
+
+    def test_scan_with_groups_returns_arrays_of_captures(self) -> None:
+        assert yaqpy.query('[scan("([a-z])([0-9])")]', "a1b2") == [[["a", "1"], ["b", "2"]]]
+
+    def test_implode_is_the_inverse_of_explode(self) -> None:
+        assert yaqpy.query("implode", [104, 105]) == ["hi"]
+
+    def test_gsub_is_the_same_full_replace_as_sub(self) -> None:
+        assert yaqpy.query('gsub("X"; "-")', "aXbXc") == ["a-b-c"]
+        assert yaqpy.query('gsub("X"; "-")', "aXbXc") == yaqpy.query('sub("X"; "-")', "aXbXc")
+
+    def test_at_text_is_tostring(self) -> None:
+        assert yaqpy.query("@text", "plain") == ["plain"]
+        assert yaqpy.query("@text", 5) == ["5"]
+
+    def test_at_html_escapes(self) -> None:
+        assert yaqpy.query("@html", "<a>&'\"") == ["&lt;a&gt;&amp;&#39;&quot;"]
