@@ -27,8 +27,17 @@ def _require_sequence(node: Node) -> None:
 
 @operator("REVERSE")
 def reverse_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    """v0.8.0 (0926-03 3-7, A): strings and null are also accepted now, like jq's ``reverse``
+    (a string's characters reversed; ``null`` stays ``null``) - an error-to-value change, so
+    every expression that already worked (arrays) is unaffected."""
     results: list[Node] = []
     for node in ctx.nodes:
+        if node.tag == "!!null":
+            results.append(node)
+            continue
+        if node.guess_tag() == "!!str":
+            results.append(node.create_replacement(Kind.SCALAR, node.tag, node.value[::-1]))
+            continue
         _require_sequence(node)
         reversed_seq = node.create_replacement_with_comments(Kind.SEQUENCE, "!!seq", node.style)
         reversed_seq.add_children(reversed(node.content))

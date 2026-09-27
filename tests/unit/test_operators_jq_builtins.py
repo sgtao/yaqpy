@@ -226,3 +226,91 @@ class StringBuiltinTests:
 
     def test_at_html_escapes(self) -> None:
         assert yaqpy.query("@html", "<a>&'\"") == ["&lt;a&gt;&amp;&#39;&quot;"]
+
+
+class ArrayObjectBuiltinTests:
+    """`add any(f) all(f) min_by max_by keys_unsorted transpose utf8bytelength in inside
+    indices index rindex isempty last nth limit skip range abs toboolean toarray reverse`
+    (E3, 0926-03 3-7)."""
+
+    def test_bare_add_sums_the_array(self) -> None:
+        assert yaqpy.query("add", [1, 2, 3]) == [6]
+        assert yaqpy.query("add", [[1, 2], [3, 4]]) == [[1, 2, 3, 4]]
+
+    def test_any_f_and_all_f(self) -> None:
+        assert yaqpy.query("any(. > 2)", [1, 2, 3]) == [True]
+        assert yaqpy.query("all(. > 0)", [1, 2, 3]) == [True]
+        assert yaqpy.query("all(. > 1)", [1, 2, 3]) == [False]
+        # any_c/all_c (already there) still work, unaffected.
+        assert yaqpy.query("any_c(. > 2)", [1, 2, 3]) == [True]
+
+    def test_min_by_max_by(self) -> None:
+        rows = [{"a": 3}, {"a": 1}, {"a": 2}]
+        assert yaqpy.query("min_by(.a)", rows) == [{"a": 1}]
+        assert yaqpy.query("max_by(.a)", rows) == [{"a": 3}]
+
+    def test_keys_unsorted_is_an_alias_for_keys(self) -> None:
+        assert yaqpy.query("keys_unsorted", {"b": 1, "a": 2}) == [["b", "a"]]
+        assert yaqpy.query("keys_unsorted", {"b": 1, "a": 2}) == yaqpy.query("keys", {"b": 1, "a": 2})
+
+    def test_transpose_is_an_alias_for_pivot(self) -> None:
+        assert yaqpy.query("transpose", [[1, 2], [3, 4]]) == [[[1, 3], [2, 4]]]
+
+    def test_utf8bytelength(self) -> None:
+        assert yaqpy.query("utf8bytelength", "hi") == [2]
+        assert yaqpy.query("utf8bytelength", "hé") == [3]     # é is 2 bytes in UTF-8
+
+    def test_in_checks_key_membership(self) -> None:
+        assert yaqpy.query('in({"a": 1, "b": 2})', "a") == [True]
+        assert yaqpy.query('in({"a": 1})', "z") == [False]
+
+    def test_inside_is_the_reverse_of_contains(self) -> None:
+        assert yaqpy.query("inside([1, 2, 3])", [1]) == [True]
+        assert yaqpy.query("inside([1, 2, 3])", [5]) == [False]
+
+    def test_indices_index_rindex(self) -> None:
+        assert yaqpy.query('indices("-")', "a-b-c") == [[1, 3]]
+        assert yaqpy.query("index(1)", [1, 2, 1, 3]) == [0]
+        assert yaqpy.query("rindex(1)", [1, 2, 1, 3]) == [2]
+        assert yaqpy.query("index(1)", [2, 3]) == [None]
+
+    def test_isempty(self) -> None:
+        assert yaqpy.query("isempty(empty)", None) == [True]
+        assert yaqpy.query("isempty(1, 2)", None) == [False]
+
+    def test_last_bare_and_last_of_a_stream(self) -> None:
+        assert yaqpy.query("last", [1, 2, 3]) == [3]
+        assert yaqpy.query("last(.[] | select(. > 1))", [1, 2, 3]) == [3]
+        assert yaqpy.query("last", []) == []
+
+    def test_nth_one_arg_indexes_the_array(self) -> None:
+        assert yaqpy.query("nth(1)", [1, 2, 3]) == [2]
+
+    def test_nth_two_args_is_the_nth_stream_output(self) -> None:
+        assert yaqpy.query("nth(1; .[])", [1, 2, 3]) == [2]
+        with pytest.raises(EvaluationError):
+            yaqpy.query("nth(-1; .[])", [1, 2, 3])
+
+    def test_limit_and_skip(self) -> None:
+        assert yaqpy.query("[limit(2; 1, 2, 3, 4)]", None) == [[1, 2]]
+        assert yaqpy.query("[skip(2; 1, 2, 3, 4)]", None) == [[3, 4]]
+
+    def test_range_one_two_and_three_args(self) -> None:
+        assert yaqpy.query("[range(3)]", None) == [[0, 1, 2]]
+        assert yaqpy.query("[range(2; 5)]", None) == [[2, 3, 4]]
+        assert yaqpy.query("[range(0; 10; 3)]", None) == [[0, 3, 6, 9]]
+
+    def test_abs_toboolean_toarray(self) -> None:
+        assert yaqpy.query("abs", -5) == [5]
+        assert yaqpy.query("abs", 5) == [5]
+        assert yaqpy.query("toboolean", "true") == [True]
+        assert yaqpy.query("toboolean", "false") == [False]
+        assert yaqpy.query("toarray", 5) == [[5]]
+        assert yaqpy.query("toarray", [1, 2]) == [[1, 2]]
+
+    def test_reverse_on_strings_and_null(self) -> None:
+        assert yaqpy.query("reverse", "abc") == ["cba"]
+        assert yaqpy.query("reverse", None) == [None]
+        assert yaqpy.query("reverse", [1, 2, 3]) == [[3, 2, 1]]
+        with pytest.raises(EvaluationError):
+            yaqpy.query("reverse", {"a": 1})

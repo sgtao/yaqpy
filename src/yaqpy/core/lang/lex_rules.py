@@ -372,6 +372,14 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     LexRule("SplitDocument", r"splitDoc|split_?doc", _op("SPLIT_DOC")),
     _simple("select", "SELECT"),
     _simple("has", "HAS"),
+    # "inside"/"indices"/"index"/"rindex" must all come before bare "in" (a prefix of all
+    # of them); "indices" must come before "index" (a prefix of it too).
+    _word("inside", "INSIDE"),
+    _word("indices", "INDICES"),
+    _word("index", "INDEX"),
+    _word("rindex", "RINDEX"),
+    _word("in", "IN"),
+    _word("isempty", "ISEMPTY"),
     _simple("unique_?by", "UNIQUE_BY"),
     _simple("unique", "UNIQUE"),
     _simple("group_?by", "GROUP_BY"),
@@ -395,9 +403,14 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     _word_bare("first", "FIRST_BARE"),
     _simple("reverse", "REVERSE"),
     _simple("any_c", "ANY_CONDITION"),
+    _word_call("any", "ANY_CONDITION"),     # jq's any(f) - any_c(f) still works too
     _simple("any", "ANY"),
     _simple("all_c", "ALL_CONDITION"),
+    _word_call("all", "ALL_CONDITION"),     # jq's all(f) - all_c(f) still works too
     _simple("all", "ALL"),
+    _word("add", "ADD_ALL"),
+    _word("min_by", "MIN_BY"),
+    _word("max_by", "MAX_BY"),
     _simple("contains", "CONTAINS"),
     # "splits" must come before "split" below (a prefix of it).
     _word("splits", "SPLITS"),
@@ -405,6 +418,9 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     _simple("parents", "GET_PARENTS"),
     LexRule("ParentWithLevel", r"parent\(-?[0-9]+\)", _parent_with_level),
     LexRule("ParentWithDefaultLevel", r"parent", _parent_default),
+    # "keys_unsorted" must come before "keys" (a prefix of it). Same operator: yq's `keys`
+    # is already unsorted (insertion order) - keys_unsorted is a pure alias for now (3-7).
+    _word("keys_unsorted", "KEYS"),
     _simple("keys", "KEYS"),
     _simple("key", "GET_KEY"),
     _simple("is_?key", "IS_KEY"),
@@ -493,6 +509,17 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     LexRule("Subtract", r"\-", _op("SUBTRACT")),
     LexRule("Comment", r"#.*", None),
     _simple("pivot", "PIVOT"),
+    _word("transpose", "PIVOT"),   # jq's name for the same operator (3-7)
+    _word("utf8bytelength", "UTF8BYTELENGTH"),
+    _word_call("last", "LAST"),
+    _word_bare("last", "LAST_BARE"),
+    _word("nth", "NTH"),
+    _word("limit", "LIMIT"),
+    _word("skip", "SKIP"),
+    _word("range", "RANGE"),
+    _word("abs", "ABS"),
+    _word("toboolean", "TOBOOLEAN"),
+    _word("toarray", "TOARRAY"),
 )
 
 

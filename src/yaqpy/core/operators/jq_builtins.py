@@ -14,10 +14,10 @@ import re
 from yaqpy.core.engine.context import Context
 from yaqpy.core.engine.helpers import create_boolean
 from yaqpy.core.engine.navigator import Navigator
-from yaqpy.core.lang.ast import ExprNode
+from yaqpy.core.lang.ast import ExprNode, Operation
 from yaqpy.core.model import tags
 from yaqpy.core.model.node import Kind, Node
-from yaqpy.core.operators.regex import RegexError, compile_go, find_all
+from yaqpy.core.operators.regex import RegexError, byte_length, compile_go, find_all
 from yaqpy.core.operators.registry import operator
 from yaqpy.core.operators.strings import _GO_SPACE
 from yaqpy.errors import EvaluationError
@@ -197,6 +197,419 @@ def _codepoint(node: Node) -> int:
     if node.guess_tag() != "!!int":
         raise ValueError(node.tag)
     return tags.parse_int(node.value)[1]
+
+
+# ----------------------------------------------------------------------------- add / any(f) / all(f)
+
+@operator("ADD_ALL", num_args=0, precedence=50)
+def add_all_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    """jq's bare ``add`` (sum an array; ``add(f)`` is not added - low value, and it would need
+    its own bare/call split like ``add``/``first`` already needed - 0926-03 3-7)."""
+    from yaqpy.core.operators.arithmetic import add as add_values
+
+    results: list[Node] = []
+    for node in ctx.nodes:
+        if node.kind is not Kind.SEQUENCE:
+            raise EvaluationError(f"Cannot iterate over {node.tag} ({node.nice_path()})")
+        total: Node | None = None
+        for child in node.content:
+            total = add_values(nav, ctx, total, child)
+        results.append(total if total is not None else Node.null())
+    return ctx.child(results)
+
+
+# any(f)/all(f) need no new operator: they are the existing ANY_CONDITION/ALL_CONDITION
+# (already reachable as `any_c(f)`/`all_c(f)`) under jq's own spelling - see the lexer rules.
+
+
+# ----------------------------------------------------------------------------- min_by / max_by
+
+def _key_of(nav: Navigator, ctx: Context, node: Node, key_expr: ExprNode | None) -> Node:
+    result = nav.evaluate(ctx.single_readonly_child(node), key_expr)
+    return result.nodes[0] if result.nodes else Node(tag="!!null")
+
+
+def _min_max_by(nav: Navigator, ctx: Context, expr: ExprNode, greater: bool) -> Context:
+    from yaqpy.core.lang.prefs import ComparePrefs
+    from yaqpy.core.operators.logic import compare_scalars
+
+    prefs = ComparePrefs(greater=greater)
+    layout = ctx.get_datetime_layout()
+    results: list[Node] = []
+    for node in ctx.nodes:
+        if node.kind is not Kind.SEQUENCE:
+            raise EvaluationError(f"{node.tag} cannot be iterated over for min_by/max_by")
+        if not node.content:
+            continue
+        best = node.content[0]
+        best_key = _key_of(nav, ctx, best, expr.rhs)
+        for child in node.content[1:]:
+            key = _key_of(nav, ctx, child, expr.rhs)
+            if compare_scalars(prefs, key, best_key, layout):
+                best, best_key = child, key
+        results.append(best)
+    return ctx.child(results)
+
+
+@operator("MIN_BY", num_args=1, precedence=52, check_for_post_traverse=True)
+def min_by_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    return _min_max_by(nav, ctx, expr, greater=False)
+
+
+@operator("MAX_BY", num_args=1, precedence=52, check_for_post_traverse=True)
+def max_by_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    return _min_max_by(nav, ctx, expr, greater=True)
+
+
+# keys_unsorted needs no new operator: it is the existing KEYS (yq's `keys` is already
+# unsorted - insertion order - so this is a pure alias; jq dialect will later make `keys`
+# itself sort, at which point `keys_unsorted` keeps today's meaning - v0.9, 3-7).
+# transpose needs no new operator either: it is `pivot` under jq's name (3-7).
+
+
+# ----------------------------------------------------------------------------- utf8bytelength
+
+@operator("UTF8BYTELENGTH", num_args=0, precedence=50)
+def utf8bytelength_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    results: list[Node] = []
+    for node in ctx.nodes:
+        if node.guess_tag() != "!!str":
+            raise EvaluationError(f"{node.tag} only strings have UTF-8 byte length")
+        results.append(node.create_replacement(Kind.SCALAR, "!!int", str(byte_length(node.value))))
+    return ctx.child(results)
+
+
+# ----------------------------------------------------------------------------- in / inside
+
+@operator("IN", num_args=1, precedence=50)
+def in_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    """jq's ``in(xs)``: is the current value present as a key in ``xs``? (the reverse of
+    ``has``: ``$x | in(xs)`` is jq's ``xs | has($x)``.)"""
+    from yaqpy.core.operators.collections import has_operator
+
+    results: list[Node] = []
+    for node in ctx.nodes:
+        container_ctx = nav.evaluate(ctx.single_readonly_child(node), expr.rhs)
+        found = False
+        for container in container_ctx.nodes:
+            check = ExprNode(Operation(nav.env.operators.get("HAS")),
+                            rhs=ExprNode(Operation(nav.env.operators.get("REF"), node=node)))
+            result = has_operator(nav, ctx.single_readonly_child(container), check)
+            if result.nodes and result.nodes[0].value == "true":
+                found = True
+                break
+        results.append(create_boolean(node, found))
+    return ctx.child(results)
+
+
+@operator("INSIDE", num_args=1, precedence=50)
+def inside_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    """jq's ``inside(xs)``: the reverse of ``contains``: ``$x | inside(xs)`` is
+    ``xs | contains($x)``."""
+    from yaqpy.core.operators.structure import contains_operator
+
+    results: list[Node] = []
+    for node in ctx.nodes:
+        container_ctx = nav.evaluate(ctx.single_readonly_child(node), expr.rhs)
+        found = False
+        for container in container_ctx.nodes:
+            check = ExprNode(
+                Operation(nav.env.operators.get("CONTAINS")),
+                lhs=ExprNode(Operation(nav.env.operators.get("REF"), node=container)),
+                rhs=ExprNode(Operation(nav.env.operators.get("REF"), node=node)),
+            )
+            result = contains_operator(nav, ctx.single_readonly_child(node), check)
+            if result.nodes and result.nodes[0].value == "true":
+                found = True
+                break
+        results.append(create_boolean(node, found))
+    return ctx.child(results)
+
+
+# ----------------------------------------------------------------------------- indices / index / rindex
+
+def _scalar_equal(a: Node, b: Node) -> bool:
+    at, bt = a.guess_tag(), b.guess_tag()
+    if at in ("!!int", "!!float") and bt in ("!!int", "!!float"):
+        return tags.parse_float(a.value) == tags.parse_float(b.value)
+    return at == bt and a.value == b.value
+
+
+def _nodes_equal(a: Node, b: Node) -> bool:
+    if a.kind is not b.kind:
+        return False
+    if a.kind is Kind.SCALAR:
+        return _scalar_equal(a, b)
+    if a.kind is Kind.SEQUENCE:
+        return (len(a.content) == len(b.content)
+                and all(_nodes_equal(x, y) for x, y in zip(a.content, b.content)))
+    if a.kind is Kind.MAPPING:
+        if len(a.content) != len(b.content):
+            return False
+        by_key = {k.value: v for k, v in b.map_items()}
+        return all(k.value in by_key and _nodes_equal(v, by_key[k.value]) for k, v in a.map_items())
+    return False
+
+
+def _string_indices(haystack: str, needle: str) -> list[int]:
+    if needle == "":
+        return []
+    result: list[int] = []
+    start = 0
+    while True:
+        found = haystack.find(needle, start)
+        if found < 0:
+            return result
+        result.append(found)
+        start = found + 1
+
+
+def _array_indices(node: Node, needle: Node) -> list[int]:
+    if needle.kind is Kind.SEQUENCE:
+        n, m = len(node.content), len(needle.content)
+        if m == 0:
+            return []
+        return [i for i in range(n - m + 1)
+               if all(_nodes_equal(node.content[i + j], needle.content[j]) for j in range(m))]
+    return [i for i, child in enumerate(node.content) if _nodes_equal(child, needle)]
+
+
+def _compute_indices(node: Node, needle: Node) -> list[int]:
+    if node.guess_tag() == "!!str":
+        if needle.guess_tag() != "!!str":
+            raise EvaluationError(f"Cannot index string with {needle.tag}")
+        return _string_indices(node.value, needle.value)
+    if node.kind is Kind.SEQUENCE:
+        return _array_indices(node, needle)
+    raise EvaluationError(f"{node.tag} cannot be searched for indices")
+
+
+@operator("INDICES", num_args=1, precedence=50)
+def indices_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    results: list[Node] = []
+    for node in ctx.nodes:
+        needle_ctx = nav.evaluate(ctx.single_readonly_child(node), expr.rhs)
+        needle = needle_ctx.nodes[0] if needle_ctx.nodes else Node(tag="!!null")
+        seq = node.create_replacement(Kind.SEQUENCE, "!!seq", "")
+        seq.add_children(Node.integer(i) for i in _compute_indices(node, needle))
+        results.append(seq)
+    return ctx.child(results)
+
+
+@operator("INDEX", num_args=1, precedence=50)
+def index_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    found_ctx = indices_operator(nav, ctx, expr)
+    return found_ctx.child(n.content[0] if n.content else Node.null() for n in found_ctx.nodes)
+
+
+@operator("RINDEX", num_args=1, precedence=50)
+def rindex_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    found_ctx = indices_operator(nav, ctx, expr)
+    return found_ctx.child(n.content[-1] if n.content else Node.null() for n in found_ctx.nodes)
+
+
+# ----------------------------------------------------------------------------- isempty(f)
+
+@operator("ISEMPTY", num_args=1, precedence=50)
+def isempty_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    results: list[Node] = []
+    for node in ctx.nodes:
+        result = nav.evaluate(ctx.single_readonly_child(node), expr.rhs)
+        results.append(create_boolean(node, not result.nodes))
+    return ctx.child(results)
+
+
+# ----------------------------------------------------------------------------- last / nth
+
+@operator("LAST_BARE", num_args=0, precedence=52, check_for_post_traverse=True)
+def last_bare_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    return ctx.child(node.content[-1] for node in ctx.nodes if node.content)
+
+
+@operator("LAST", num_args=1, precedence=52, check_for_post_traverse=True)
+def last_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    results: list[Node] = []
+    for node in ctx.nodes:
+        stream = nav.evaluate(ctx.single_readonly_child(node), expr.rhs)
+        if stream.nodes:
+            results.append(stream.nodes[-1])
+    return ctx.child(results)
+
+
+def _int_arg(nav: Navigator, ctx: Context, node_expr: ExprNode | None) -> int:
+    result = nav.evaluate(ctx.readonly_clone(), node_expr)
+    if not result.nodes:
+        raise EvaluationError("expected a number argument")
+    return tags.parse_int(result.nodes[0].value)[1]
+
+
+@operator("NTH", num_args=1, precedence=52, check_for_post_traverse=True)
+def nth_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    block = expr.rhs
+    if block is not None and block.operation.spec.type == "BLOCK":
+        n = _int_arg(nav, ctx, block.lhs)
+        if n < 0:
+            raise EvaluationError("Out of bounds negative array index")
+        results: list[Node] = []
+        for node in ctx.nodes:
+            stream = nav.evaluate(ctx.single_readonly_child(node), block.rhs)
+            if n < len(stream.nodes):
+                results.append(stream.nodes[n])
+        return ctx.child(results)
+    n = _int_arg(nav, ctx, expr.rhs)
+    results = []
+    for node in ctx.nodes:
+        if node.kind is not Kind.SEQUENCE:
+            raise EvaluationError(f"Cannot index {node.tag} with number")
+        if -len(node.content) <= n < len(node.content):
+            results.append(node.content[n])
+    return ctx.child(results)
+
+
+# ----------------------------------------------------------------------------- limit(n;f) / skip(n;f)
+
+@operator("LIMIT", num_args=1, precedence=52, check_for_post_traverse=True)
+def limit_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    """yaqpy builds every result at once (design fact 1-3-1), so `limit`/`skip` are just a
+    slice of an already-complete list - no early-exit machinery is needed."""
+    block = expr.rhs
+    assert block is not None and block.operation.spec.type == "BLOCK", (
+        "limit(n; f) needs both arguments")
+    results: list[Node] = []
+    for node in ctx.nodes:
+        n = _int_arg(nav, ctx.single_readonly_child(node), block.lhs)
+        if n <= 0:
+            continue
+        stream = nav.evaluate(ctx.single_readonly_child(node), block.rhs)
+        results.extend(stream.nodes[:n])
+    return ctx.child(results)
+
+
+@operator("SKIP", num_args=1, precedence=52, check_for_post_traverse=True)
+def skip_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    block = expr.rhs
+    assert block is not None and block.operation.spec.type == "BLOCK", (
+        "skip(n; f) needs both arguments")
+    results: list[Node] = []
+    for node in ctx.nodes:
+        n = max(_int_arg(nav, ctx.single_readonly_child(node), block.lhs), 0)
+        stream = nav.evaluate(ctx.single_readonly_child(node), block.rhs)
+        results.extend(stream.nodes[n:])
+    return ctx.child(results)
+
+
+# ----------------------------------------------------------------------------- range(...)
+
+_RANGE_LIMIT = 10_000_000
+
+
+def _flatten_block(node: ExprNode | None) -> list[ExprNode]:
+    if node is None:
+        return []
+    if node.operation.spec.type == "BLOCK":
+        return _flatten_block(node.lhs) + _flatten_block(node.rhs)
+    return [node]
+
+
+def _first_number(nav: Navigator, ctx: Context, node_expr: ExprNode) -> float:
+    result = nav.evaluate(ctx, node_expr)
+    if not result.nodes:
+        raise EvaluationError("range: missing argument")
+    value = result.nodes[0]
+    tag = value.guess_tag()
+    if tag not in ("!!int", "!!float"):
+        raise EvaluationError(f"range: expected a number, got {value.tag}")
+    return tags.parse_float(value.value)
+
+
+def _range_values(start: float, stop: float, step: float):
+    if step == 0:
+        return
+    value = start
+    if step > 0:
+        while value < stop:
+            yield value
+            value += step
+    else:
+        while value > stop:
+            yield value
+            value += step
+
+
+def _number_node(value: float) -> Node:
+    if value == int(value):
+        return Node.integer(int(value))
+    return Node(Kind.SCALAR, tag="!!float", value=tags.format_float(value))
+
+
+@operator("RANGE", num_args=1, precedence=50)
+def range_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    args = _flatten_block(expr.rhs)
+    if len(args) not in (1, 2, 3):
+        raise EvaluationError("range takes 1 to 3 arguments")
+    results: list[Node] = []
+    for node in (ctx.nodes or (Node(tag="!!null"),)):
+        single = ctx.single_readonly_child(node)
+        numbers = [_first_number(nav, single, a) for a in args]
+        if len(numbers) == 1:
+            start, stop, step = 0.0, numbers[0], 1.0
+        elif len(numbers) == 2:
+            start, stop, step = numbers[0], numbers[1], 1.0
+        else:
+            start, stop, step = numbers
+        count = 0
+        for value in _range_values(start, stop, step):
+            count += 1
+            if count > _RANGE_LIMIT:
+                raise EvaluationError(f"range: refusing to generate more than {_RANGE_LIMIT} values")
+            nav.env.budget.tick()
+            results.append(_number_node(value))
+    return ctx.child(results)
+
+
+# ----------------------------------------------------------------------------- abs / toboolean / toarray
+
+@operator("ABS", num_args=0, precedence=50)
+def abs_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    results: list[Node] = []
+    for node in ctx.nodes:
+        tag = node.tag if node.tag.startswith("!!") else node.guess_tag()
+        if tag == "!!int":
+            fmt, value = tags.parse_int(node.value)
+            results.append(node.create_replacement(Kind.SCALAR, node.tag, tags.format_int(fmt, abs(value))))
+        elif tag == "!!float":
+            results.append(node.create_replacement(
+                Kind.SCALAR, node.tag, tags.format_float(abs(tags.parse_float(node.value)))))
+        else:
+            raise EvaluationError(f"{node.tag} ({node.nice_path()}) is not a number, cannot take abs")
+    return ctx.child(results)
+
+
+@operator("TOBOOLEAN", num_args=0, precedence=50)
+def toboolean_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    results: list[Node] = []
+    for node in ctx.nodes:
+        tag = node.tag if node.tag.startswith("!!") else node.guess_tag()
+        if tag == "!!bool":
+            results.append(node)
+        elif tag == "!!str" and node.value in ("true", "false"):
+            results.append(create_boolean(node, node.value == "true"))
+        else:
+            raise EvaluationError(f"Cannot convert {node.tag} ({node.nice_path()}) to boolean")
+    return ctx.child(results)
+
+
+@operator("TOARRAY", num_args=0, precedence=50)
+def toarray_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    results: list[Node] = []
+    for node in ctx.nodes:
+        if node.kind is Kind.SEQUENCE:
+            results.append(node)
+        else:
+            seq = Node.sequence()
+            seq.add_child(node.copy())
+            results.append(seq)
+    return ctx.child(results)
 
 
 @operator("IMPLODE", num_args=0, precedence=52, check_for_post_traverse=True)
