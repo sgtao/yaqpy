@@ -1,0 +1,16 @@
+# プロジェクト設定
+[project]
+name = "demo"
+version = "0.1.0"
+authors = [{ name = "Ann", email = "ann@example.com" }]
+license = { file = "LICENSE" }
+
+[tool.build]
+retries = 3
+mask = 0xFF
+
+[[tool.hooks]]
+name = "lint"
+
+[[tool.hooks]]
+name = "test"

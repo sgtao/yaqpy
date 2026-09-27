@@ -1,0 +1,15 @@
+# サーバー設定
+server:
+  port: 8080 # 開発用
+  hosts: [a, b]
+  tls: &tls
+    enabled: true
+    cert: /etc/cert.pem
+backup:
+  <<: *tls
+  schedule: "0 3 * * *"
+items:
+  - name: pen
+    price: 120
+  - name: book
+    price: 980

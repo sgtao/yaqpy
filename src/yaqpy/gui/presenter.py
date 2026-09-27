@@ -16,7 +16,7 @@ from yaqpy.app.selfdoc import render_guide_prompt
 from yaqpy.app.service import YqService
 from yaqpy.core.engine.limits import StepBudget
 from yaqpy.errors import UnknownFormatError
-from yaqpy.gui import expression_file, intake, run_log, texts
+from yaqpy.gui import expression_file, intake, run_log, samples, texts
 from yaqpy.gui.errors_ja import ErrorViewModel, to_view_model
 from yaqpy.gui.log_presenter import RerunPayload
 from yaqpy.gui.paths import DEFAULT_MAX_DEPTH, DEFAULT_MAX_ITEMS, PathCandidate, collect_paths
@@ -252,6 +252,22 @@ class MainPresenter:
         """ブラウザから届いた中身を、開いている一覧に加える（``add_path`` の Web 版）。"""
         item, error = await self._intake_upload(name, data)
         return error or self._append(item)
+
+    async def open_sample(self, name: str) -> OpenViewModel:
+        """［サンプル］メニューで選んだ入力データを開く（v0.7.2）。
+
+        ［＋ファイルを追加］と同じ規則：何も開いていなければ最初の文書として開き、開いていれば
+        閉じずに増やす。読み込み形式は常に ``auto`` にする（サンプルは拡張子と中身から判定する。
+        前の入力で形式を固定していても、それが効いてサンプルが読めなくならないように）。
+        """
+        try:
+            data = samples.read_sample(name)
+        except (ValueError, OSError):
+            return OpenViewModel(error=ErrorViewModel("intake", texts.ERR_SAMPLE_NOT_FOUND))
+        self.state.query.input_format = AUTO
+        if not self.state.documents:
+            return await self.open_upload(name, data)
+        return await self.add_upload(name, data)
 
     def check_upload_size(self, size: int) -> ErrorViewModel | None:
         """アップロードの**前に**大きさで断る（中身をサーバーへ送らせない）。"""

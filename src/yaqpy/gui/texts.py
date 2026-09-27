@@ -22,6 +22,9 @@ BTN_ADD_FILE = "＋ファイルを追加"
 BTN_CLOSE = "閉じる"
 BTN_MORE_FILES = "＋ファイル {n}件"
 BTN_OPEN_FILE = "ファイルを開く"
+BTN_SAMPLES = "サンプル"
+TIP_SAMPLES = "examples のサンプルデータを開く（読み込み形式は auto になります）"
+ERR_SAMPLE_NOT_FOUND = "サンプルを読み込めませんでした"
 TIP_EXPR_PASTE = "クリップボードの内容を式欄に貼り付け（式を置き換えます）"
 TIP_EXPR_COPY = "式をコピー"
 TIP_EXPR_CLEAR = "式をクリア"
@@ -248,6 +251,9 @@ _EN: dict[str, str] = {
     "BTN_CLOSE": "Close",
     "BTN_MORE_FILES": "+ {n} more",
     "BTN_OPEN_FILE": "Open File",
+    "BTN_SAMPLES": "Samples",
+    "TIP_SAMPLES": "Open a sample from examples (the input format is set to auto)",
+    "ERR_SAMPLE_NOT_FOUND": "Could not load the sample",
     "TIP_EXPR_PASTE": "Paste the clipboard into the expression box (replaces the expression)",
     "TIP_EXPR_COPY": "Copy the expression",
     "TIP_EXPR_CLEAR": "Clear the expression",

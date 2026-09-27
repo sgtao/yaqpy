@@ -78,9 +78,31 @@ def test_schema_of_json_example() -> None:
 
 
 def test_recipe_openai_to_anthropic() -> None:
-    r = yq("--recipe", "openai-to-anthropic", "openai-request.json")
+    r = yq("--recipe", "openai-to-anthropic", "api-openai-request.json")
     assert r.returncode == 0, r.stderr
     body = json.loads(r.stdout)
     assert body["system"] == [{"type": "text", "text": "You are a weather assistant."}]
-    assert [m["role"] for m in body["messages"]] == ["user", "assistant", "user"]
+    assert [m["role"] for m in body["messages"]] == ["user"]
+    assert body["tools"][0]["name"] == "get_weather"
     assert "dropped .model" in r.stderr  # the report goes to stderr
+    assert "dropped .messages[].content[type!=text]" in r.stderr  # the image part
+
+
+# The three API request samples, converted to each of the other two vendors. Every result must carry
+# the same weather tool and the same output limit; only what the target cannot hold is reported.
+API_SAMPLES = {"openai": "api-openai-request.json", "gemini": "api-gemini-request.json",
+               "anthropic": "api-anthropic-request.json"}
+
+
+@pytest.mark.parametrize("source, target", [
+    (s, t) for s in API_SAMPLES for t in API_SAMPLES if s != t])
+def test_api_request_samples_convert_to_the_other_vendors(source: str, target: str) -> None:
+    r = yq("--recipe", f"{source}-to-{target}", API_SAMPLES[source])
+    assert r.returncode == 0, r.stderr
+    text = r.stdout
+    assert "get_weather" in text and "1024" in text
+    assert "NOT HANDLED" not in r.stderr
+    # a target that requires a model gets the hint (the recipe never picks one), and only such a target
+    assert ("hint: the recipe does not choose a model." in r.stderr) == (target != "gemini")
+    # a model in the input is dropped, with the reason
+    assert ("dropped .model" in r.stderr) == (source != "gemini")

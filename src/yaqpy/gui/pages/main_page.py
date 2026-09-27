@@ -14,7 +14,7 @@ from collections.abc import Callable
 
 import flet as ft
 
-from yaqpy.gui import expression_file, texts
+from yaqpy.gui import expression_file, samples, texts
 from yaqpy.gui._di import extension_for, input_format_choices, output_format_choices
 from yaqpy.gui._upload import WebUploader
 from yaqpy.gui.errors_ja import caret_line
@@ -88,6 +88,8 @@ class MainPage:
                                           on_click=self._on_add_file)
         self._close_button = ft.Button(content=texts.BTN_CLOSE, icon=ft.Icons.CLOSE,
                                        on_click=self._on_close, disabled=True)
+        # 「サンプル」：examples のデータを開くプルダウン（v0.7.2）。ファイルを選ぶ操作とは別の入口
+        self._samples_menu = self._build_samples_menu()
 
         # --- 複数ファイル（U3）：2 件以上のときだけ出す。タブで切り替えるだけで、
         # 「まとめて評価 (eval-all)」のトグルは撤去した（形式が違うと変換に失敗する組み合わせが
@@ -230,6 +232,7 @@ class MainPage:
         file_bar = ft.Row([
             self._file_label,
             self._add_file_button,
+            self._samples_menu,
             self._close_button,
         ], alignment=ft.MainAxisAlignment.START, spacing=12)
 
@@ -480,6 +483,42 @@ class MainPage:
         if len(documents) > VISIBLE_FILE_CHIPS:
             chips.append(self._more_files_menu())
         self._files_row.controls = chips
+
+    def _build_samples_menu(self) -> ft.Control:
+        """［サンプル］：押すと examples のデータの一覧がプルダウンで開き、選ぶと入力に加わる。"""
+        items = [ft.PopupMenuItem(content=name, on_click=self._sample_handler(name))
+                 for name in samples.list_samples()]
+        trigger = ft.Container(
+            content=ft.Row([ft.Icon(ft.Icons.SCIENCE_OUTLINED, size=18),
+                            ft.Text(texts.BTN_SAMPLES, size=BUTTON_TEXT_SIZE),
+                            ft.Icon(ft.Icons.ARROW_DROP_DOWN, size=18)], spacing=4, tight=True),
+            padding=ft.Padding.symmetric(horizontal=12, vertical=8), border_radius=20,
+            border=ft.Border.all(1, ft.Colors.OUTLINE))
+        return ft.PopupMenuButton(content=trigger, items=items, tooltip=texts.TIP_SAMPLES,
+                                  disabled=not items)
+
+    def _sample_handler(self, name: str) -> Callable[[ft.Event[ft.PopupMenuItem]], None]:
+        def handler(e: ft.Event[ft.PopupMenuItem]) -> None:
+            self._page.run_task(self._on_open_sample, name)
+        return handler
+
+    async def _on_open_sample(self, name: str) -> None:
+        """選んだサンプルを開く（何も開いていなければ最初の文書に、開いていれば追加。形式は auto）。"""
+        first = not self._state.documents
+        vm = await self._p.open_sample(name)
+        self._input_dd.value = self._state.query.input_format
+        if not vm.ok:
+            self._show_error(vm.error.message, vm.error.hint)
+            self._page.update()
+            return
+        if first:
+            self._show_loaded()
+            self._after_open()
+        self._sync_active_document_view()
+        self._refresh_multi_file_ui()
+        await self._run()
+        await self._reload_candidates()
+        self._page.update()
 
     def _more_files_menu(self) -> ft.Control:
         """3 件目以降を、「＋ファイル N件」の 1 つのボタンにまとめて、押すとプルダウンで選ばせる。
