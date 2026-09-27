@@ -31,19 +31,23 @@ YAML / JSON のファイルを開いて、**必要な部分だけを取り出し
 [toTop](#toreadme)
 ## 1. 起動する
 
-**PyPI から入れる場合**（GitHub のリリースから入れる方法などは [README のインストール](README.ja.md#インストール)）
+### PyPI から入れる場合
+**（GitHub のリリースから入れる方法などは [README のインストール](README.ja.md#インストール)）**
 
 ```bash
-pip install "yaqpy[gui]"          # または: uv tool install "yaqpy[gui]" --with flet-desktop
+pip install "yaqpy[gui]"
+# uv tool install "yaqpy[gui,web]" --with flet-desktop # `uv tool install`で入れる場合
 yaqpy-gui                 # 専用コマンドで起動
 yaqpy --gui               # こちらでも同じ画面が開きます
 ```
+
+![image:yaqpy GUI](https://raw.githubusercontent.com/sgtao/yaqpy/main/assets/images/screenshot-yaqpy-gui.png)
 
 すでに GUI なしで入れている場合は、部品（flet）だけを足すこともできます：`pip install "flet>=1.0,<2"`。
 
 > **`uv tool install` / `uvx` で入れる場合は `--with flet-desktop` を付けてください。** 付けずに入れると、`yaqpy-gui` の初回起動時に Flet が `flet-desktop`（窓を描画する部品）を自動で入れようとしますが、その先が `yaqpy` 用の隔離環境とは別の場所（実行時のカレントディレクトリ付近の無関係な `.venv` など）になることがあります。この場合「OK」と表示されたのに `ModuleNotFoundError: No module named 'flet_desktop'` で起動に失敗します（[12 章](#12-困ったときqa)）。
 
-**リポジトリを clone した場合**
+### リポジトリを clone した場合
 
 ```bash
 uv sync --extra gui       # GUI を使うときだけ、部品（flet）が入ります

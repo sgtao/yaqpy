@@ -69,8 +69,8 @@ pip install "yaqpy[web]"            # ＋ブラウザで使う Web 版（Flet �
 [uv](https://docs.astral.sh/uv/) を使う場合：
 
 ```bash
+uv tool install "yaqpy[gui,web]" --with flet-desktop  # ... with what yaqpy-gui and yaqpy-web need
 uv tool install yaqpy               # yaqpy コマンドとして入れる
-uv tool install "yaqpy[gui,web]" --with flet-desktop  # yaqpy-gui・yaqpy-web を使うための部品も一緒に
 uvx yaqpy '.server.port' config.yaml   # 入れずに 1 回だけ実行する
 uv add yaqpy                        # uv のプロジェクトでライブラリとして使う
 ```
