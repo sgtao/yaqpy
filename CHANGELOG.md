@@ -5,7 +5,7 @@
 [toTop](#toreadme)
 ## [0.7.2] - 2026-09-27
 
-**レシピの案内（`hints:`）と、GUI の［サンプル］メニューを追加。** 既存の使い方は変わりません（変換の結果も同じで、新しい表示とボタンが増えたのみ）。
+**レシピの案内（`hints:`）と、GUI の［サンプル］メニューを追加。** 既存の使い方は変わりません（変換の結果も同じで、新しい表示とボタンの追加・位置調整のみ）。
 
 ### 追加
 
@@ -18,10 +18,16 @@
   - 変換先が Gemini のもの（2 レシピ）：入力の `model` を落としたときに、「Gemini はモデルを本文ではなく URL で指定する」ことを `https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent` の形で示します
 - **GUI の［サンプル］ボタン**：ファイル名の右のボタンを押すと、`examples/` のデータ（各形式のサンプルと、OpenAI・Gemini・Anthropic のリクエストボディ）の一覧がプルダウンで開き、選ぶと入力になります。`[＋ファイルを追加]` と同じ規則（何も開いていなければ最初の文書に、開いていれば追加）で、**入力形式は `auto`** になります。デスクトップ版・Web 版のどちらでも使えます。データは wheel に同梱しています（`src/yaqpy/gui/assets/examples/`。選べるのは一覧にある名前だけで、パスは受け付けません）
 
+### 変更
+
+- **式欄のボタンの並びを、意図で左右に分けました**：貼り付け・式ファイル（`.yaqpy`）の**読み込み**を欄の**左**に、コピー・クリア・式ファイルへの**保存**を欄の**右**に置きます（左は式を用意する操作、右はいまの式を扱う操作。読み込みはこれまで右にありました）。ボタンの機能・ショートカットは変わりません
+- README・USAGE-GUI.ja.md の GUI のスクリーンショットを、この並びに更新した画面のものに差し替えました
+
 ### 文書
 
 - USAGE.ja.md のレシピの節を、`examples/` の新しいサンプル（`api-openai-request.json` など）で実際に実行し直して書き換えました（旧 `openai-request.json` は無くなっています）。報告の読み方に `hint:` を、レシピの作り方に「案内を付ける：`hints`」を加えました
 - USAGE-GUI.ja.md に［サンプル］を、README（英語・日本語）・DEVELOPMENT.md にも追記しました。DEVELOPMENT.md の `docs/` の説明と、テスト件数を直しました。`--print-spec` の説明にも `hints` を加えました
+- USAGE-GUI.ja.md の「2. 画面の見取り図」と 8-4 節を、式欄のボタンの新しい並びに合わせて書き直しました
 - 紹介スライド（16 枚目）のレシピの実行結果を、新しいサンプルの出力に合わせました
 - `docs/` の設計書・計画書は、リポジトリから外れました。`docs/flet-1.0-api-notes.md` に、その旨を書きました
 
@@ -30,14 +36,15 @@
 - `recipes/hints.py`（案内の選択）と `Recipe.hints` / `HintRule`（`recipes/model.py`）を追加し、`recipes/loader.py` が `hints:` を読みます。`gui/samples.py`（［サンプル］の一覧と読み込み。Flet 非依存）と `presenter.open_sample` も追加しました
 - テスト：`tests/unit/test_recipes_hints.py`（案内の書式・条件・自作レシピ）、`tests/unit/test_gui_samples.py`（`assets/examples/` が `examples/` と同じ内容であること、サンプルの開き方、名前の検査、メニュー）を追加しました。`examples/` を直したら、コピーも直します（[DEVELOPMENT.md](./DEVELOPMENT.md)）
 - `tests/acceptance/test_examples.py`：`openai-request.json` の改名で落ちていたテストを直し、3 つのサンプルを他の 2 社へ変換する 6 通りのテストを足しました
+- `tests/unit/test_gui_main_page_tools.py`・`test_gui_expression_file.py`：式欄のボタンが左右どちらのグループにあるかを検査するよう更新しました
 - 公開する API（`yaqpy.evaluate` など）に変更はありません
 
 ### 確認したこと
 
-- 全テスト：ユニット 1,785 件・受け入れ 109 件など、合計 1,899 件が合格（Python 3.13）
+- 全テスト：ユニット 1,786 件・受け入れ 109 件など、合計 1,900 件が合格（Python 3.13）
 - **3 つの版（3.11・3.12・3.13）**：`tools/check_pythons.py` で、下限の検査（vermin）と全テストが、いずれも合格しました
-- GUI は、Web 版を起動してブラウザで［サンプル］を開き、選んだサンプルが左に出て、右に変換結果が出るところまで確認しました
-- **未確認**：デスクトップ版の窓での見た目（Web 版の画面と同じ部品です）、Python 3.14 以降
+- GUI は、Web 版を起動してブラウザで［サンプル］を開き、選んだサンプルが左に出て、右に変換結果が出るところまで確認しました。式欄のボタンの並びも、同じくブラウザで確認しました
+- **未確認**：Python 3.14 以降
 
 ---
 [toTop](#toreadme)
