@@ -75,10 +75,17 @@ def to_postfix(infix: list[Token], get_spec: Callable[[str], Any],
             op_stack.pop()
         else:
             assert current.operation is not None
-            precedence = current.operation.spec.precedence
+            spec = current.operation.spec
+            precedence = spec.precedence
+            # Equal precedence keeps the old (right-associative) reading unless the incoming
+            # operator is one of the few marked left-associative (0926-03 決定 5 / E9): then an
+            # equal-precedence run on the stack is popped too, so `1 - 2 - 3` groups left to
+            # right (`-4`) instead of right to left (`2`).
+            pop_equal = spec.left_assoc
             while (op_stack and op_stack[-1].kind is TokenKind.OPERATION
                    and op_stack[-1].operation is not None
-                   and op_stack[-1].operation.spec.precedence > precedence):
+                   and (op_stack[-1].operation.spec.precedence > precedence
+                        or (pop_equal and op_stack[-1].operation.spec.precedence == precedence))):
                 popped = op_stack.pop()
                 assert popped.operation is not None
                 result.append(popped.operation)

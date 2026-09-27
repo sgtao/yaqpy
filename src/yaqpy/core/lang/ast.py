@@ -15,17 +15,25 @@ OperatorHandler: TypeAlias = Callable[[Any, Any, "ExprNode"], Any]
 
 @dataclass(frozen=True, slots=True)
 class OperatorSpec:
-    """Go's ``operationType``."""
+    """Go's ``operationType``.
+
+    ``left_assoc`` is a yaqpy addition (0926-03 決定 5 / E9): Go yq (and yaqpy before v0.8.0)
+    gives every binary operator equal-precedence right-associativity in the shunting-yard
+    step (``core.lang.postfix``), so ``1 - 2 - 3`` reads as ``1 - (2 - 3)`` (``2``, not jq's
+    ``-4``). Since nobody means that, arithmetic (``+ - * / %``) is made left-associative from
+    the default dialect onward; every other operator keeps the old (right-associative) table.
+    """
 
     type: str
     num_args: int
     precedence: int
     handler: OperatorHandler | None = None
     check_for_post_traverse: bool = False
+    left_assoc: bool = False
 
     def with_handler(self, handler: OperatorHandler) -> OperatorSpec:
         return OperatorSpec(self.type, self.num_args, self.precedence, handler,
-                            self.check_for_post_traverse)
+                            self.check_for_post_traverse, self.left_assoc)
 
 
 @dataclass(slots=True)

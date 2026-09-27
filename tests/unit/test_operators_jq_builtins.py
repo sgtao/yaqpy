@@ -68,3 +68,38 @@ class BareFirstTests:
     def test_first_with_a_condition_still_works(self) -> None:
         assert yaqpy.query("first(. > 1)", [1, 2, 3]) == [2]
         assert yaqpy.query(".a | first(. > 1)", {"a": [1, 2, 3]}) == [2]
+
+
+class ArithmeticTests:
+    """0926-03 決定 5 (E9): left-associative arithmetic, `* / %` tighter than `+ -`."""
+
+    @pytest.mark.parametrize(("expression", "expected"), [
+        ("1 - 2 - 3", -4),
+        ("8 / 2 / 2", 2),
+        ("2 * 3 + 1", 7),
+        ("1 + 2 * 3", 7),
+        ("10 - 4 + 1", 7),
+        ("2 * 3 * 4", 24),
+        ("10 % 4 - 1", 1),
+    ])
+    def test_left_to_right_with_multiply_first(self, expression: str, expected: int) -> None:
+        assert yaqpy.query(expression, None) == [expected]
+
+    def test_string_repeat_still_binds_tighter_than_add(self) -> None:
+        assert yaqpy.query('"a" + "b" * 2', None) == ["abb"]
+
+    def test_alternative_mixed_with_arithmetic_is_unaffected(self) -> None:
+        assert yaqpy.query(".a // 5", {}) == [5]
+
+
+class AddNullTests:
+    """`+`'s A＋C row: adding null is now a value (jq's identity), not an error."""
+
+    def test_number_plus_null_is_unchanged(self) -> None:
+        assert yaqpy.query("1 + null", None) == [1]
+
+    def test_null_plus_number_is_unchanged(self) -> None:
+        assert yaqpy.query("null + 1", None) == [1]
+
+    def test_string_plus_null_already_worked_and_still_does(self) -> None:
+        assert yaqpy.query('"a" + null', None) == ["a"]

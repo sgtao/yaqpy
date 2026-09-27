@@ -81,6 +81,11 @@ def _add_scalars(ctx: Context, target: Node, lhs: Node, rhs: Node) -> None:
     elif rhs_tag == "!!str":
         target.tag = rhs.tag
         target.value = lhs.value + rhs.value
+    elif rhs_tag == "!!null":
+        # jq's `1 + null == 1` (null is `+`'s identity element); an "error becomes a value"
+        # change (0926-03 3-2), so it cannot affect an expression that worked before.
+        target.tag = lhs.tag
+        target.value = lhs.value
     elif lhs_tag == "!!int" and rhs_tag == "!!int":
         fmt, a = tags.parse_int(lhs.value)
         _, b = tags.parse_int(rhs.value)
