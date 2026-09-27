@@ -314,3 +314,49 @@ class ArrayObjectBuiltinTests:
         assert yaqpy.query("reverse", [1, 2, 3]) == [[3, 2, 1]]
         with pytest.raises(EvaluationError):
             yaqpy.query("reverse", {"a": 1})
+
+
+class PathBuiltinTests:
+    """`getpath path(f) paths paths(f) leaf_paths $ENV env input_filename` (E3/E5, 3-1/3-6)."""
+
+    DOC = {"a": {"b": 1, "c": [1, 2, 3]}}
+
+    def test_getpath_found_and_missing(self) -> None:
+        assert yaqpy.query('getpath(["a", "b"])', self.DOC) == [1]
+        assert yaqpy.query('getpath(["a", "z"])', self.DOC) == [None]
+        assert yaqpy.query("getpath([])", self.DOC) == [self.DOC]
+
+    def test_path_of_f_matches_the_postfix_form(self) -> None:
+        assert yaqpy.query("path(.a.b)", self.DOC) == [["a", "b"]]
+        assert yaqpy.query(".a.b | path", self.DOC) == yaqpy.query("path(.a.b)", self.DOC)
+
+    def test_bare_paths_lists_every_non_root_path(self) -> None:
+        assert yaqpy.query("[paths]", self.DOC) == [
+            [["a"], ["a", "b"], ["a", "c"], ["a", "c", 0], ["a", "c", 1], ["a", "c", 2]]
+        ]
+
+    def test_leaf_paths_excludes_containers(self) -> None:
+        assert yaqpy.query("[leaf_paths]", self.DOC) == [
+            [["a", "b"], ["a", "c", 0], ["a", "c", 1], ["a", "c", 2]]
+        ]
+
+    def test_paths_f_filters_by_the_value_at_each_path(self) -> None:
+        assert yaqpy.query('[paths(tag == "!!int")]', self.DOC) == [
+            [["a", "b"], ["a", "c", 0], ["a", "c", 1], ["a", "c", 2]]
+        ]
+
+    def test_dollar_env_and_bare_env_are_the_same_object(self) -> None:
+        from yaqpy import Options
+        from yaqpy.options import SecurityPolicy
+
+        options = Options(security=SecurityPolicy(allow_env=True))
+        assert yaqpy.query("$ENV | type", None, options=options) == ["!!map"]
+        assert yaqpy.query("$ENV", None, options=options) == yaqpy.query("env", None, options=options)
+
+    def test_env_is_empty_when_not_allowed(self) -> None:
+        # the library default (SecurityPolicy.strict()): no silent leak of the real environment.
+        assert yaqpy.query("$ENV", None) == []
+        assert yaqpy.query("env", None) == []
+
+    def test_input_filename_is_an_alias_for_filename(self) -> None:
+        assert yaqpy.query("input_filename", None) == yaqpy.query("filename", None)

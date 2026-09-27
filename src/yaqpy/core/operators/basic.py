@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from yaqpy.core.engine.context import Context
 from yaqpy.core.engine.helpers import yaml_string
 from yaqpy.core.engine.navigator import Navigator
@@ -100,10 +102,24 @@ def union_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
     return lhs.child(results)
 
 
+def _environ_node(environ: Mapping[str, str]) -> Node:
+    node = Node.mapping()
+    for key, value in environ.items():
+        node.add_key_value(Node.string(key), Node.string(value))
+    return node
+
+
 @operator("GET_VARIABLE")
 def get_variable_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
     name = expr.operation.string_value
     result = ctx.get_variable(name)
+    if result is None and name == "ENV":
+        # `$ENV` / bare `env` (E3/E5, 0926-03 3-6): built here, not pre-seeded into every
+        # root Context, so it stays live if `os.environ` changes between calls and so a
+        # user's own `... as $ENV | ...` (bound above, in ctx.variables) still shadows it.
+        if not nav.env.security.allow_env:
+            return ctx.child([])
+        return ctx.child([_environ_node(nav.env.environ)])
     # list(...) forces a fresh tuple so union's identity check does not collapse `$x, $x`
     return ctx.child(list(result or ()))
 

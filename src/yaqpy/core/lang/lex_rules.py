@@ -200,6 +200,15 @@ def _env(strenv: bool) -> LexAction:
     return action
 
 
+def _bare_env(text: str, get: Callable[[str], Any]) -> Token:
+    """jq's bare ``env`` (E3/E5, 3-6): the same object as ``$ENV`` - both are the GET_VARIABLE
+    ``"ENV"`` lookup, which ``get_variable_operator`` special-cases to build the environment
+    object (or an empty result when ``SecurityPolicy.allow_env`` is off)."""
+    op = Operation(get("GET_VARIABLE"), value="ENV", string_value="ENV",
+                   node=Node.from_value("ENV", "ENV"))
+    return Token(TokenKind.OPERATION, op, check_for_post_traverse=True, match=text)
+
+
 _NUMBER_PARAM = re.compile(r".*\((-?[0-9]+)\)")
 
 
@@ -425,8 +434,19 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     _simple("key", "GET_KEY"),
     _simple("is_?key", "IS_KEY"),
     _simple("file_?name|fileName", "GET_FILENAME"),
+    _word("input_filename", "GET_FILENAME"),   # jq's name for the same thing (3-6)
     _simple("file_?index|fileIndex|fi", "GET_FILE_INDEX"),
-    _simple("path", "GET_PATH"),
+    _word("getpath", "GETPATH"),
+    # "paths"/"leaf_paths" must come before "path" (a prefix of them); the call and bare
+    # spellings of "path"/"paths" must each come before their own bare/call sibling has a
+    # chance to swallow just "path"/"paths" and leave the rest unmatched.
+    _word_call("paths", "PATHS_FILTERED"),
+    LexRule("PathsBare", r"paths(?![A-Za-z0-9_(])",
+            _expression('.. | path | select(length > 0)')),
+    LexRule("LeafPaths", r"leaf_?paths(?![A-Za-z0-9_])",
+            _expression('.. | select(kind == "scalar") | path | select(length > 0)')),
+    _word_call("path", "PATH_OF"),
+    _word_bare("path", "GET_PATH"),
     _simple("set_?path", "SET_PATH"),
     _simple("del_?paths", "DEL_PATHS"),
     _simple("to_?entries|toEntries", "TO_ENTRIES"),
@@ -479,6 +499,7 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     LexRule("QuotedStringValue", r'"([^"\\]*(\\.[^"\\]*)*)"', _string),
     LexRule("StrEnvOp", r"strenv\([^\)]+\)", _env(True)),
     LexRule("EnvOp", r"env\([^\)]+\)", _env(False)),
+    LexRule("EnvBare", r"env(?![A-Za-z0-9_(])", _bare_env),   # jq's `env` == `$ENV` (E3/E5, 3-6)
     LexRule("EnvSubstWithOptions", r"envsubst\((ne|nu|ff| |,)+\)", _op("ENVSUBST")),
     _simple("envsubst", "ENVSUBST"),
     LexRule("Equals", r"\s*==\s*", _op("EQUALS")),

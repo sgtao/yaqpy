@@ -612,6 +612,71 @@ def toarray_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
     return ctx.child(results)
 
 
+# ----------------------------------------------------------------------------- getpath / path(f) / paths(f)
+# Bare `path` (existing GET_PATH), bare `paths` and `leaf_paths` need no new operator - the
+# lexer expands them into ordinary expressions (`.. | path | select(length > 0)` and friends;
+# see core.lang.lex_rules). `path(f)`/`paths(f)` (jq's prefix, argument forms) do need one each.
+
+@operator("GETPATH", num_args=1, precedence=50)
+def getpath_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    from yaqpy.core.lang.ast import create_traversal_tree
+    from yaqpy.core.lang.prefs import TraversePrefs
+    from yaqpy.core.operators.collections import _path_from_node
+
+    results: list[Node] = []
+    for node in ctx.nodes:
+        single = ctx.single_readonly_child(node)
+        path_ctx = nav.evaluate(single, expr.rhs)
+        if not path_ctx.nodes:
+            results.append(Node.null())
+            continue
+        path = _path_from_node("GETPATH", path_ctx.nodes[0])
+        tree = create_traversal_tree(path, TraversePrefs(optional_traverse=True), False,
+                                     nav.env.operators)
+        found = nav.evaluate(single, tree)
+        results.append(found.nodes[0] if found.nodes else Node.null())
+    return ctx.child(results)
+
+
+@operator("PATH_OF", num_args=1, precedence=52, check_for_post_traverse=True)
+def path_of_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    """jq's prefix ``path(f)``: the path(s) ``f`` would navigate to from ``.`` - the same
+    thing as the existing postfix ``f | path`` (``GET_PATH``, unchanged), just evaluating
+    ``f`` first so both spellings work."""
+    from yaqpy.core.operators.collections import get_path_operator
+
+    result = nav.evaluate(ctx, expr.rhs)
+    return get_path_operator(nav, result, expr)
+
+
+def _walk_all(node: Node, prefix: list):
+    yield prefix, node
+    if node.kind is Kind.SEQUENCE:
+        for i, child in enumerate(node.content):
+            yield from _walk_all(child, [*prefix, i])
+    elif node.kind is Kind.MAPPING:
+        for key, value in node.map_items():
+            yield from _walk_all(value, [*prefix, key.value])
+
+
+@operator("PATHS_FILTERED", num_args=1, precedence=52, check_for_post_traverse=True)
+def paths_filtered_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    """jq's ``paths(node_filter)``: every non-root path whose value matches ``node_filter``."""
+    from yaqpy.core.engine.helpers import truthy
+
+    results: list[Node] = []
+    for node in ctx.nodes:
+        for path, candidate in _walk_all(node, []):
+            if not path:
+                continue
+            matched = nav.evaluate(ctx.single_readonly_child(candidate), expr.rhs)
+            if any(truthy(n) for n in matched.nodes):
+                seq = node.create_replacement(Kind.SEQUENCE, "!!seq", "")
+                seq.add_children(Node.integer(p) if isinstance(p, int) else Node.string(p) for p in path)
+                results.append(seq)
+    return ctx.child(results)
+
+
 @operator("IMPLODE", num_args=0, precedence=52, check_for_post_traverse=True)
 def implode_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
     """The inverse of jq's ``explode`` (an array of codepoints -> a string). yq's ``explode``

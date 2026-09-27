@@ -110,9 +110,10 @@ def operator_table(registry: OperatorRegistry | None = None) -> list[OperatorInf
 
 RULES: tuple[tuple[str, str], ...] = (
     ("jq にあって yaqpy にない書き方は使わない",
-     "`if … then … else … end`、`try … catch`、`walk`、`paths`、`limit`、関数の `add`、`reduce`（→ `ireduce`）、"
-     "`ltrimstr`、`splits`、`getpath`、`input`、`debug` は `unexpected character` になります。"
-     "条件分岐は「代入」か `select` で書き、合計は `.[] as $i ireduce (0; . + $i)` で求めます。"),
+     "`if … then … else … end`、`try … catch`、`walk`、`reduce`（→ `ireduce`）、`input`、`debug` は "
+     "`unexpected character` になります（v0.8.0 で `add` `paths` `limit` `ltrimstr` `splits` "
+     "`getpath` などの多くの jq の書き方を足しました。詳しくは --print-spec の「使えない演算子」）。"
+     "条件分岐は「代入」か `select` で書き、合計は `add` または `.[] as $i ireduce (0; . + $i)` で求めます。"),
     ("`select` の後ろに定数やオブジェクトを続けない",
      "`(.role | select(. == \"assistant\") | \"model\") // .role` は、条件が偽でも \"model\" を返します（Go 版 yq と同じ挙動）。"
      "条件付きの書き換えは代入で書きます：`(.contents[] | select(.role == \"assistant\") | .role) = \"model\"`。"
