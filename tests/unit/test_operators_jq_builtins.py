@@ -153,3 +153,30 @@ class CompoundAssignTests:
     def test_alternative_assign_fills_in_only_when_null(self) -> None:
         assert yaqpy.query(".c //= 5", {"c": None}) == [{"c": 5}]
         assert yaqpy.query(".a //= 5", {"a": 10}) == [{"a": 10}]
+
+
+class TypeFilterTests:
+    """`values nulls booleans numbers strings arrays objects iterables scalars` (E3, 3-7/3-9)."""
+
+    MIXED = [1, "a", None, True, [1], {"a": 1}]
+
+    @pytest.mark.parametrize(("word", "expected"), [
+        ("numbers", [1]),
+        ("strings", ["a"]),
+        ("nulls", [None]),
+        ("booleans", [True]),
+        ("arrays", [[1]]),
+        ("objects", [{"a": 1}]),
+        ("iterables", [[1], {"a": 1}]),
+        ("scalars", [1, "a", None, True]),
+        ("values", [1, "a", True, [1], {"a": 1}]),
+    ])
+    def test_each_filter_keeps_only_its_type(self, word: str, expected: list) -> None:
+        assert yaqpy.query(f"[.[] | {word}]", self.MIXED) == [expected]
+
+    def test_nulls_is_not_read_as_null_plus_s(self) -> None:
+        # "nulls" is a prefix collision with the `null` literal - the lexer must read the
+        # whole word, not `null` followed by a dangling `s`.
+        assert yaqpy.query("nulls", None) == [None]
+        with pytest.raises(ExpressionSyntaxError):
+            yaqpy.query("nullsy", None)

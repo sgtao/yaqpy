@@ -426,6 +426,17 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     LexRule("Downcase", r"downcase|ascii_?downcase", _op("CHANGE_CASE", False)),
     _simple("trim", "TRIM"),
     _simple("to_?string", "TO_STRING"),
+    # jq's type filters (E3, 0926-03 3-7 / 3-9): `.[] | numbers` keeps only the numbers, etc.
+    # "nulls" must come before the NullValue literal rule below (`null` is a prefix of it).
+    _word("values", "TYPE_FILTER", "values"),
+    _word("nulls", "TYPE_FILTER", "nulls"),
+    _word("booleans", "TYPE_FILTER", "booleans"),
+    _word("numbers", "TYPE_FILTER", "numbers"),
+    _word("strings", "TYPE_FILTER", "strings"),
+    _word("arrays", "TYPE_FILTER", "arrays"),
+    _word("objects", "TYPE_FILTER", "objects"),
+    _word("iterables", "TYPE_FILTER", "iterables"),
+    _word("scalars", "TYPE_FILTER", "scalars"),
     LexRule("HexValue", r"0[xX][0-9A-Fa-f]+", _hex),
     LexRule("FloatValueScientific", r"-?[1-9](\.\d+)?[Ee][-+]?\d+", _float),
     LexRule("FloatValue", r"-?\d+(\.\d+)", _float),
