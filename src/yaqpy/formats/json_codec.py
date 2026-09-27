@@ -150,6 +150,7 @@ class JsonEncoder:
     def __init__(self, options: Options | None = None, *, unwrap_scalar: bool = True) -> None:
         self.options = options or Options()
         self.indent = self.options.indent
+        self.tab = self.options.json.tab   # --tab (E6, 0926-03 3-12): one tab per level
         self.unwrap_scalar = unwrap_scalar
 
     def can_handle_aliases(self) -> bool:
@@ -179,19 +180,19 @@ class JsonEncoder:
             for key, value in node.map_items():
                 items.append((json.dumps(key.value, ensure_ascii=False),
                               self.encode_value(value, level + 1)))
-            if indent <= 0:
+            if not self.tab and indent <= 0:
                 return "{" + ",".join(f"{k}:{v}" for k, v in items) + "}"
-            pad = " " * (indent * (level + 1))
-            end = " " * (indent * level)
+            pad = ("\t" * (level + 1)) if self.tab else " " * (indent * (level + 1))
+            end = ("\t" * level) if self.tab else " " * (indent * level)
             return "{\n" + ",\n".join(f"{pad}{k}: {v}" for k, v in items) + "\n" + end + "}"
         if node.kind is Kind.SEQUENCE:
             if not node.content:
                 return "[]"
             items = [self.encode_value(c, level + 1) for c in node.content]
-            if indent <= 0:
+            if not self.tab and indent <= 0:
                 return "[" + ",".join(items) + "]"
-            pad = " " * (indent * (level + 1))
-            end = " " * (indent * level)
+            pad = ("\t" * (level + 1)) if self.tab else " " * (indent * (level + 1))
+            end = ("\t" * level) if self.tab else " " * (indent * level)
             return "[\n" + ",\n".join(pad + i for i in items) + "\n" + end + "]"
         return "null"
 

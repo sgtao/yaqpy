@@ -31,6 +31,14 @@ class EvaluateRequest:
     output_format: str | None = None
     unwrap_scalar: bool | None = None
     split_expression: str = ""          # -s: name a file per result with this expression
+    slurp: bool = False                 # --slurp: all inputs as one array, not eval-all's stream
+    # --arg NAME VALUE / --argjson NAME JSON (E6, 0926-03 3-12): bound as $NAME and folded into
+    # $ARGS.named; repeated names keep only the last (jq's own rule). --args/--jsonargs fill
+    # $ARGS.positional instead of being read as input files.
+    named_args: tuple[tuple[str, str], ...] = ()
+    named_json_args: tuple[tuple[str, str], ...] = ()
+    positional_args: tuple[str, ...] | None = None
+    positional_args_json: bool = False
 
 
 @dataclass(frozen=True, slots=True)

@@ -124,6 +124,12 @@ def build_parser() -> _Parser:
                    help="print to stdout in TOON (Token-Oriented Object Notation); same as -o toon")
     g.add_argument("--toon-delimiter", choices=["comma", "tab", "pipe"], default="comma",
                    help="delimiter for TOON arrays and table rows (default: comma)")
+    g.add_argument("--compact-output", action="store_true",
+                   help="jq-style one-line output (sets indent to 0; not '-c', which is "
+                        "yq's --yaml-compact-seq-indent)")
+    g.add_argument("--tab", action="store_true", help="use a tab for each indentation level (JSON only)")
+    g.add_argument("-S", "--sort-keys", dest="sort_keys", action="store_true",
+                   help="sort the keys of every mapping, at every depth, on output")
     f = parser.add_argument_group("format options")
     f.add_argument("--xml-attribute-prefix", default="+@", help="prefix for xml attributes")
     f.add_argument("--xml-content-name", default="+content",
@@ -210,6 +216,14 @@ def build_parser() -> _Parser:
                    help="Slurp any header comments and separators before processing expression.")
     i.add_argument("--yaml-fix-merge-anchor-to-spec", nargs="?", const=True, default=False,
                    type=parse_bool, help="Fix merge anchor to match YAML spec.")
+    i.add_argument("--arg", nargs=2, action="append", default=[], metavar=("NAME", "VALUE"),
+                   help="set variable $NAME to the string VALUE (repeatable); also folded into "
+                        "$ARGS.named")
+    i.add_argument("--argjson", nargs=2, action="append", default=[], metavar=("NAME", "JSON"),
+                   help="like --arg, but VALUE is parsed as YAML/JSON")
+    i.add_argument("--slurp", action="store_true",
+                   help="read all inputs into one array, fed to the expression once (unlike "
+                        "eval-all, which evaluates against the documents directly)")
     i.add_argument("-s", "--split-exp", default="",
                    help="print each result (or doc) into a file named (exp). [exp] argument must return "
                         "a string. You can use $index in the expression as the result counter. "
@@ -241,12 +255,30 @@ def build_parser() -> _Parser:
     return parser
 
 
+_POSITIONAL_ARGS_MARKERS = ("--args", "--jsonargs")
+
+
 def parse_args(argv: list[str]) -> argparse.Namespace:
+    """``--args``/``--jsonargs`` (E6, 0926-03 3-12): jq's own convention is that everything
+    after one of these flags is a positional value for ``$ARGS.positional``, not a flag or an
+    input file - so it is split off here, before argparse (which has no "everything from here
+    on is literal" mode that plays well with `parse_intermixed_args`) ever sees it."""
+    argv = list(argv)
+    positional_args: list[str] | None = None
+    positional_args_json = False
+    for i, token in enumerate(argv):
+        if token in _POSITIONAL_ARGS_MARKERS:
+            positional_args_json = token == "--jsonargs"
+            positional_args = argv[i + 1:]
+            argv = argv[:i]
+            break
     parser = build_parser()
     ns = parser.parse_intermixed_args(normalise_argv(argv))
     ns.command = "eval"
     if ns.args and ns.args[0] in SUBCOMMANDS:
         ns.command = SUBCOMMANDS[ns.args.pop(0)]
+    ns.positional_args = positional_args
+    ns.positional_args_json = positional_args_json
     return ns
 
 

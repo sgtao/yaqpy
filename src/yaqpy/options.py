@@ -58,6 +58,7 @@ class YamlOptions:
 @dataclass(frozen=True, slots=True, kw_only=True)
 class JsonOptions:
     indent: int = 2
+    tab: bool = False   # --tab (E6, 0926-03 3-12): one tab per level, JSON only for now
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -141,6 +142,7 @@ class Options:
     null_input: bool = False
     nul_separated_output: bool = False
     pretty_print: bool = False
+    sort_keys: bool = False               # -S/--sort-keys (E6, 0926-03 3-12): every level, on output
     string_interpolation: bool = True     # "\(expression)" inside double-quoted strings
     yaml: YamlOptions = field(default_factory=YamlOptions)
     json: JsonOptions = field(default_factory=JsonOptions)

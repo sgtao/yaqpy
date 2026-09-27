@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import dataclasses
 import time
-from collections.abc import Callable, Iterator, Sequence
+from collections.abc import Callable, Iterator, Mapping, Sequence
 from datetime import datetime
 from typing import Any
 
@@ -175,17 +175,23 @@ class YqService:
         printer = ResultPrinter(encoder, sink, nul_separated=options.nul_separated_output,
                                 max_depth=options.limits.max_depth,
                                 fix_merge=options.yaml.fix_merge_anchor_to_spec,
-                                split=self._split_writer(request, nav, output_format))
+                                split=self._split_writer(request, nav, output_format),
+                                sort_keys=options.sort_keys)
+        root_variables = self._build_root_variables(request, env)
         document_count = 0
         try:
             if options.null_input or not request.inputs:
-                document_count = self._evaluate_null_input(nav, expression, printer, request.mode)
+                document_count = self._evaluate_null_input(nav, expression, printer, request.mode,
+                                                            root_variables)
+            elif request.slurp:
+                document_count = self._evaluate_slurp(nav, expression, printer, decoder, request,
+                                                      budget, root_variables)
             elif request.mode is EvalMode.STREAM:
                 document_count = self._evaluate_stream(nav, expression, printer, decoder, request,
-                                                       budget)
+                                                       budget, root_variables)
             else:
                 document_count = self._evaluate_all(nav, expression, printer, decoder, request,
-                                                    budget)
+                                                    budget, root_variables)
         except YqError:
             raise
         except RecursionError:
@@ -219,13 +225,44 @@ class YqService:
                                         expression=e.expression, position=e.position) from None
         return SplitWriter(self.fs, nav, name_expression, output_format)
 
-    def _root_context(self, nodes: Sequence[Node]) -> Context:
-        return Context(tuple(nodes))
+    def _root_context(self, nodes: Sequence[Node],
+                      variables: Mapping[str, tuple[Node, ...]] | None = None) -> Context:
+        return Context(tuple(nodes), variables or {})
+
+    def _build_root_variables(self, request: EvaluateRequest,
+                              env: EvalEnv) -> dict[str, tuple[Node, ...]]:
+        """``--arg``/``--argjson``/``--args``/``--jsonargs`` (E6, 0926-03 3-12): bound once per
+        evaluation as ``$NAME`` and folded into ``$ARGS``, exactly like jq. Nothing here is set
+        when the request uses none of them, so an ordinary evaluation is unaffected."""
+        if not (request.named_args or request.named_json_args
+                or request.positional_args is not None):
+            return {}
+        decode = env.yaml_snippet_decoder
+        assert decode is not None, "named/positional args need a YAML/JSON decoder"
+        named: dict[str, Node] = {}
+        for name, value in request.named_args:
+            named[name] = Node.string(value)
+        for name, text in request.named_json_args:
+            named[name] = decode(text)
+        positional = Node.sequence()
+        if request.positional_args is not None:
+            positional.add_children(
+                decode(value) if request.positional_args_json else Node.string(value)
+                for value in request.positional_args)
+        named_node = Node.mapping()
+        for key, value in named.items():
+            named_node.add_key_value(Node.string(key), value)
+        args_node = Node.mapping()
+        args_node.add_key_value(Node.string("positional"), positional)
+        args_node.add_key_value(Node.string("named"), named_node)
+        variables: dict[str, tuple[Node, ...]] = {name: (value,) for name, value in named.items()}
+        variables["ARGS"] = (args_node,)
+        return variables
 
     def _evaluate_null_input(self, nav: Navigator, expression: Expression, printer: ResultPrinter,
-                             mode: EvalMode) -> int:
+                             mode: EvalMode, variables: dict[str, tuple[Node, ...]]) -> int:
         node = Node.null(value="")
-        result = nav.evaluate(self._root_context([node]), expression.root)
+        result = nav.evaluate(self._root_context([node], variables), expression.root)
         printer.print_results(result.nodes)
         return 0
 
@@ -237,28 +274,49 @@ class YqService:
                                         process_leading=process_leading, budget=budget)
 
     def _evaluate_stream(self, nav: Navigator, expression: Expression, printer: ResultPrinter,
-                         decoder: Any, request: EvaluateRequest, budget: StepBudget) -> int:
+                         decoder: Any, request: EvaluateRequest, budget: StepBudget,
+                         variables: dict[str, tuple[Node, ...]]) -> int:
         total = 0
         root: ExprNode | None = expression.root
         for file_index, source in enumerate(request.inputs):
             for node in self._decode(decoder, request, source, file_index, True, budget):
-                result = nav.evaluate(self._root_context([node]), root)
+                result = nav.evaluate(self._root_context([node], variables), root)
                 printer.print_results(result.nodes)
                 total += 1
         if total == 0:
-            self._evaluate_null_input(nav, expression, printer, EvalMode.STREAM)
+            self._evaluate_null_input(nav, expression, printer, EvalMode.STREAM, variables)
         return total
 
-    def _evaluate_all(self, nav: Navigator, expression: Expression, printer: ResultPrinter,
-                      decoder: Any, request: EvaluateRequest, budget: StepBudget) -> int:
+    def _read_all_documents(self, request: EvaluateRequest, decoder: Any,
+                            budget: StepBudget) -> list[Node]:
         documents: list[Node] = []
         for file_index, source in enumerate(request.inputs):
             for node in self._decode(decoder, request, source, file_index, file_index == 0, budget):
-                node.evaluate_together = True     # Go's readDocuments
                 documents.append(node)
+        return documents
+
+    def _evaluate_all(self, nav: Navigator, expression: Expression, printer: ResultPrinter,
+                      decoder: Any, request: EvaluateRequest, budget: StepBudget,
+                      variables: dict[str, tuple[Node, ...]]) -> int:
+        documents = self._read_all_documents(request, decoder, budget)
+        for node in documents:
+            node.evaluate_together = True     # Go's readDocuments
         if not documents:
             documents.append(Node.null(value=""))
-        result = nav.evaluate(self._root_context(documents), expression.root)
+        result = nav.evaluate(self._root_context(documents, variables), expression.root)
+        printer.print_results(result.nodes)
+        return len(documents)
+
+    def _evaluate_slurp(self, nav: Navigator, expression: Expression, printer: ResultPrinter,
+                        decoder: Any, request: EvaluateRequest, budget: StepBudget,
+                        variables: dict[str, tuple[Node, ...]]) -> int:
+        """``--slurp`` (E6, 0926-03 3-12): every input, still individually decoded, becomes one
+        array fed to the expression once - unlike ``eval-all``, which evaluates against the
+        documents directly (``Context.evaluate_together``), not wrapped in an array value."""
+        documents = self._read_all_documents(request, decoder, budget)
+        array = Node.sequence()
+        array.add_children(documents)
+        result = nav.evaluate(self._root_context([array], variables), expression.root)
         printer.print_results(result.nodes)
         return len(documents)
 

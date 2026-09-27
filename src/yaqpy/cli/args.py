@@ -10,8 +10,8 @@ from yaqpy.app.dto import EvalMode, EvaluateRequest, InputSource
 from yaqpy.app.service import with_prune
 from yaqpy.formats.registry import FormatRegistry, builtin_formats
 from yaqpy.options import (
-    CsvOptions, Limits, Options, PropertiesOptions, SchemaOptions, SecurityPolicy, TomlOptions,
-    ToonOptions, XmlOptions, YamlOptions,
+    CsvOptions, JsonOptions, Limits, Options, PropertiesOptions, SchemaOptions, SecurityPolicy,
+    TomlOptions, ToonOptions, XmlOptions, YamlOptions,
 )
 
 _TOON_DELIMITERS = {"comma": ",", "tab": "\t", "pipe": "|"}
@@ -87,6 +87,7 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         expression = f"{expression} | schema" if expression else "schema"
     if ns.prune_null or ns.prune_empty:
         expression = with_prune(expression, nulls=ns.prune_null, empties=ns.prune_empty)
+    indent = 0 if ns.compact_output else ns.indent
 
     # formats (Go's configureInputFormat / configureOutputFormat)
     input_filename = files[0] if files else ""
@@ -132,28 +133,30 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         input_format=input_format,
         output_format=output_format,
         unwrap_scalar=unwrap,
-        indent=ns.indent,
+        indent=indent,
         null_input=ns.null_input,
         nul_separated_output=ns.nul_output,
         pretty_print=ns.pretty_print,
+        sort_keys=ns.sort_keys,
         string_interpolation=ns.string_interpolation,
         yaml=YamlOptions(
-            indent=ns.indent,
+            indent=indent,
             compact_sequence_indent=ns.yaml_compact_seq_indent,
             print_doc_separators=not ns.no_doc,
             leading_content_preprocessing=ns.header_preprocess,
             fix_merge_anchor_to_spec=ns.yaml_fix_merge_anchor_to_spec,
         ),
+        json=JsonOptions(indent=indent, tab=ns.tab),
         props=PropertiesOptions(
             key_value_separator=ns.properties_separator,
             use_array_brackets=ns.properties_array_brackets,
         ),
         toon=ToonOptions(
             delimiter=_TOON_DELIMITERS[ns.toon_delimiter],
-            indent=ns.indent if ns.indent >= 1 else 2,
+            indent=indent if indent >= 1 else 2,
         ),
         xml=XmlOptions(
-            indent=ns.indent,
+            indent=indent,
             attribute_prefix=ns.xml_attribute_prefix,
             content_name=ns.xml_content_name,
             strict_mode=ns.xml_strict_mode,
@@ -188,5 +191,10 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         output_format=output_format,
         unwrap_scalar=unwrap,
         split_expression=split_expression,
+        slurp=ns.slurp,
+        named_args=tuple((name, value) for name, value in ns.arg),
+        named_json_args=tuple((name, value) for name, value in ns.argjson),
+        positional_args=tuple(ns.positional_args) if ns.positional_args is not None else None,
+        positional_args_json=ns.positional_args_json,
     )
     return Invocation(request, tuple(warnings), show_usage)
