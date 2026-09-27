@@ -890,10 +890,10 @@ uv run yaqpy --split-exp-file name.yq multi.yaml
 
 ### まだ使えないもの
 
-次の演算子は**実装していません**。式としては解釈されますが、**実行すると `Error: unknown operator ...` で終了します**。ファイル・環境変数・外部コマンドに触れる（`error` を除く）ため、安全性の設計をしてから入れる予定です（改修計画の O3）。
+次の演算子は**実装していません**。式としては解釈されますが、**実行すると `Error: unknown operator ...` で終了します**。ファイル・環境変数・外部コマンドに触れるため、安全性の設計をしてから入れる予定です（改修計画の O3）。
 
 <!-- yaqpy:unimplemented-operators:begin  (yaqpy --print-spec の「使えない演算子」と一致することを、テストで確かめています) -->
-`envsubst` `error` `eval` `load` `load_base64` `load_props` `load_str` `load_xml` `str_load` `system` `xml_load`
+`envsubst` `eval` `load` `load_base64` `load_props` `load_str` `load_xml` `str_load` `system` `xml_load`
 <!-- yaqpy:unimplemented-operators:end -->
 
 この一覧は、実装から自動生成される `yaqpy --print-spec` の「使えない演算子」と同じです（[yaqpy が自分を説明する](#yaqpy-が自分を説明する--print-spec---example---guide-prompt---skill-md)）。

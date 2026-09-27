@@ -22,9 +22,6 @@ def build_tree(postfix: list[Operation], expression: str = "") -> ExprNode | Non
         num_args = operation.spec.num_args
         if num_args == 1:
             if not stack:
-                if operation.spec.type == "FIRST":
-                    stack.append(node)
-                    continue
                 raise ExpressionSyntaxError(
                     f"'{operation.string_value.strip()}' expects 1 arg but received none",
                     expression=expression, position=operation.position,

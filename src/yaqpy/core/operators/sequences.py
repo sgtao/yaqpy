@@ -56,6 +56,7 @@ def shuffle_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
 # ----------------------------------------------------------------------------- first
 
 @operator("FIRST")
+@operator("FIRST_BARE", num_args=0, precedence=52, check_for_post_traverse=True)
 def first_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
     results: list[Node] = []
     for candidate in ctx.nodes:

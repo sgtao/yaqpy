@@ -26,7 +26,7 @@ SERVICE = YqService(InMemoryFileSystem(), StaticEnvironment({}))
 TABLE = operator_table()
 # The operators that touch files, the environment or other programs are left out on purpose
 # (plan 5-2, O3). When one of them is implemented, this set - and USAGE.ja.md - must change with it.
-NOT_IMPLEMENTED = {"envsubst", "error", "eval", "load", "load_base64", "load_props", "load_str",
+NOT_IMPLEMENTED = {"envsubst", "eval", "load", "load_base64", "load_props", "load_str",
                    "load_xml", "str_load", "system", "xml_load"}
 
 

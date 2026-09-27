@@ -267,6 +267,28 @@ def _assignable(name: str, get_type: str, assign_type: str) -> LexRule:
     return LexRule(name[0].upper() + name[1:], name, _op(get_type, assign=assign_type))
 
 
+def _word(name: str, op_type: str, prefs: Any = None) -> LexRule:
+    """Like ``_simple``, but the word must end there (a jq word added in v0.8.0; see the
+    plan's 5-7: a keyword that is a prefix of a longer one - ``path``/``paths``,
+    ``min``/``min_by`` - must say it ends where it does, or the alternation (which tries
+    rules in order, not by length) reads the short word and leaves the rest as garbage)."""
+    return LexRule(name[0].upper() + name[1:], name + r"(?![A-Za-z0-9_])", _op(op_type, prefs))
+
+
+def _word_call(name: str, op_type: str) -> LexRule:
+    """``name(`` - a jq word only when immediately followed by ``(``, so that ``name`` alone
+    (no call) can be a different, 0-arg rule with the same spelling (``add``/``add(f)``,
+    ``first``/``first(f)``). The ``(`` itself is not consumed; it is tokenised normally."""
+    return LexRule(name[0].upper() + name[1:] + "Call", name + r"(?=\()", _op(op_type))
+
+
+def _word_bare(name: str, op_type: str, prefs: Any = None) -> LexRule:
+    """The counterpart of ``_word_call``: ``name`` not immediately followed by ``(`` or by
+    another identifier character."""
+    return LexRule(name[0].upper() + name[1:] + "Bare", name + r"(?![A-Za-z0-9_(])",
+                   _op(op_type, prefs))
+
+
 # ----------------------------------------------------------------------------- the table
 
 DEFAULT_RULES: tuple[LexRule, ...] = (
@@ -309,7 +331,9 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     _simple("from_?unix", "FROM_UNIX"),
     _simple("to_?unix", "TO_UNIX"),
     _simple("with_dtf", "WITH_DATE_TIME_FORMAT"),
-    _simple("error", "ERROR"),
+    _word_call("error", "ERROR"),
+    _word_bare("error", "ERROR_BARE"),
+    _word("empty", "EMPTY"),
     _simple("shuffle", "SHUFFLE"),
     _simple("sortKeys", "SORT_KEYS"),
     _simple("sort_?keys", "SORT_KEYS"),
@@ -361,7 +385,8 @@ DEFAULT_RULES: tuple[LexRule, ...] = (
     _simple("test", "TEST"),
     _simple("sort_?by", "SORT_BY"),
     _simple("sort", "SORT"),
-    _simple("first", "FIRST"),
+    _word_call("first", "FIRST"),
+    _word_bare("first", "FIRST_BARE"),
     _simple("reverse", "REVERSE"),
     _simple("any_c", "ANY_CONDITION"),
     _simple("any", "ANY"),
