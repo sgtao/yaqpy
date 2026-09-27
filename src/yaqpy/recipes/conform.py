@@ -20,6 +20,7 @@ TYPE = "type"            # a value of another type
 VALUE = "value"          # not one of the allowed values, or not matching any alternative
 RANGE = "range"          # below the minimum / above the maximum
 SIZE = "size"            # too few / too many items
+ISSUE_KINDS = (MISSING, EXTRA, TYPE, VALUE, RANGE, SIZE)
 
 _MAX_REF_DEPTH = 50
 

@@ -24,6 +24,21 @@ class AddRule:
 
 
 @dataclass(frozen=True, slots=True)
+class HintRule:
+    """A piece of advice the recipe gives when the result does not fit the target schema.
+
+    ``issue`` (a kind of schema issue: missing, extra, type, ...) and ``path`` (where; ``[]`` stands
+    for any list position) narrow when it applies; a rule with neither applies to every issue. ``text``
+    may use ``{recipe}`` (the recipe's name), ``{input}`` (the input's name) and ``{path}`` (the path
+    of the issue).
+    """
+
+    text: str
+    issue: str = ""
+    path: str = ""
+
+
+@dataclass(frozen=True, slots=True)
 class RecipeTest:
     """One case of the recipe's own self-test: an input and the output it must give."""
 
@@ -49,6 +64,7 @@ class Recipe:
     carries: tuple[str, ...] = ()               # input paths the expression reads
     drops: tuple[DropRule, ...] = ()
     adds: tuple[AddRule, ...] = ()
+    hints: tuple[HintRule, ...] = ()
     tests: tuple[RecipeTest, ...] = ()
     notes: tuple[str, ...] = ()
 

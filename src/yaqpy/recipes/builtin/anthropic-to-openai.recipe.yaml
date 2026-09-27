@@ -26,6 +26,9 @@ drops:
   - {path: ".system[type!=text]", reason: "only text blocks are converted"}
   - {path: ".tools[type!=custom].type", reason: "only tools that have an input_schema are converted; server tools are dropped"}
   - {path: .thinking, reason: "not converted; the target has other reasoning settings"}
+hints:
+  - when: {issue: missing, path: .model}
+    text: 'the recipe does not choose a model. Add yours after the conversion, e.g. yaqpy --recipe {recipe} {input} | yaqpy ''.model = "gpt-4o"'''
 notes:
   - "The system prompt becomes the first message (role system). A message with exactly one text block gets a plain string as content."
   - "max_tokens becomes max_completion_tokens; metadata.user_id becomes user; disable_parallel_tool_use: true becomes parallel_tool_calls: false."

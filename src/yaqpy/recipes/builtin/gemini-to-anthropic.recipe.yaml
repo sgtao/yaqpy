@@ -44,6 +44,9 @@ drops:
   - {path: ".tools[].mcpServers", reason: "only function declarations are converted"}
 adds:
   - {path: .max_tokens, unless: [.generationConfig.maxOutputTokens], reason: "the Messages API requires max_tokens; 4096 is the recipe's default, not a value from the input"}
+hints:
+  - when: {issue: missing, path: .model}
+    text: 'the recipe does not choose a model. Add yours after the conversion, e.g. yaqpy --recipe {recipe} {input} | yaqpy ''.model = "claude-opus-5-5"'''
 notes:
   - "systemInstruction becomes the system parameter (a list of text blocks). A content without a role is read as a user message; the role model becomes assistant."
   - "A function without parameters gets an empty object schema, because input_schema is required."

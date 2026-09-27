@@ -10,12 +10,13 @@ from yaqpy.core.model.convert import to_python
 from yaqpy.errors import FormatError, RecipeError
 from yaqpy.formats.yaml.codec import YamlDecoder
 from yaqpy.options import Options
-from yaqpy.recipes.model import AddRule, DropRule, Recipe, RecipeTest
+from yaqpy.recipes.conform import ISSUE_KINDS
+from yaqpy.recipes.model import AddRule, DropRule, HintRule, Recipe, RecipeTest
 from yaqpy.recipes.paths import parse_pattern
 
 METADATA_KEYS = frozenset({
     "name", "title", "description", "version", "input", "output", "target_schema", "prune",
-    "carries", "drops", "adds", "tests", "notes", "expression", "expression_file",
+    "carries", "drops", "adds", "hints", "tests", "notes", "expression", "expression_file",
 })
 PRUNE_MODES = ("nulls", "empties")   # not "null": YAML reads that as the null value
 
@@ -70,6 +71,34 @@ def _rules(data: dict[str, Any], key: str, origin: str) -> list[dict[str, Any]]:
             raise RecipeError(f"{origin}: every entry of '{key}' needs a 'path'")
         _pattern_ok(rule["path"], key, origin)
     return value
+
+
+def _hints(data: dict[str, Any], origin: str) -> tuple[HintRule, ...]:
+    value = data.get("hints")
+    if value is None:
+        return ()
+    if not isinstance(value, list) or not all(isinstance(v, dict) for v in value):
+        raise RecipeError(f"{origin}: 'hints' must be a list of mappings")
+    rules: list[HintRule] = []
+    for index, entry in enumerate(value, 1):
+        unknown = set(entry) - {"when", "text"}
+        if unknown:
+            raise RecipeError(f"{origin}: unknown key in hint {index}: {', '.join(sorted(unknown))}")
+        text = entry.get("text")
+        if not isinstance(text, str) or not text.strip():
+            raise RecipeError(f"{origin}: hint {index} needs a 'text'")
+        when = entry.get("when") or {}
+        if not isinstance(when, dict) or set(when) - {"issue", "path"}:
+            raise RecipeError(f"{origin}: 'when' of hint {index} takes 'issue' and 'path'")
+        issue, path = when.get("issue", ""), when.get("path", "")
+        if issue and issue not in ISSUE_KINDS:
+            raise RecipeError(f"{origin}: 'issue' of hint {index} is one of "
+                              f"{', '.join(ISSUE_KINDS)}, not {issue!r}")
+        if path and (not isinstance(path, str) or not path.startswith(".") or
+                     path.replace("[]", "").count("[") or path.count("]") != path.count("[]")):
+            raise RecipeError(f"{origin}: 'path' of hint {index} is like .model or .messages[].role")
+        rules.append(HintRule(text, issue or "", path or ""))
+    return tuple(rules)
 
 
 def _format_of(data: dict[str, Any], key: str, origin: str) -> tuple[str, str]:
@@ -153,6 +182,6 @@ def build_recipe(*, name: str, expression: str | None, metadata: str | None, ori
         title=_text(data, "title", origin), description=_text(data, "description", origin),
         origin=origin, version=version, input_format=input_format, output_format=output_format,
         input_api=input_api, output_api=output_api, target_schema=schema, prune=prune,
-        carries=carries, drops=drops, adds=tuple(adds), tests=tuple(tests),
+        carries=carries, drops=drops, adds=tuple(adds), hints=_hints(data, origin), tests=tuple(tests),
         notes=_text_list(data, "notes", origin),
     )

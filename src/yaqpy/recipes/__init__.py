@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from yaqpy.recipes.catalog import builtin_recipes, find_builtin
 from yaqpy.recipes.loader import build_recipe
-from yaqpy.recipes.model import AddRule, DropRule, Recipe, RecipeTest
+from yaqpy.recipes.model import AddRule, DropRule, HintRule, Recipe, RecipeTest
 
 __all__ = ["AddRule", "DropRule", "Recipe", "RecipeTest", "build_recipe", "builtin_recipes",
            "find_builtin"]

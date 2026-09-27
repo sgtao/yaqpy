@@ -37,6 +37,9 @@ drops:
   - {path: ".tools[type!=function]", reason: "only function tools are converted"}
 adds:
   - {path: .max_tokens, unless: [.max_tokens, .max_completion_tokens], reason: "the Messages API requires max_tokens; 4096 is the recipe's default, not a value from the input"}
+hints:
+  - when: {issue: missing, path: .model}
+    text: 'the recipe does not choose a model. Add yours after the conversion, e.g. yaqpy --recipe {recipe} {input} | yaqpy ''.model = "claude-opus-5-5"'''
 notes:
   - "System and developer messages become the system parameter (a list of text blocks)."
   - "user becomes metadata.user_id. parallel_tool_calls: false becomes tool_choice.disable_parallel_tool_use: true."

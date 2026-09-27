@@ -44,6 +44,9 @@ drops:
   - {path: ".tools[].mcpServers", reason: "only function declarations are converted"}
 adds:
   - {path: .response_format.json_schema.name, reason: "OpenAI requires a name for a JSON Schema response format; Gemini has none, so the recipe uses 'response'"}
+hints:
+  - when: {issue: missing, path: .model}
+    text: 'the recipe does not choose a model. Add yours after the conversion, e.g. yaqpy --recipe {recipe} {input} | yaqpy ''.model = "gpt-4o"'''
 notes:
   - "A message with exactly one text part gets a plain string as content; more parts stay a list of text parts."
   - "A content without a role is read as a user message."

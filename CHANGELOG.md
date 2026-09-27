@@ -9,7 +9,8 @@
 
 ### 追加
 
-- **レシピの `hint:`**：変換先が必須とする `model` が結果にないとき（Gemini → OpenAI / Anthropic、ほか OpenAI ⇄ Anthropic でも `model` は落とすので同じ）、報告の最後に、足し方を 1 行で案内します。`yaqpy --recipe gemini-to-openai request.json | yaqpy '.model = "gpt-4o"'` の形で、入力のファイル名と、変換先に合うモデル名の例（OpenAI は `gpt-4o`、Anthropic は `claude-opus-5-5`）が入ります。標準エラー出力（`--report` では `Hint:`）に出るだけで、変換結果は変わりません。レシピは、これまでどおりモデル名を選びません
+- **レシピの `hints:`**：レシピの説明のファイル（`.recipe.yaml`）に、目標スキーマとの食い違いが出たときの**案内**を書けるようになりました。`when`（`issue` の種類と `path`。省略可）と `text`（`{recipe}` `{input}` `{path}` が使える）を並べます。当てはまる案内が、報告の最後に `hint:`（`--report` では `Hint:`）として出ます。**自作のレシピにも同じように書けます**（案内は Python のコードには埋め込んでいません）。書き間違いはエラーです
+- **同梱の 4 レシピ（変換先が OpenAI・Anthropic のもの）に、`model` の足し方の案内を書きました**：変換先が必須とする `model` が結果にないとき、`yaqpy --recipe gemini-to-openai request.json | yaqpy '.model = "gpt-4o"'` の形で、入力のファイル名と、変換先に合うモデル名の例（OpenAI は `gpt-4o`、Anthropic は `claude-opus-5-5`）を示します。標準エラー出力に出るだけで、変換結果は変わりません。レシピは、これまでどおりモデル名を選びません
 - **GUI の［サンプル］ボタン**：ファイル名の右のボタンを押すと、`examples/` のデータ（各形式のサンプルと、OpenAI・Gemini・Anthropic のリクエストボディ）の一覧がプルダウンで開き、選ぶと入力になります。`[＋ファイルを追加]` と同じ規則（何も開いていなければ最初の文書に、開いていれば追加）で、**入力形式は `auto`** になります。デスクトップ版・Web 版のどちらでも使えます。データは wheel に同梱しています（`src/yaqpy/gui/assets/examples/`。選べるのは一覧にある名前だけで、パスは受け付けません）
 
 ### 文書
@@ -21,13 +22,14 @@
 
 ### ライブラリ・開発者向けの変更
 
+- `recipes/hints.py`・`tests/unit/test_recipes_hints.py` を追加しました（`Recipe.hints`、`HintRule`。`loader.py` が `hints:` を読みます）
 - `tests/acceptance/test_examples.py`：`openai-request.json` の改名でこのテストが落ちていたのを直し、3 つのサンプルを他の 2 社へ変換する 6 通りのテストを足しました
 - `tests/unit/test_gui_samples.py`：`assets/examples/` が `examples/` と同じ内容であること、サンプルの開き方、名前の検査、メニューの並びを検査します（`examples/` を直したら、コピーも直します。[DEVELOPMENT.md](./DEVELOPMENT.md)）
 - 公開する API（`yaqpy.evaluate` など）に変更はありません
 
 ### 確認したこと
 
-- 全テスト：ユニット 1,748 件・受け入れ 109 件が合格（Python 3.13）。GUI は、Web 版を起動してブラウザで［サンプル］を開き、選んだサンプルが左に出て、右に変換結果が出るところまで確認しました
+- 全テスト：ユニット 1,776 件・受け入れ 109 件が合格（Python 3.13）。GUI は、Web 版を起動してブラウザで［サンプル］を開き、選んだサンプルが左に出て、右に変換結果が出るところまで確認しました
 - **未確認**：デスクトップ版の窓での見た目（Web 版の画面と同じ部品です）、Python 3.11・3.12 での全テスト（`tools/check_pythons.py`）
 
 ---
