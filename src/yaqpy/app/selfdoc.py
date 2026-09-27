@@ -158,6 +158,21 @@ def _names(infos: list[OperatorInfo]) -> str:
     return " ".join(f"`{info.name}`" for info in infos)
 
 
+def _jq_word_hint_lines() -> list[str]:
+    """E7 (0926-03 5-6): jq の書き方のうち、まだ字句としても読めないもの一覧
+    （``unexpected character`` になる）。``core.lang.hints`` と同じ表を使う。"""
+    from yaqpy.core.lang.hints import _NOT_SUPPORTED, _NOT_YET
+
+    not_yet = ", ".join(f"`{w}`" for w in sorted(_NOT_YET))
+    not_supported = ", ".join(f"`{w}`" for w in sorted(_NOT_SUPPORTED))
+    return [
+        f"### jq の書き方でまだ読めないもの（{len(_NOT_YET) + len(_NOT_SUPPORTED)} 個。"
+        "`unexpected character` になります）", "",
+        f"- 対応の予定があるもの（{len(_NOT_YET)} 個）：{not_yet}",
+        f"- 対応の予定がないもの（{len(_NOT_SUPPORTED)} 個）：{not_supported}", "",
+    ]
+
+
 def _operator_sections(table: list[OperatorInfo]) -> list[str]:
     implemented = [i for i in table if i.implemented and not i.extension]
     extensions = [i for i in table if i.implemented and i.extension]
@@ -168,6 +183,7 @@ def _operator_sections(table: list[OperatorInfo]) -> list[str]:
              f"### yaqpy 独自の演算子（{len(extensions)} 個。Go 版にはありません）", "", _names(extensions), "",
              f"### 使えない演算子（{len(missing)} 個。書くと `unknown operator` になります）", "",
              _names(missing) if missing else "（なし）", ""]
+    lines.extend(_jq_word_hint_lines())
     return lines
 
 
