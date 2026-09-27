@@ -293,3 +293,37 @@ class RecipeMetadataCannotReadOtherFilesTests(CliTestCase):
         code, out, err = self.run_cli("--recipe", str(self.dir / "box" / "only.recipe.yaml"), self.source)
         assert (code, out) == (1, "")
         assert "must be a file in the folder of the recipe" in err
+
+
+class ModelHintTests(CliTestCase):
+    """A required ``model`` the recipe cannot choose comes with a way to add it."""
+
+    GEMINI = '{"contents": [{"role": "user", "parts": [{"text": "Hi"}]}]}'
+
+    def test_a_missing_model_comes_with_the_command_that_adds_it(self) -> None:
+        source = self.write("g.json", self.GEMINI)
+        code, out, err = self.run_cli("--recipe", "gemini-to-openai", source)
+        assert code == 0 and '"model"' not in out
+        assert ".model: required, but the result has no such key" in err
+        assert f"hint: the recipe does not choose a model. Add yours after the conversion, e.g. " \
+               f"yaqpy --recipe gemini-to-openai {source} | yaqpy '.model = \"gpt-4o\"'" in err
+
+    def test_the_example_model_fits_the_target_api(self) -> None:
+        source = self.write("g.json", self.GEMINI)
+        _, _, err = self.run_cli("--recipe", "gemini-to-anthropic", source)
+        assert "'.model = \"claude-opus-5-5\"'" in err
+
+    def test_a_file_name_with_a_space_is_quoted(self) -> None:
+        source = self.write("my request.json", self.GEMINI)
+        _, _, err = self.run_cli("--recipe", "gemini-to-openai", source)
+        assert f'gemini-to-openai "{source}" |' in err
+
+    def test_the_report_carries_the_hint_too(self) -> None:
+        source = self.write("g.json", self.GEMINI)
+        _, out, _ = self.run_cli("--recipe", "gemini-to-openai", "--report", source)
+        assert "\nHint: the recipe does not choose a model." in out
+
+    def test_no_hint_when_the_target_needs_no_model(self) -> None:
+        source = self.write("o.json", '{"model": "gpt-4o", "messages": [{"role": "user", "content": "Hi"}]}')
+        _, _, err = self.run_cli("--recipe", "openai-to-gemini", source)
+        assert "hint:" not in err

@@ -7,12 +7,31 @@ from collections.abc import Sequence
 from typing import Any
 
 from yaqpy.app.recipe_service import RecipeRun
+from yaqpy.recipes.conform import MISSING
 from yaqpy.recipes.diff import ADDED, CHANGED, MOVED, REMOVED
+
+# A model name that fits the API a recipe writes to (used only in the hint about a missing .model).
+_MODEL_EXAMPLES = {"openai-chat-completions": "gpt-4o", "anthropic-messages": "claude-opus-5-5"}
 
 
 def short(value: Any, limit: int = 48) -> str:
     text = json.dumps(value, ensure_ascii=False)
     return text if len(text) <= limit else text[: limit - 3] + "..."
+
+
+def hint_lines(run: RecipeRun) -> list[str]:
+    """What to do about a schema issue the recipe cannot settle itself (nothing when there is none).
+
+    The recipe never picks a model: model names do not carry over between vendors, and the choice is
+    the caller's. When that leaves the target's required ``model`` out, say how to add it.
+    """
+    report = run.report
+    if report is None or not any(i.kind == MISSING and i.path == ".model" for i in report.issues):
+        return []
+    example = _MODEL_EXAMPLES.get(run.recipe.output_api, "<model>")
+    name = f'"{run.input_name}"' if " " in run.input_name else run.input_name
+    return [f"hint: the recipe does not choose a model. Add yours after the conversion, e.g. "
+            f"yaqpy --recipe {run.recipe.name} {name} | yaqpy '.model = \"{example}\"'"]
 
 
 def summary_lines(run: RecipeRun) -> list[str]:
@@ -29,6 +48,7 @@ def summary_lines(run: RecipeRun) -> list[str]:
         lines.append(f"added {added.path} = {short(added.value)} - {added.reason}")
     for issue in report.issues:
         lines.append(f"target schema: {issue}")
+    lines.extend(hint_lines(run))
     lines.extend(f"note: {note}" for note in report.notes)
     return lines
 
@@ -77,6 +97,9 @@ def render_report(run: RecipeRun) -> str:
         out.append("  the result matches")
     else:
         out += [f"  {issue}" for issue in report.issues]
+    hints = hint_lines(run)
+    if hints:
+        out += [""] + [line.replace("hint:", "Hint:", 1) for line in hints]
     if report.notes:
         out += [""] + [f"Note: {note}" for note in report.notes]
     return "\n".join(out) + "\n"
