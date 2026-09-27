@@ -102,3 +102,11 @@ class ExpressionToolsTests:
         order = bars[0].controls
         assert order.index(page._expr_field) < order.index(page._expr_tools) < order.index(
             page._run_button)
+
+    def test_paste_and_load_sit_to_the_left_of_the_field(self) -> None:
+        """貼り付けと式ファイルの読み込みは、式を用意する操作として欄の左に置く（v0.7.2）。"""
+        page, _, _ = make_page()
+        bars = [c for c in page.control.controls[4].controls
+                if isinstance(c, ft.Row) and page._expr_field in c.controls]
+        order = bars[0].controls
+        assert order.index(page._expr_tools_left) < order.index(page._expr_field)

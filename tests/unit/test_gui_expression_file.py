@@ -230,7 +230,7 @@ class PageTests:
         assert not page._save_expr_button.disabled            # 初期の式は「.」
         page._on_expr_clear(mock.MagicMock())
         assert page._save_expr_button.disabled
-        load = page._expr_tools.controls[3]
+        load = page._expr_tools_left.controls[1]
         assert load.tooltip.startswith("式を読み込む") and not load.disabled
         page._on_expression_change(mock.MagicMock(control=mock.MagicMock(value=".a")))
         assert not page._save_expr_button.disabled

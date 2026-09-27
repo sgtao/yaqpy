@@ -149,21 +149,25 @@ class MainPage:
                                      on_click=self._on_run, disabled=True)
         self._cancel_button = ft.Button(content=texts.BTN_CANCEL, icon=ft.Icons.STOP,
                                         on_click=self._on_cancel, disabled=True)
-        # 式欄の右：貼り付け・コピー・クリア、式ファイル（.yaqpy）の読み込み・保存（v0.7.0）。
+        # 式欄の左：貼り付け・式ファイル（.yaqpy）の読み込み。右：コピー・クリア・保存（v0.7.0。
+        # v0.7.2 で「貼り付け」と「読み込み」を左へ移した：式を**用意する**操作を左、いま欄にある
+        # 式を**扱う**操作を右にまとめる）。
         # カーソル位置は取れないので、貼り付けは式の全体を置き換える。読み込みは常に有効
         # （文書を開く前に式だけ用意できる）。保存は式が空でないときだけ
         self._save_expr_button = ft.IconButton(icon=ft.Icons.SAVE_ALT,
                                                tooltip=texts.TIP_EXPR_SAVE,
                                                on_click=self._on_save_expression)
-        self._expr_tools = ft.Row([
+        self._expr_tools_left = ft.Row([
             ft.IconButton(icon=ft.Icons.CONTENT_PASTE, tooltip=texts.TIP_EXPR_PASTE,
                           on_click=self._on_expr_paste),
+            ft.IconButton(icon=ft.Icons.FILE_OPEN, tooltip=texts.TIP_EXPR_LOAD,
+                          on_click=self._on_load_expression),
+        ], spacing=0)
+        self._expr_tools = ft.Row([
             ft.IconButton(icon=ft.Icons.CONTENT_COPY, tooltip=texts.TIP_EXPR_COPY,
                           on_click=self._on_expr_copy),
             ft.IconButton(icon=ft.Icons.CLEAR, tooltip=texts.TIP_EXPR_CLEAR,
                           on_click=self._on_expr_clear),
-            ft.IconButton(icon=ft.Icons.FILE_OPEN, tooltip=texts.TIP_EXPR_LOAD,
-                          on_click=self._on_load_expression),
             self._save_expr_button,
         ], spacing=0)
         self._refresh_expression_buttons()
@@ -243,8 +247,8 @@ class MainPage:
         filter_bar = ft.Column([
             ft.Row([self._property_dd, self._add_button], spacing=8),
             self._candidate_note,
-            ft.Row([self._expr_field, self._expr_tools, self._run_button, self._cancel_button],
-                  spacing=8),
+            ft.Row([self._expr_tools_left, self._expr_field, self._expr_tools, self._run_button,
+                   self._cancel_button], spacing=8),
             self._expr_error,
         ], spacing=FILTER_ROW_SPACING)
 
