@@ -53,6 +53,13 @@ Y009 = ("Y009 (v0.8.x の間だけ): 括弧なしの連続した算術は、v0.8
        "(左から、'* / %' が '+ -' より先。前の版と結果が違うことがあります)")
 
 
+def unbound_variable_message(name: str) -> str:
+    """Y004's message for one variable name - factored out so a caller that knows a name is
+    externally bound (``--arg``/``--argjson``/``$ARGS``: ``app.service.YqService``) can filter
+    it back out of a compiled expression's static warnings without re-walking the tree."""
+    return f"Y004: 束縛されていない変数 '${name}' は、黙って空になります"
+
+
 def _op_type(node: ExprNode | None) -> str | None:
     return None if node is None else node.operation.spec.type
 
@@ -119,7 +126,7 @@ def _walk(node: ExprNode | None, bound: frozenset[str], out: list[str]) -> None:
     elif op_type == "GET_VARIABLE":
         name = node.operation.string_value
         if name not in bound and name != "ENV":
-            out.append(f"Y004: 束縛されていない変数 '${name}' は、黙って空になります")
+            out.append(unbound_variable_message(name))
     elif op_type == "PICK":
         if node.rhs is not None and node.rhs.operation.spec.type != "COLLECT":
             out.append(Y005)

@@ -127,3 +127,26 @@ class LintWiringTests:
     def test_r001_is_not_repeated_per_loop_iteration(self) -> None:
         warnings = warnings_for("[.[] | (1 / 0)]", text="[1, 2, 3]\n")
         assert sum(w.startswith("R001") for w in warnings) == 1
+
+    def test_a_variable_bound_by_arg_is_not_flagged_as_unbound(self) -> None:
+        # Regression: $name/--arg and $ARGS/--args are bound by YqService._build_root_variables
+        # at evaluate() time, which lint_expression (computed once, at compile time, from the
+        # tree alone) cannot see - service.py must filter Y004 back out for names it just bound.
+        service = YqService(InMemoryFileSystem(), StaticEnvironment({}))
+        request = EvaluateRequest(expression="$name", inputs=(InputSource("<text>", "1\n"),),
+                                  options=Options(lint="warn"), named_args=(("name", "World"),))
+        result = service.evaluate(request, MemorySink())
+        assert not any(w.startswith("Y004") for w in result.warnings)
+
+        request_args = EvaluateRequest(expression="$ARGS.positional", inputs=(InputSource("<text>", "1\n"),),
+                                       options=Options(lint="warn"), positional_args=("a", "b"))
+        result_args = service.evaluate(request_args, MemorySink())
+        assert not any(w.startswith("Y004") for w in result_args.warnings)
+
+    def test_an_unrelated_unbound_variable_still_warns_alongside_arg(self) -> None:
+        service = YqService(InMemoryFileSystem(), StaticEnvironment({}))
+        request = EvaluateRequest(expression="$name, $other", inputs=(InputSource("<text>", "1\n"),),
+                                  options=Options(lint="warn"), named_args=(("name", "World"),))
+        result = service.evaluate(request, MemorySink())
+        assert any(w.startswith("Y004") and "other" in w for w in result.warnings)
+        assert not any("name" in w for w in result.warnings if w.startswith("Y004"))

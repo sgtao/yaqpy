@@ -18,7 +18,7 @@ uv tool install "yaqpy[gui,web]" --with flet-desktop  # GUI描画に必要な fl
 # yaqpy — YAML and more, Query editor in Python
 
 YAML をはじめ複数のフォーマットを、コマンドや Python から**式で取り出し・更新・変換**するための軽量ツールです。
-- 人気の CLI ツール [mikefarah/yq](https://github.com/mikefarah/yq)（Go 版 v4.53.6）の式言語を模倣
+- CLI ツール [mikefarah/yq](https://github.com/mikefarah/yq)（Go 版 v4.53.6）を参考に、`jq` コマンドの式言語の機能の一部を実装
 - **Python の標準ライブラリだけ**で再実装してます
 - 名前は **Y**AML **A**nd more, **Q**uery editor in **PY**thon の略です
 
@@ -53,7 +53,8 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 - **yaqpy が自分を説明する**：`--print-spec`（使える・使えない演算子の一覧）`--example`（実行済みの例）`--guide-prompt`（AI に式を書かせるお願い文）`--skill-md`（Claude Code のスキル）。演算子の一覧は実装から自動生成です
 
 - **GUI の便利機能**：AI に式を書かせるお願い文を組み立てる「AIに相談」タブ、式を `.yaqpy` ファイルに保存・読み込み（コマンドでも `yaqpy sample.yaqpy data.json` の形で使えます）、成功した変換を記録して見返し・再実行できる**ログ画面**（デスクトップ版のみ）、Web 版でのファイルのドラッグ＆ドロップ、`examples/` のデータ（3 社の API リクエストを含む）をファイルを探さずに開ける［サンプル］メニュー。[GUI の使い方](USAGE-GUI.ja.md)
-- **Go 版 yq との互換性**：Go 版のテストシナリオ 1,091 件を互換テストにしています（結果を比べられる 1,051 件のうち 1,047 件が一致）。文字列・配列・`@base64` などの encode/decode・日時・`-s`（分割出力）を含め、**`load` 系・`eval`・`envsubst`・`system`・`error` を除く演算子が使えます**（これらは実行すると `Error: unknown operator ...` で終了します）。一覧は [Go 版 yq との違い](USAGE.ja.md#go-版-yq-との違い) を参照してください
+- **Go 版 yq との互換性**：Go 版のテストシナリオ 1,091 件を互換テストにしています（結果を比べられる 1,051 件のうち 1,047 件が一致）。文字列・配列・`@base64` などの encode/decode・日時・`-s`（分割出力）を含め、**`load` 系・`eval`・`envsubst`・`system` を除く演算子が使えます**（これらは実行すると `Error: unknown operator ...` で終了します）。一覧は [Go 版 yq との違い](USAGE.ja.md#go-版-yq-との違い) を参照してください
+- **jq に寄せた書き方**（v0.8.0 で追加。既定の yq 方言のまま使えます）：`error` `empty`、型のフィルタ（`numbers` `strings` など）、`startswith` `gsub` `scan` `splits` など文字列の関数、bare な `add`・`any(f)`・`range`・`limit` など配列・オブジェクトの関数、`getpath` `path(f)`、`$ENV`、単項の `-`、数学関数（`sqrt` `pow` `sin` など）、`--arg` `--argjson` `--slurp` などの CLI フラグ、黙った誤りへの警告（`--lint`）。詳しくは [jq に寄せた書き方](USAGE.ja.md#jq-に寄せた書き方v080-で追加) を参照してください
 - **安全側の既定**：ライブラリとして使うときは、ファイル読み込み・環境変数・外部コマンドの演算子が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込みが有効です（外部コマンドは無効）
 
 </details>

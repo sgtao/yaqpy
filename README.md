@@ -19,7 +19,7 @@ uv tool install "yaqpy[gui,web]" --with flet-desktop  # include flet-desktop for
 
 A lightweight tool to **query, update and convert** YAML, JSON and more with expressions, from the command line or from Python.
 
-- It follows the expression language of the popular CLI tool [mikefarah/yq](https://github.com/mikefarah/yq) (Go, v4.53.6)
+- Based on the CLI tool [mikefarah/yq](https://github.com/mikefarah/yq) (Go, v4.53.6), with part of `jq`'s own expression-language features implemented too
 - It is re-implemented with **nothing but the Python standard library**
 - The name stands for **Y**AML **A**nd more, **Q**uery editor in **PY**thon
 
@@ -37,7 +37,8 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # comments and key order are ke
 - **No dependencies**: all it needs is Python 3.11 or later. The GUI is an optional extra (Flet); the web version adds flet-web
 - **Four ways to use it**: the `yaqpy` command, the Python library (`import yaqpy`), a desktop GUI (`yaqpy-gui`) and the same GUI in a web browser (`yaqpy-web`)
 - **Formats**: YAML, JSON, XML, CSV / TSV, TOML, properties and TOON (a token-saving format for LLMs), both in and out. TOML comments are not kept, so `-i` on TOML is refused by default
-- **Compatible with yq**: 1,091 test scenarios of the Go version are run as compatibility tests (1,047 of the 1,051 comparable ones match). Every operator works except `load` and friends, `eval`, `envsubst`, `system` and `error`
+- **Compatible with yq**: 1,091 test scenarios of the Go version are run as compatibility tests (1,047 of the 1,051 comparable ones match). Every operator works except `load` and friends, `eval`, `envsubst` and `system`
+- **Some of jq's own writing style, too** (added in v0.8.0, on top of the default yq dialect): `error`, `empty`, type filters (`numbers`, `strings`, ...), string functions (`startswith`, `gsub`, `scan`, `splits`, ...), array/object functions (bare `add`, `any(f)`, `range`, `limit`, ...), `getpath`/`path(f)`, `$ENV`, unary `-`, math functions (`sqrt`, `pow`, `sin`, ...), CLI flags (`--arg`, `--argjson`, `--slurp`, ...), and warnings for likely mistakes (`--lint`). See [jq に寄せた書き方](USAGE.ja.md#jq-に寄せた書き方v080-で追加) in the (Japanese) usage guide
 - **Beyond yq** (not in the Go version):
   - the input format is detected from the content when the file extension does not tell it
   - `yaqpy --schema data.yaml` prints a JSON Schema (Draft 2020-12) of the data, as JSON or YAML

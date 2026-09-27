@@ -15,6 +15,7 @@ from yaqpy.app.ports import EnvironmentPort, FileSystemPort
 from yaqpy.app.printer import InPlaceSink, ResultPrinter, SplitWriter
 from yaqpy.core.engine import Context, EvalEnv, Navigator, StepBudget, system_clock
 from yaqpy.core.lang.ast import ExprNode
+from yaqpy.core.lang.lint import unbound_variable_message
 from yaqpy.core.lang.parser import Expression, ExpressionCompiler
 from yaqpy.core.model.node import Node
 from yaqpy.core.operators import OperatorRegistry, builtin_registry
@@ -207,7 +208,14 @@ class YqService:
         # for the static half lives here, not in the compiler).
         warnings: tuple[str, ...] = ()
         if options.lint != "off":
-            warnings = tuple(dict.fromkeys((*expression.lint_warnings, *env.lint_warnings)))
+            static_warnings = expression.lint_warnings
+            if root_variables:
+                # Y004 (unbound $variable) is computed once per expression text, independent
+                # of any one request's --arg/--argjson/--args - so it cannot know these names
+                # will be bound. Drop the ones that are, for this request.
+                suppressed = {unbound_variable_message(name) for name in root_variables}
+                static_warnings = tuple(w for w in static_warnings if w not in suppressed)
+            warnings = tuple(dict.fromkeys((*static_warnings, *env.lint_warnings)))
         return EvaluateResult(
             output=output,
             printed_anything=printer.printed_anything,
