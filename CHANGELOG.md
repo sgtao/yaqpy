@@ -3,6 +3,35 @@
 
 ---
 [toTop](#toreadme)
+## [0.7.2] - 2026-09-27
+
+**レシピの案内と、GUI の［サンプル］メニューを足した版です。** 使い方が変わる箇所はありません（新しい表示とボタンが増えただけです）。
+
+### 追加
+
+- **レシピの `hint:`**：変換先が必須とする `model` が結果にないとき（Gemini → OpenAI / Anthropic、ほか OpenAI ⇄ Anthropic でも `model` は落とすので同じ）、報告の最後に、足し方を 1 行で案内します。`yaqpy --recipe gemini-to-openai request.json | yaqpy '.model = "gpt-4o"'` の形で、入力のファイル名と、変換先に合うモデル名の例（OpenAI は `gpt-4o`、Anthropic は `claude-opus-5-5`）が入ります。標準エラー出力（`--report` では `Hint:`）に出るだけで、変換結果は変わりません。レシピは、これまでどおりモデル名を選びません
+- **GUI の［サンプル］ボタン**：ファイル名の右のボタンを押すと、`examples/` のデータ（各形式のサンプルと、OpenAI・Gemini・Anthropic のリクエストボディ）の一覧がプルダウンで開き、選ぶと入力になります。`[＋ファイルを追加]` と同じ規則（何も開いていなければ最初の文書に、開いていれば追加）で、**入力形式は `auto`** になります。デスクトップ版・Web 版のどちらでも使えます。データは wheel に同梱しています（`src/yaqpy/gui/assets/examples/`。選べるのは一覧にある名前だけで、パスは受け付けません）
+
+### 文書
+
+- USAGE.ja.md のレシピの節を、`examples/` の新しいサンプル（`api-openai-request.json` など）で実際に実行し直して書き換えました（旧 `openai-request.json` は無くなっています）。`hint:` を報告の読み方に加えました
+- USAGE-GUI.ja.md に［サンプル］を、README（英語・日本語）・DEVELOPMENT.md にも追記しました。DEVELOPMENT.md の `docs/` の説明と、テスト件数を直しました
+- 紹介スライド（16 枚目）のレシピの実行結果を、新しいサンプルの出力に合わせました
+- `docs/` の設計書・計画書は、リポジトリから外れました。`docs/flet-1.0-api-notes.md` に、その旨を書きました
+
+### ライブラリ・開発者向けの変更
+
+- `tests/acceptance/test_examples.py`：`openai-request.json` の改名でこのテストが落ちていたのを直し、3 つのサンプルを他の 2 社へ変換する 6 通りのテストを足しました
+- `tests/unit/test_gui_samples.py`：`assets/examples/` が `examples/` と同じ内容であること、サンプルの開き方、名前の検査、メニューの並びを検査します（`examples/` を直したら、コピーも直します。[DEVELOPMENT.md](./DEVELOPMENT.md)）
+- 公開する API（`yaqpy.evaluate` など）に変更はありません
+
+### 確認したこと
+
+- 全テスト：ユニット 1,748 件・受け入れ 109 件が合格（Python 3.13）。GUI は、Web 版を起動してブラウザで［サンプル］を開き、選んだサンプルが左に出て、右に変換結果が出るところまで確認しました
+- **未確認**：デスクトップ版の窓での見た目（Web 版の画面と同じ部品です）、Python 3.11・3.12 での全テスト（`tools/check_pythons.py`）
+
+---
+[toTop](#toreadme)
 ## [0.7.1] - 2026-09-25
 
 **Python 3.11 と 3.12 でも使えるようになった版です。** 必要な Python が「3.13 以上」から「**3.11 以上**」になりました（3.11・3.12・3.13 で動作確認）。機能の追加・変更はありません。PyPI のページの先頭に、インストールのコマンド（`pip install yaqpy` と `pip install "yaqpy[gui]"`）も載せました。

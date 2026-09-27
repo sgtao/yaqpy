@@ -211,12 +211,10 @@ badge: 変換レシピの誠実さ
 ## 黙って落とさない。==何を捨てたか==を教える
 ```contrast
 example:
-  title: yaqpy --recipe openai-to-gemini examples/openai-request.json（実行結果）
+  title: yaqpy --recipe openai-to-gemini examples/api-openai-request.json（実行結果）
   rows:
     - tag: dropped
       text: ".model — Gemini ではモデル名を URL で指定するため、本文には持ち越さない"
-    - tag: dropped
-      text: ".stream — Gemini は本文の項目ではなく別のエンドポイントでストリームする"
     - tag: dropped
       text: ".messages[].content[type!=text] — 画像・音声・ファイルは変換対象外（テキストのみ）"
 verdict:

@@ -461,30 +461,39 @@ uv run yaqpy -o json 'with(.cfg; prune_null)' body.json
 
 ```bash
 uv run yaqpy --list-recipes                                       # 一覧
-uv run yaqpy --recipe openai-to-gemini examples/openai-request.json
+uv run yaqpy --recipe openai-to-gemini examples/api-openai-request.json
 ```
+
+`examples/` には、3 社のリクエストボディのサンプル（`api-openai-request.json` `api-gemini-request.json` `api-anthropic-request.json`）があります。どれも天気を調べる関数（`get_weather`）を 1 つ持つ短い本文で、上の表の 6 つの変換をそのまま試せます（GUI では、［サンプル］のメニューから開けます）。
 
 変換した本文は**標準出力**へ、報告は**標準エラー出力**へ出ます（`|` でほかのコマンドに渡しても、報告は混ざりません）。
 
 ```text
-recipe openai-to-gemini: examples/openai-request.json
+recipe openai-to-gemini: examples/api-openai-request.json
   dropped .model - Gemini takes the model in the URL of the call (models/{model}:generateContent), and model names do not carry over between vendors
-  dropped .stream - Gemini streams by calling streamGenerateContent, not by a field of the body
   dropped .messages[].content[type!=text] - only text parts are converted; images, audio and files are dropped
 ```
 
 ```json
 {
   "systemInstruction": {"parts": [{"text": "You are a weather assistant."}]},
-  "contents": [
-    {"role": "user", "parts": [{"text": "What is the weather in Oslo?"}]},
-    {"role": "model", "parts": [{"text": "Let me check."}]},
-    {"role": "user", "parts": [{"text": "Thanks."}]}
-  ],
-  "generationConfig": {"temperature": 0.7, "maxOutputTokens": 512, "stopSequences": ["END"]},
-  "tools": [{"functionDeclarations": [{"name": "get_weather", "description": "Get the weather of a city", "parametersJsonSchema": {…}}]}],
+  "contents": [{"role": "user", "parts": [{"text": "What is the weather in Oslo?"}]}],
+  "generationConfig": {"maxOutputTokens": 1024},
+  "tools": [{"functionDeclarations": [{"name": "get_weather", "description": "Get the current weather for a given location.", "parametersJsonSchema": {…}}]}],
   "toolConfig": {"functionCallingConfig": {"mode": "AUTO"}}
 }
+```
+
+変換先が**モデル名を必須とする API（OpenAI・Anthropic）のとき**は、報告の最後に、モデル名を足す方法も出ます（レシピはモデル名を選びません）。
+
+```bash
+uv run yaqpy --recipe gemini-to-openai examples/api-gemini-request.json
+```
+
+```text
+recipe gemini-to-openai: examples/api-gemini-request.json
+  target schema: .model: required, but the result has no such key
+  hint: the recipe does not choose a model. Add yours after the conversion, e.g. yaqpy --recipe gemini-to-openai examples/api-gemini-request.json | yaqpy '.model = "gpt-4o"'
 ```
 
 （見やすさのために整形・省略しています。実際の出力は、既定のインデントで 1 項目ずつ改行されます。）
@@ -514,7 +523,7 @@ recipe openai-to-gemini: examples/openai-request.json
 
 | 落とすもの | 理由 |
 |---|---|
-| **`model`（すべての変換）** | モデル名はベンダーをまたいで通用しません。変換先で必要なら、目標スキーマとの照合が「不足」と知らせます。Gemini ではモデルは URL（`models/{model}:generateContent`）で指定します |
+| **`model`（すべての変換）** | モデル名はベンダーをまたいで通用しません。変換先で必要なら、目標スキーマとの照合が「不足」と知らせ、`hint:` でモデル名を足す方法を示します。Gemini ではモデルは URL（`models/{model}:generateContent`）で指定します |
 | 画像・音声・ファイルなど、テキスト以外のパーツ | テキストだけを変換します |
 | ツール呼び出しの履歴（`tool_calls` `role: tool` `tool_use` `tool_result` `functionCall` `functionResponse`） | 会話のテキストだけを変換します。**履歴に含まれる場合は、その分が欠けます**（報告に出ます） |
 | 変換先にない設定（`n` `seed` `top_k` `parallel_tool_calls` など） | 上の表のとおり |
@@ -539,16 +548,17 @@ recipe openai-to-gemini: examples/openai-request.json
 | `NOT HANDLED パス` | 入力にあるが、レシピが運ぶとも落とすとも言っていない項目（**書き足すか、利用者が確かめてください**） |
 | `added パス = 値 - 理由` | 入力になく、レシピが自分で補った |
 | `target schema: パス: …` | 変換結果が、変換先のスキーマに合わない（不足・余分・型・値・範囲・個数） |
+| `hint: …` | 利用者が自分で直すことの案内。いまは「変換先が必須とする `model` が結果にない」ときだけ出ます（`--report` では `Hint:`） |
 
 `--report` を付けると、変換結果の代わりに、詳しい報告を標準出力へ出します。
 
 ```bash
-uv run yaqpy --recipe openai-to-anthropic --report examples/openai-request.json
+uv run yaqpy --recipe openai-to-anthropic --report examples/api-openai-request.json
 ```
 
 ```text
 Recipe:  openai-to-anthropic (builtin)
-Input:   examples/openai-request.json (json)
+Input:   examples/api-openai-request.json (json)
 Output:  json
 Verdict: needs a look (see below)
 
@@ -558,12 +568,14 @@ Dropped (the recipe declares that it does not carry these over):
 
 Changes (before -> after). A move is a candidate: the same value at another path. Paths are
 compared as they are, so list items are compared by position.
+  moved    .tools[0].function.name -> .tools[0].name  ("get_weather")
+  moved    .tool_choice -> .tool_choice.type  ("auto")
   moved    .messages[0].content -> .system[0].text  ("You are a weather assistant.")
-  moved    .max_completion_tokens -> .max_tokens  (512)
-  moved    .stop -> .stop_sequences[0]  ("END")
   …
 Target schema:
   .model: required, but the result has no such key
+
+Hint: the recipe does not choose a model. Add yours after the conversion, e.g. yaqpy --recipe openai-to-anthropic examples/api-openai-request.json | yaqpy '.model = "claude-opus-5-5"'
 ```
 
 - **変更（Changes）の `moved`（移動）は「候補」です**：入力から消えた値が、別のパスに現れたときに、その対応を示します。同じ値が複数あるとき（`true` や `"user"` など）は、対応を決められないので、`removed`/`added` のままです

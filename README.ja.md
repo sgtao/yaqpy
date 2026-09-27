@@ -47,10 +47,10 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # コメントや並び順は�
 
 - **入力形式の自動判定**（Go 版にない拡張）：拡張子で決まらないとき（標準入力、拡張子なし・未知の拡張子のファイル、貼り付けたテキスト）は、中身を見て `json` `xml` `toml` `props` `csv` `tsv` を見分けます（見分けられなければ、これまでどおり YAML）。拡張子が分かるときの挙動は変わりません。ライブラリでは `yaqpy.detect_format(text)`
 - **スキーマの出力**（Go 版にない拡張）：`yaqpy --schema data.yaml` で、データを表す JSON Schema（Draft 2020-12）を JSON でも YAML でも出せます
-- **変換レシピ**（Go 版にない拡張）：`yaqpy --recipe openai-to-gemini request.json` で、OpenAI・Gemini・Anthropic の**リクエストボディを相互に変換**します。落とした項目・補った項目・変換先のスキーマに合わない箇所を**報告**します（既定では標準出力へ結果を出すだけ。ファイルに書くのは `--apply --out-dir` のときだけ。実際の API は呼びません）。[使い方](USAGE.ja.md#変換レシピapi-のリクエストを別の-api-用にするgo-版にはない拡張)
+- **変換レシピ**（Go 版にない拡張）：`yaqpy --recipe openai-to-gemini request.json` で、OpenAI・Gemini・Anthropic の**リクエストボディを相互に変換**します。落とした項目・補った項目・変換先のスキーマに合わない箇所を**報告**し、変換先が必須とするモデル名の足し方も案内します（既定では標準出力へ結果を出すだけ。ファイルに書くのは `--apply --out-dir` のときだけ。実際の API は呼びません）。[使い方](USAGE.ja.md#変換レシピapi-のリクエストを別の-api-用にするgo-版にはない拡張)
 - **yaqpy が自分を説明する**：`--print-spec`（使える・使えない演算子の一覧）`--example`（実行済みの例）`--guide-prompt`（AI に式を書かせるお願い文）`--skill-md`（Claude Code のスキル）。演算子の一覧は実装から自動生成です
 
-- **GUI の便利機能**：AI に式を書かせるお願い文を組み立てる「AIに相談」タブ、式を `.yaqpy` ファイルに保存・読み込み（コマンドでも `yaqpy sample.yaqpy data.json` の形で使えます）、成功した変換を記録して見返し・再実行できる**ログ画面**（デスクトップ版のみ）、Web 版でのファイルのドラッグ＆ドロップ。[GUI の使い方](USAGE-GUI.ja.md)
+- **GUI の便利機能**：AI に式を書かせるお願い文を組み立てる「AIに相談」タブ、式を `.yaqpy` ファイルに保存・読み込み（コマンドでも `yaqpy sample.yaqpy data.json` の形で使えます）、成功した変換を記録して見返し・再実行できる**ログ画面**（デスクトップ版のみ）、Web 版でのファイルのドラッグ＆ドロップ、`examples/` のデータ（3 社の API リクエストを含む）をファイルを探さずに開ける［サンプル］メニュー。[GUI の使い方](USAGE-GUI.ja.md)
 - **Go 版 yq との互換性**：Go 版のテストシナリオ 1,091 件を互換テストにしています（結果を比べられる 1,051 件のうち 1,047 件が一致）。文字列・配列・`@base64` などの encode/decode・日時・`-s`（分割出力）を含め、**`load` 系・`eval`・`envsubst`・`system`・`error` を除く演算子が使えます**（これらは実行すると `Error: unknown operator ...` で終了します）。一覧は [Go 版 yq との違い](USAGE.ja.md#go-版-yq-との違い) を参照してください
 - **安全側の既定**：ライブラリとして使うときは、ファイル読み込み・環境変数・外部コマンドの演算子が**すべて無効**です。CLI は Go 版と同じく、環境変数とファイル読み込みが有効です（外部コマンドは無効）
 
@@ -83,10 +83,10 @@ uv add yaqpy                        # uv のプロジェクトでライブラリ
 
 ```bash
 # ビルド済みの wheel から入れる（Git は不要）
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.1/yaqpy-0.7.1-py3-none-any.whl"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.2/yaqpy-0.7.2-py3-none-any.whl"
 
 # Git がある場合は、タグを指定して
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.1"
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.2"
 ```
 
 `[gui]` の部分は、入れたいものに合わせて外す・`[web]`・`[gui,web]` に変えられます（`[web]` は v0.6.0 から）。ソースを見たい・改造したい場合は [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。

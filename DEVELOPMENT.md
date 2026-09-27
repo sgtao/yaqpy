@@ -33,10 +33,10 @@ uv run yaqpy '.server.port' examples/sample.yaml
 # 全部まとめて（並列。pytest-xdist）
 uv run pytest -n auto
 
-# ユニットテスト（1,722 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・入力形式の自動判定・GUI の Presenter・実行ログ・ログ画面など。実際にウィンドウは開きません。Web 版のサーバーは、[web] extra があれば 127.0.0.1 の空きポートで実際に起動して確かめます）
+# ユニットテスト（1,748 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・入力形式の自動判定・GUI の Presenter・実行ログ・ログ画面など。実際にウィンドウは開きません。Web 版のサーバーは、[web] extra があれば 127.0.0.1 の空きポートで実際に起動して確かめます）
 uv run pytest tests/unit -n auto
 
-# CLI 受け入れテスト（103 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など）＋`examples/` の実ファイルの変換（`test_examples.py`））
+# CLI 受け入れテスト（109 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など）＋`examples/` の実ファイルの変換（`test_examples.py`））
 uv run pytest tests/acceptance -n auto
 
 # Go 版シナリオのゴールデンテスト（演算子 1,091 件・形式 154 件）
@@ -83,6 +83,7 @@ uv run python tools/check_pythons.py --quick     # tests/acceptance（examples/ 
 
 - 版ごとに別の環境（`.venv-py3.11` など。`.gitignore` 済み）を作り、開発用の `.venv` を壊しません。Python 本体は uv が取得します（`mise` などは不要）
 - `examples/` のファイルを実際に変換して期待どおりか調べるのは `tests/acceptance/test_examples.py`（期待値は 3.13 の出力を目で確かめたもの）。3 つの版で同じテストが通ることが「実変換が期待どおり」の確認です
+- **`examples/` を足す・直したとき**：GUI の［サンプル］メニューが wheel から読む `src/yaqpy/gui/assets/examples/` にも、同じファイルを**コピー**します（`cp examples/* src/yaqpy/gui/assets/examples/`）。忘れると `tests/unit/test_gui_samples.py` が落ちます。メニューの項目は、置いてあるファイル名がそのまま並びます（ファイルを足すだけで増えます）
 - 3.14 以降を名乗るときは、同じ手順で通してから `pyproject.toml` の classifiers と `tools/check_pythons.py` の `VERSIONS` に足します
 - Web 版のテスト（`flet-web` が要る）は、`--extra web` を付けた版でだけ走ります（既定では skip）
 
@@ -110,7 +111,7 @@ src/yaqpy/
 │   └── builtin/                                   … 同梱の 6 レシピ（*.yaqpy ＋ *.recipe.yaml）と、3 つの API の目標スキーマ（*.schema.json）
 ├── app/                            … YqService、DTO、ポート（FileSystem/Environment）、printer（-s の SplitWriter を含む）、RecipeService（レシピの実行。常に SecurityPolicy.strict()）、selfdoc / examples（自己説明。登録表から自動生成し、例は実行して確かめる）、recipe_text（報告の文章）
 ├── cli/                            … argparse、引数解釈（純粋関数）、main、recipe_cli（--recipe ほか）、describe_cli（--print-spec ほか）
-└── gui/                            … Flet の GUI（任意依存。presenter は Flet 非依存）。pages/（main・settings・ask_ai・log の各画面と clipboard）、_run（画面の組み立て。デスクトップ・Web 共通。タブは MAIN/SETTINGS/ASK_AI/LOG の並びで、LOG はデスクトップだけ）、run_log（実行ログの組み立て・読み戻し・保存先の整理。Flet 非依存）、log_presenter（ログ画面のロジック）、expression_file（`.yaqpy` の読み書きの規則）、ask_ai（相談文への反映）、web_assets（Web 版の index.html にドロップ用のスクリプトを足す）、_web（Web 版のサーバー。uvicorn を使うのはここだけ）、_upload（Web 版のアップロード受け取り）、web_config（Web 版の設定・上限。Flet 非依存）、app（yaqpy-gui / yaqpy-web の入口とヘルプ）、logo と assets/（ロゴ。原本はリポジトリの assets/images で、コピーが一致することをテストで確認）
+└── gui/                            … Flet の GUI（任意依存。presenter は Flet 非依存）。pages/（main・settings・ask_ai・log の各画面と clipboard）、_run（画面の組み立て。デスクトップ・Web 共通。タブは MAIN/SETTINGS/ASK_AI/LOG の並びで、LOG はデスクトップだけ）、run_log（実行ログの組み立て・読み戻し・保存先の整理。Flet 非依存）、log_presenter（ログ画面のロジック）、expression_file（`.yaqpy` の読み書きの規則）、ask_ai（相談文への反映）、web_assets（Web 版の index.html にドロップ用のスクリプトを足す）、_web（Web 版のサーバー。uvicorn を使うのはここだけ）、_upload（Web 版のアップロード受け取り）、web_config（Web 版の設定・上限。Flet 非依存）、app（yaqpy-gui / yaqpy-web の入口とヘルプ）、samples（［サンプル］メニューの一覧と読み込み。Flet 非依存）、logo と assets/（ロゴと、サンプルデータ `assets/examples/`。原本はリポジトリの `assets/images` と `examples/` で、コピーが一致することをテストで確認）
 tests/
 ├── unit/  acceptance/  golden/     … pytest（tests/conftest.py が golden/acceptance/gui にマーカーを付ける）
 ├── golden/formats/                 … Go 版の形式シナリオ（抽出した JSON）と formats_manifest.json
@@ -120,7 +121,8 @@ tests/
 tools/
 ├── extract_go_scenarios.py         … Go テストからシナリオ（演算子・形式）を JSON 抽出
 └── golden_report.py                … 合格率レポート（--formats で形式別）
-docs/                               … 設計書・GUI 設計書・Flet 実測メモ
+docs/                               … Flet 1.0 の実測メモ、紹介スライド（md と html）
+examples/                           … 各形式のサンプルと、3 社の API リクエスト（テストと README・USAGE の例に使う。GUI の［サンプル］にも出る）
 ```
 
 ---
