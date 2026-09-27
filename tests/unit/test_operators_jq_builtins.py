@@ -360,3 +360,37 @@ class PathBuiltinTests:
 
     def test_input_filename_is_an_alias_for_filename(self) -> None:
         assert yaqpy.query("input_filename", None) == yaqpy.query("filename", None)
+
+
+class MathBuiltinTests:
+    """Math functions (E4, 0926-03 3-11): a table-driven addition over Python's ``math``."""
+
+    @pytest.mark.parametrize(("expression", "value", "expected"), [
+        ("floor", 4.7, 4), ("ceil", 4.2, 5), ("round", 4.5, 5), ("round", -4.5, -5),
+        ("trunc", 3.7, 3), ("fabs", -5, 5), ("sqrt", 9, 3), ("cbrt", 27, 3),
+        ("exp", 0, 1), ("exp2", 2, 4), ("exp10", 2, 100),
+        ("log10", 100, 2), ("log2", 8, 3), ("log", 1, 0),
+        ("sin", 0, 0), ("cos", 0, 1), ("asin", 0, 0), ("atan", 0, 0),
+    ])
+    def test_unary_math_functions(self, expression: str, value: float, expected: float) -> None:
+        assert yaqpy.query(expression, value) == [expected]
+
+    def test_round_rounds_half_away_from_zero_not_bankers_rounding(self) -> None:
+        # Python's builtin round(2.5) is 2 (round-half-to-even); C's (and jq's) round is 3.
+        assert yaqpy.query("round", 2.5) == [3]
+        assert yaqpy.query("round", -2.5) == [-3]
+
+    def test_binary_math_functions(self) -> None:
+        assert yaqpy.query("pow(2; 10)", None) == [1024]
+        assert yaqpy.query("hypot(3; 4)", None) == [5]
+        assert yaqpy.query("fmax(1; 2)", None) == [2]
+        assert yaqpy.query("fmin(1; 2)", None) == [1]
+
+    def test_exp_is_not_confused_with_the_internal_expand_macro(self) -> None:
+        # "exp" is jq's e^x here; yaqpy's own EXP operator type (unrelated) backs macros like
+        # `root`/`paths` (core.lang.lex_rules._expression) and is never reachable by this word.
+        assert yaqpy.query("exp", 0) == [1]
+
+    def test_a_non_number_input_is_an_error(self) -> None:
+        with pytest.raises(EvaluationError):
+            yaqpy.query("sqrt", "x")

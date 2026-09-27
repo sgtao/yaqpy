@@ -9,7 +9,9 @@ spec (input / output / error condition), not from jq's source, tests or manual (
 
 from __future__ import annotations
 
+import math
 import re
+from collections.abc import Callable
 
 from yaqpy.core.engine.context import Context
 from yaqpy.core.engine.helpers import create_boolean
@@ -691,3 +693,89 @@ def implode_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
             raise EvaluationError("implode input must be an array of codepoints") from None
         results.append(node.create_replacement(Kind.SCALAR, "!!str", text))
     return ctx.child(results)
+
+
+# ----------------------------------------------------------------------------- math (E4, 3-11)
+# Table-driven: each entry is registered as its own operator type in the loop below rather
+# than by hand, so one new function is one dict entry. Type names are prefixed `MATH_` so a
+# name jq also uses (`exp`) cannot collide with an unrelated existing type of the same short
+# name (`EXP` is already yaqpy's internal "expand this macro expression" operator, used by
+# `root`/`paths`/`leaf_paths` - see core.lang.lex_rules._expression).
+
+_INT_RESULT_MATH = frozenset({"MATH_FLOOR", "MATH_CEIL", "MATH_ROUND", "MATH_TRUNC"})
+
+
+def _round_half_away_from_zero(x: float) -> float:
+    """C's (and jq's) ``round``: halves round away from zero, not Python's round-half-to-even."""
+    return math.floor(x + 0.5) if x >= 0 else math.ceil(x - 0.5)
+
+
+_UNARY_MATH: dict[str, Callable[[float], float]] = {
+    "MATH_FLOOR": math.floor, "MATH_CEIL": math.ceil, "MATH_ROUND": _round_half_away_from_zero,
+    "MATH_TRUNC": math.trunc, "MATH_FABS": math.fabs,
+    "MATH_SQRT": math.sqrt, "MATH_CBRT": lambda x: math.copysign(abs(x) ** (1 / 3), x),
+    "MATH_EXP": math.exp, "MATH_EXP2": math.exp2, "MATH_EXP10": lambda x: 10.0 ** x,
+    "MATH_EXPM1": math.expm1,
+    "MATH_LOG": math.log, "MATH_LOG2": math.log2, "MATH_LOG10": math.log10, "MATH_LOG1P": math.log1p,
+    "MATH_SIN": math.sin, "MATH_COS": math.cos, "MATH_TAN": math.tan,
+    "MATH_ASIN": math.asin, "MATH_ACOS": math.acos, "MATH_ATAN": math.atan,
+    "MATH_SINH": math.sinh, "MATH_COSH": math.cosh, "MATH_TANH": math.tanh,
+    "MATH_ASINH": math.asinh, "MATH_ACOSH": math.acosh, "MATH_ATANH": math.atanh,
+}
+
+_BINARY_MATH: dict[str, Callable[[float, float], float]] = {
+    "MATH_POW": lambda a, b: a ** b, "MATH_ATAN2": math.atan2, "MATH_COPYSIGN": math.copysign,
+    "MATH_HYPOT": math.hypot, "MATH_FMIN": min, "MATH_FMAX": max,
+}
+
+
+def _numeric_value(node: Node) -> float:
+    tag = node.tag if node.tag.startswith("!!") else node.guess_tag()
+    if tag not in ("!!int", "!!float"):
+        raise EvaluationError(f"{node.tag} ({node.nice_path()}) is not a number")
+    return tags.parse_float(node.value)
+
+
+def _math_result_node(name: str, node: Node, value: float) -> Node:
+    if name in _INT_RESULT_MATH:
+        return node.create_replacement(Kind.SCALAR, "!!int", str(int(value)))
+    return node.create_replacement(Kind.SCALAR, "!!float", tags.format_float(float(value)))
+
+
+def _make_unary_math(name: str, fn: Callable[[float], float]) -> Callable[..., Context]:
+    def handler(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+        results: list[Node] = []
+        for node in ctx.nodes:
+            try:
+                value = fn(_numeric_value(node))
+            except (ValueError, OverflowError) as e:
+                raise EvaluationError(f"{name.removeprefix('MATH_').lower()}: {e}") from None
+            results.append(_math_result_node(name, node, value))
+        return ctx.child(results)
+
+    return handler
+
+
+def _make_binary_math(name: str, fn: Callable[[float, float], float]) -> Callable[..., Context]:
+    def handler(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+        block = expr.rhs
+        assert block is not None and block.operation.spec.type == "BLOCK", f"{name} needs 2 arguments"
+        results: list[Node] = []
+        for node in ctx.nodes:
+            single = ctx.single_readonly_child(node)
+            a = _first_number(nav, single, block.lhs)
+            b = _first_number(nav, single, block.rhs)
+            try:
+                value = fn(a, b)
+            except (ValueError, OverflowError) as e:
+                raise EvaluationError(f"{name.removeprefix('MATH_').lower()}: {e}") from None
+            results.append(node.create_replacement(Kind.SCALAR, "!!float", tags.format_float(float(value))))
+        return ctx.child(results)
+
+    return handler
+
+
+for _name, _fn in _UNARY_MATH.items():
+    operator(_name, num_args=0, precedence=50)(_make_unary_math(_name, _fn))
+for _name, _fn in _BINARY_MATH.items():
+    operator(_name, num_args=1, precedence=50)(_make_binary_math(_name, _fn))
