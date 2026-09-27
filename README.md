@@ -147,7 +147,7 @@ The detailed guides are written in **Japanese**.
 
 [MIT License](https://github.com/sgtao/yaqpy/blob/main/LICENSE)
 
-The design and the test scenarios draw on Go yq (MIT); see [NOTICE](https://github.com/sgtao/yaqpy/blob/main/NOTICE).
+The design and the test scenarios draw on Go yq (MIT); see [NOTICE](https://github.com/sgtao/yaqpy/blob/main/NOTICE). Some of the expression syntax is inspired by [jq](https://jqlang.org).
 
 ---
 

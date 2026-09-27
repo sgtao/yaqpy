@@ -155,7 +155,7 @@ Web 版は既定でこの PC だけが待ち受け、認証はありません。
 
 [MIT License](LICENSE)
 
-Go 版 yq（MIT）の設計・テストシナリオを参考にしています（[NOTICE](NOTICE)）。
+Go 版 yq（MIT）の設計・テストシナリオを参考にしています（[NOTICE](NOTICE)）。式の書き方の一部は [jq](https://jqlang.org) を参考にしています。
 
 ---
 
