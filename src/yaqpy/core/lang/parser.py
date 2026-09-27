@@ -9,6 +9,7 @@ from typing import Any
 from yaqpy.core.lang.ast import ExprNode, Operation
 from yaqpy.core.lang.lex_rules import DEFAULT_RULESET, LexRuleSet
 from yaqpy.core.lang.lexer import tokenize
+from yaqpy.core.lang.lint import lint_expression
 from yaqpy.core.lang.postfix import to_postfix
 from yaqpy.errors import ExpressionSyntaxError
 
@@ -52,12 +53,16 @@ def parse_expression(expression: str, get_spec: Callable[[str], Any],
 class Expression:
     """A compiled expression. Immutable; safe to share between threads."""
 
-    __slots__ = ("source", "root", "_registry_id")
+    __slots__ = ("source", "root", "_registry_id", "lint_warnings")
 
-    def __init__(self, source: str, root: ExprNode | None, registry_id: int) -> None:
+    def __init__(self, source: str, root: ExprNode | None, registry_id: int,
+                lint_warnings: tuple[str, ...] = ()) -> None:
         self.source = source
         self.root = root
         self._registry_id = registry_id
+        # Static lint (E7, 0926-03 5-5): computed once here, alongside the tree, rather than
+        # per evaluation - a cheap tree walk, but there is no reason to repeat it.
+        self.lint_warnings = lint_warnings
 
     def __repr__(self) -> str:  # pragma: no cover - debugging aid
         return f"Expression({self.source!r})"
@@ -74,7 +79,7 @@ class ExpressionCompiler:
 
     def _compile_uncached(self, expression: str) -> Expression:
         root = parse_expression(expression, self._get_spec, self._ruleset)
-        return Expression(expression, root, id(self))
+        return Expression(expression, root, id(self), lint_expression(root))
 
     def compile(self, expression: str) -> Expression:
         return self._cached(expression)

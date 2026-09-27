@@ -157,6 +157,8 @@ def main(argv: list[str] | None = None, *, stdout: TextIO | None = None,
             traceback.print_exc(file=err)
         err.write(f"Error: internal error: {e}\n")
         return EXIT_ERROR
+    for warning in result.warnings:
+        err.write(f"Warning: {warning}\n")
     if request.exit_status and not result.printed_anything:
         err.write("Error: no matches found\n")
         return EXIT_ERROR

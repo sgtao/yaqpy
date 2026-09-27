@@ -88,3 +88,8 @@ class EvalEnv:
     formats: Any = None                 # FormatRegistry (injected by app layer)
     yaml_snippet_decoder: Callable[[str], Node] | None = None
     clock: Callable[[], datetime] = system_clock       # ``now`` and ``shuffle`` read this
+    lint_warnings: list[str] = field(default_factory=list)
+    # R001/R002 (E7, 0926-03 5-5): runtime lint, appended to by the operators themselves
+    # (arithmetic.py's divide, logic.py's ==) - one shared, mutable list per evaluation. A
+    # frozen dataclass still allows mutating a field's own contents; only reassigning the
+    # field itself is blocked, which nothing here needs to do.

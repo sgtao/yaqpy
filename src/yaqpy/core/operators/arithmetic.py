@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from yaqpy.core.engine.context import Context
-from yaqpy.core.engine.helpers import CrossPrefs, compound_assign, cross_function, cross_function_with_prefs, truthy
+from yaqpy.core.engine.helpers import (
+    CrossPrefs, add_lint_warning, compound_assign, cross_function, cross_function_with_prefs, truthy,
+)
 from yaqpy.core.engine.navigator import Navigator
 from yaqpy.core.lang.ast import ExprNode, Operation
 from yaqpy.core.model import tags
@@ -255,6 +257,7 @@ def divide(nav: Navigator, ctx: Context, lhs: Node | None, rhs: Node | None) -> 
         b = tags.parse_float(rhs.value)
         if b == 0:
             quotient = float("inf") if a > 0 else float("-inf") if a < 0 else float("nan")
+            add_lint_warning(nav, "R001: 0 で割った結果が、有限でない数 (Inf・-Inf・NaN) になりました")
         else:
             quotient = a / b
         target.tag = lhs.tag if lhs_is_custom else "!!float"

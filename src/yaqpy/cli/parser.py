@@ -130,6 +130,10 @@ def build_parser() -> _Parser:
     g.add_argument("--tab", action="store_true", help="use a tab for each indentation level (JSON only)")
     g.add_argument("-S", "--sort-keys", dest="sort_keys", action="store_true",
                    help="sort the keys of every mapping, at every depth, on output")
+    g.add_argument("--lint", choices=["off", "warn"], default="warn",
+                   help="warn (to stderr) about expressions that are likely mistakes, "
+                        "e.g. 'select(...) | \"y\"' or comparing arrays with '=='. "
+                        "The CLI and GUI default to 'warn'; the library default is 'off'.")
     f = parser.add_argument_group("format options")
     f.add_argument("--xml-attribute-prefix", default="+@", help="prefix for xml attributes")
     f.add_argument("--xml-content-name", default="+content",

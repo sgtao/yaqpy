@@ -138,6 +138,7 @@ def resolve_invocation(ns: argparse.Namespace, *, stdin_is_pipe: bool,
         nul_separated_output=ns.nul_output,
         pretty_print=ns.pretty_print,
         sort_keys=ns.sort_keys,
+        lint=ns.lint,
         string_interpolation=ns.string_interpolation,
         yaml=YamlOptions(
             indent=indent,

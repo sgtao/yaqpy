@@ -200,11 +200,19 @@ class YqService:
         if request.in_place and isinstance(sink, InPlaceSink):
             self.fs.atomic_write(sink.path, output or "")
             output = None
+        # E7 (0926-03 5-5): static (Y001-Y009, on the compiled tree) ahead of runtime
+        # (R001/R002, appended to env.lint_warnings by the operators as they run), each once;
+        # both are already empty when Options.lint == "off" (the expression's own lint_warnings
+        # is only non-empty when the compiler computed it - it always does - so the "off" gate
+        # for the static half lives here, not in the compiler).
+        warnings: tuple[str, ...] = ()
+        if options.lint != "off":
+            warnings = tuple(dict.fromkeys((*expression.lint_warnings, *env.lint_warnings)))
         return EvaluateResult(
             output=output,
             printed_anything=printer.printed_anything,
             document_count=document_count,
-            warnings=(),
+            warnings=warnings,
             elapsed_seconds=time.monotonic() - started,
             input_format=input_format,
             output_format=output_format,
