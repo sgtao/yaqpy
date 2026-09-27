@@ -888,6 +888,27 @@ uv run yaqpy --split-exp-file name.yq multi.yaml
 - **`-i` とは同時に使えません**（`write in place cannot be used with split file`）
 - **安全のため、名前に `..` を含むものは書きません**（名前はデータから決まるので、文書の中身でツリーの外に書けないようにするためです。Go 版にはない制限です）。`--security-disable-file-ops` を付けると `-s` も使えません。ライブラリ（`SecurityPolicy.strict()`）でも、`allow_file=True` にするまで使えません
 
+### jq に寄せた書き方（v0.8.0 で追加）
+
+jq に寄せる改修計画（[21_docs/0926-03](https://github.com/sgtao/yaqpy)）の最初の版です。**既定（yq 方言）のままで**、次の jq の書き方が使えるようになりました。すでに動いている式の結果は変わりません（算術の優先順位だけは例外。下記）。
+
+| 分類 | 追加した書き方 |
+|---|---|
+| エラー・空 | `error(msg)`（bare な `error` も）、`empty` |
+| 型のフィルタ | `values` `nulls` `booleans` `numbers` `strings` `arrays` `objects` `iterables` `scalars` |
+| 文字列 | `startswith` `endswith` `ltrimstr` `rtrimstr` `ltrim` `rtrim` `gsub` `scan` `splits` `implode` `@html` `@text`。`test`/`match`/`capture` は `i` `x` `s` フラグに対応 |
+| 配列・オブジェクト | bare な `add`、`any(f)` `all(f)`、`min_by` `max_by`、`keys_unsorted`（`keys` の別名）、`transpose`（`pivot` の別名）、`utf8bytelength`、`in` `inside`、`indices` `index` `rindex`、`isempty(f)`、bare な `last` と `last(f)`、`nth(n)` `nth(n;f)`、`limit(n;f)` `skip(n;f)`、`range(...)`、`abs` `toboolean` `toarray`。`reverse` は文字列・`null` にも使えます |
+| パス | `getpath(p)`、前置きの `path(f)`、bare な `paths` `leaf_paths`、`paths(f)` |
+| 変数 | `$ENV` / bare な `env`（環境変数のオブジェクト）、`input_filename`（`filename` の別名） |
+| 算術 | 単項の `-`（`-.a`）、`//=` `/=` `%=` |
+| 数学関数 | `floor` `ceil` `round` `trunc` `fabs` `sqrt` `cbrt` `exp` 系 `log` 系 `sin` 系 `pow` `atan2` `hypot` など |
+| CLI | `--arg` `--argjson` `--args` `--jsonargs`、`--slurp`、`--compact-output`、`--tab`、`-S`/`--sort-keys`、`--lint` |
+
+- **算術の優先順位・結合性だけは、既定から jq と同じにしました**：`+ - * / %` は左から計算し、`* / %` が `+ -` より強くなります（`1 - 2 - 3` は `-4`。以前・Go 版は `2`）。右から計算する動きを意図して使っている式はまずないと判断し、方言を分けずに既定を変えました
+- **`--lint=warn`**（CLI・GUI の既定。ライブラリは既定オフ）で、`select(cond) | 定数` のような黙った誤りに警告が出ます（標準エラー出力、`Warning: ...`）
+- まだ書けない jq の語（`if` `try` `def` `input` など）を書くと、構文エラーに続けて対応の状態と代わりの書き方が出ます
+- 一覧は自動生成の `yaqpy --print-spec`（「使える演算子」に含まれます）・`yaqpy --guide-prompt` でも確認できます
+
 ### まだ使えないもの
 
 次の演算子は**実装していません**。式としては解釈されますが、**実行すると `Error: unknown operator ...` で終了します**。ファイル・環境変数・外部コマンドに触れるため、安全性の設計をしてから入れる予定です（改修計画の O3）。
