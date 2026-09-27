@@ -5,32 +5,39 @@
 [toTop](#toreadme)
 ## [0.7.2] - 2026-09-27
 
-**レシピの案内と、GUI の［サンプル］メニューを足した版です。** 使い方が変わる箇所はありません（新しい表示とボタンが増えただけです）。
+**レシピの案内（`hints:`）と、GUI の［サンプル］メニューを足した版です。** 既存の使い方は変わりません（変換の結果も同じで、新しい表示とボタンが増えただけです）。
 
 ### 追加
 
-- **レシピの `hints:`**：レシピの説明のファイル（`.recipe.yaml`）に、目標スキーマとの食い違いが出たとき、または項目を落としたときの**案内**を書けるようになりました。`when`（`issue` の種類と `path`、または `dropped`。省略可）と `text`（`{recipe}` `{input}` `{path}` が使える）を並べます。当てはまる案内が、報告の最後に `hint:`（`--report` では `Hint:`）として出ます。**自作のレシピにも同じように書けます**（案内は Python のコードには埋め込んでいません）。書き間違いはエラーです
-- **同梱の 6 レシピすべてに、`model` の案内を書きました**（Gemini 向けの 2 レシピは、入力の `model` を落としたときに、「Gemini はモデルを本文ではなく URL で指定する」ことを `https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent` の形で示します）。変換先が OpenAI・Anthropic のものには、次の案内も付きます：変換先が必須とする `model` が結果にないとき、`yaqpy --recipe gemini-to-openai request.json | yaqpy '.model = "gpt-4o"'` の形で、入力のファイル名と、変換先に合うモデル名の例（OpenAI は `gpt-4o`、Anthropic は `claude-opus-5-5`）を示します。標準エラー出力に出るだけで、変換結果は変わりません。レシピは、これまでどおりモデル名を選びません
+- **レシピの `hints:`**：レシピの説明のファイル（`.recipe.yaml`）に、変換のあとに添える**案内**を書けるようになりました。案内は、変換結果が目標スキーマに合わないとき、または特定の項目を落としたときに、報告の最後へ `hint:`（`--report` では `Hint:`）として出ます。標準エラー出力に出るだけで、変換結果は変わりません
+  - `text`（必須）：案内の文。`{recipe}`（レシピの名前）`{input}`（入力の名前）`{path}`（該当する項目のパス）が使えます
+  - `when`（省略可）：いつ出すか。`issue`（`missing` `extra` `type` `value` `range` `size`）と `path`（`.messages[].role` のような形）で目標スキーマの食い違いに、`dropped`（`drops` に書いたパス）で落とした項目に結びつけます
+  - **自作のレシピにも同じように書けます**（案内は Python のコードには埋め込んでいません）。書き間違い（知らないキー・`text` がない・種類や `path` の形の違い・`dropped` と `issue`/`path` の併用）はエラーです
+- **同梱の 6 レシピすべてに、`model` の案内を書きました**：モデル名は API ごとに違うので、レシピはこれまでどおりモデル名を選びません。そのかわり、次のことを案内します
+  - 変換先が OpenAI・Anthropic のもの（4 レシピ）：`model` が結果になければ、足し方を示します。例：`yaqpy --recipe gemini-to-openai request.json | yaqpy '.model = "gpt-4o"'`（入力のファイル名と、変換先に合うモデル名の例が入ります。Anthropic は `claude-opus-5-5`）
+  - 変換先が Gemini のもの（2 レシピ）：入力の `model` を落としたときに、「Gemini はモデルを本文ではなく URL で指定する」ことを `https://generativelanguage.googleapis.com/v1beta/models/<model>:generateContent` の形で示します
 - **GUI の［サンプル］ボタン**：ファイル名の右のボタンを押すと、`examples/` のデータ（各形式のサンプルと、OpenAI・Gemini・Anthropic のリクエストボディ）の一覧がプルダウンで開き、選ぶと入力になります。`[＋ファイルを追加]` と同じ規則（何も開いていなければ最初の文書に、開いていれば追加）で、**入力形式は `auto`** になります。デスクトップ版・Web 版のどちらでも使えます。データは wheel に同梱しています（`src/yaqpy/gui/assets/examples/`。選べるのは一覧にある名前だけで、パスは受け付けません）
 
 ### 文書
 
-- USAGE.ja.md のレシピの節を、`examples/` の新しいサンプル（`api-openai-request.json` など）で実際に実行し直して書き換えました（旧 `openai-request.json` は無くなっています）。`hint:` を報告の読み方に加えました
-- USAGE-GUI.ja.md に［サンプル］を、README（英語・日本語）・DEVELOPMENT.md にも追記しました。DEVELOPMENT.md の `docs/` の説明と、テスト件数を直しました
+- USAGE.ja.md のレシピの節を、`examples/` の新しいサンプル（`api-openai-request.json` など）で実際に実行し直して書き換えました（旧 `openai-request.json` は無くなっています）。報告の読み方に `hint:` を、レシピの作り方に「案内を付ける：`hints`」を加えました
+- USAGE-GUI.ja.md に［サンプル］を、README（英語・日本語）・DEVELOPMENT.md にも追記しました。DEVELOPMENT.md の `docs/` の説明と、テスト件数を直しました。`--print-spec` の説明にも `hints` を加えました
 - 紹介スライド（16 枚目）のレシピの実行結果を、新しいサンプルの出力に合わせました
 - `docs/` の設計書・計画書は、リポジトリから外れました。`docs/flet-1.0-api-notes.md` に、その旨を書きました
 
 ### ライブラリ・開発者向けの変更
 
-- `recipes/hints.py`・`tests/unit/test_recipes_hints.py` を追加しました（`Recipe.hints`、`HintRule`。`loader.py` が `hints:` を読みます）
-- `tests/acceptance/test_examples.py`：`openai-request.json` の改名でこのテストが落ちていたのを直し、3 つのサンプルを他の 2 社へ変換する 6 通りのテストを足しました
-- `tests/unit/test_gui_samples.py`：`assets/examples/` が `examples/` と同じ内容であること、サンプルの開き方、名前の検査、メニューの並びを検査します（`examples/` を直したら、コピーも直します。[DEVELOPMENT.md](./DEVELOPMENT.md)）
+- `recipes/hints.py`（案内の選択）と `Recipe.hints` / `HintRule`（`recipes/model.py`）を追加し、`recipes/loader.py` が `hints:` を読みます。`gui/samples.py`（［サンプル］の一覧と読み込み。Flet 非依存）と `presenter.open_sample` も追加しました
+- テスト：`tests/unit/test_recipes_hints.py`（案内の書式・条件・自作レシピ）、`tests/unit/test_gui_samples.py`（`assets/examples/` が `examples/` と同じ内容であること、サンプルの開き方、名前の検査、メニュー）を追加しました。`examples/` を直したら、コピーも直します（[DEVELOPMENT.md](./DEVELOPMENT.md)）
+- `tests/acceptance/test_examples.py`：`openai-request.json` の改名で落ちていたテストを直し、3 つのサンプルを他の 2 社へ変換する 6 通りのテストを足しました
 - 公開する API（`yaqpy.evaluate` など）に変更はありません
 
 ### 確認したこと
 
-- 全テスト：ユニット 1,785 件・受け入れ 109 件が合格（Python 3.13）。GUI は、Web 版を起動してブラウザで［サンプル］を開き、選んだサンプルが左に出て、右に変換結果が出るところまで確認しました
-- **未確認**：デスクトップ版の窓での見た目（Web 版の画面と同じ部品です）、Python 3.11・3.12 での全テスト（`tools/check_pythons.py`）
+- 全テスト：ユニット 1,785 件・受け入れ 109 件など、合計 1,899 件が合格（Python 3.13）
+- **3 つの版（3.11・3.12・3.13）**：`tools/check_pythons.py` で、下限の検査（vermin）と全テストが、いずれも合格しました
+- GUI は、Web 版を起動してブラウザで［サンプル］を開き、選んだサンプルが左に出て、右に変換結果が出るところまで確認しました
+- **未確認**：デスクトップ版の窓での見た目（Web 版の画面と同じ部品です）、Python 3.14 以降
 
 ---
 [toTop](#toreadme)
