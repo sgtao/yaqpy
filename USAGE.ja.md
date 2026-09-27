@@ -888,12 +888,149 @@ uv run yaqpy --split-exp-file name.yq multi.yaml
 - **`-i` とは同時に使えません**（`write in place cannot be used with split file`）
 - **安全のため、名前に `..` を含むものは書きません**（名前はデータから決まるので、文書の中身でツリーの外に書けないようにするためです。Go 版にはない制限です）。`--security-disable-file-ops` を付けると `-s` も使えません。ライブラリ（`SecurityPolicy.strict()`）でも、`allow_file=True` にするまで使えません
 
+### jq に寄せた書き方（v0.8.0 で追加）
+
+jq に寄せる改修計画の最初の版です。**既定（yq 方言）のままで**、次の jq の書き方が使えるようになりました。「エラー・意味のない結果 → 値」という変更だけを既定に入れたので、**すでに動いている式の結果は 1 つも変わりません**（算術の優先順位だけは例外。[後述](#算術の優先順位v080で唯一の挙動変更)）。
+
+一覧は自動生成の `yaqpy --print-spec`（「使える演算子」「jq の書き方でまだ読めないもの」に含まれます）・`yaqpy --guide-prompt` でも確認できます。
+
+#### エラー・空
+
+| 演算子 | 内容 | 例 → 結果 |
+|---|---|---|
+| `error(msg)` | 評価を打ち切り、`msg` の（最初の）結果をエラーにする | `select(. == "howdy") or error("expected howdy, got \(.)")`（`bye`）→ `Error: expected howdy, got bye` |
+| bare な `error` | 引数なし。入力そのものをエラーにする（文字列はそのまま、それ以外は YAML にして） | `error`（`bye`）→ `Error: bye` |
+| `empty` | 何も出さない | `.[] \| (select(. > 1) // empty)`（`[1, 2, 3]`）→ `2` `3` |
+
+#### 型のフィルタ
+
+`.[] | select(tag == "!!int")` より短く書けます。
+
+| 演算子 | 選ぶもの |
+|---|---|
+| `values` | `null` 以外のすべて |
+| `nulls` | `null` |
+| `booleans` | 真偽値 |
+| `numbers` | 整数・小数 |
+| `strings` | 文字列 |
+| `arrays` | 配列 |
+| `objects` | マップ |
+| `iterables` | 配列・マップ |
+| `scalars` | 配列・マップ以外 |
+
+例：`[1, "a", null, true, [1], {a: 1}] | [.[] | numbers]` → `[1]`
+
+#### 文字列
+
+| 演算子 | 内容 | 例 → 結果 |
+|---|---|---|
+| `startswith(s)` / `endswith(s)` | 前方・後方一致（`true`/`false`） | `startswith("he")`（`hello`）→ `true` |
+| `ltrimstr(s)` / `rtrimstr(s)` | 前後の指定文字列を取る。一致しない・文字列でないときは**変更なし**（エラーにしません） | `ltrimstr("hello ")`（`hello world`）→ `world` |
+| `ltrim` / `rtrim` | 片側だけの空白取り（`trim` は既存で両側） | `ltrim`（`"  hi  "`）→ `"hi  "` |
+| `gsub(re; s)` | 全置換（yq の `sub` と同じ意味の別名） | `gsub("X"; "-")`（`aXbXc`）→ `a-b-c` |
+| `scan(re)` | 一致ごとに、グループなしなら一致文字列、グループありなら配列 | `[scan("[a-z]")]`（`a1b2`）→ `[a, b]` |
+| `splits(re)` | 正規表現で分けた**列**（`[splits(re)]` で配列に。2 引数の `split(re; flags)` の配列形は今回は直していません） | `[splits("-")]`（`a-b-c`）→ `[a, b, c]` |
+| `implode` | コードポイントの配列を文字列に（`explode` は yq の意味＝アンカー展開のまま） | `implode`（`[104, 105]`）→ `hi` |
+| `@html` / `@text` | HTML エスケープ／`tostring` と同じ | `@html`（`<a>`）→ `&lt;a&gt;` |
+| `test`/`match`/`capture` のフラグ | `i`（大小文字を無視）`x`（空白を無視）`s`（`.` が改行にも一致）が使えます（`n` は非対応） | `test("A"; "i")`（`a`）→ `true` |
+
+#### 配列・オブジェクト
+
+| 演算子 | 内容 | 例 → 結果 |
+|---|---|---|
+| bare な `add` | 配列の合計（`+` の繰り返し） | `add`（`[1, 2, 3]`）→ `6` |
+| `any(f)` / `all(f)` | 既存の `any_c(f)`/`all_c(f)` の jq 名（両方使えます） | `any(. > 2)`（`[1, 2, 3]`）→ `true` |
+| `min_by(f)` / `max_by(f)` | `f` の値が最小・最大の要素 | `min_by(.a)`（`[{a: 3}, {a: 1}]`）→ `{a: 1}` |
+| `keys_unsorted` | `keys` の別名（yq の `keys` はもともと並べ替えません） | |
+| `transpose` | `pivot` の別名 | |
+| `utf8bytelength` | 文字列の UTF-8 バイト数 | `utf8bytelength`（`"hé"`）→ `3` |
+| `in(xs)` / `inside(xs)` | `in`：自分が `xs` のキーか。`inside`：`contains` の逆向き | `in({a: 1})`（`"a"`）→ `true` |
+| `indices(x)` / `index(x)` / `rindex(x)` | 一致する位置（すべて／最初／最後） | `index(1)`（`[2, 1, 1]`）→ `1` |
+| `isempty(f)` | `f` が何も出さなければ `true` | `isempty(empty)` → `true` |
+| bare な `last` / `last(f)` | 配列の最後の要素／`f` の最後の出力 | `last`（`[1, 2, 3]`）→ `3` |
+| `nth(n)` / `nth(n; f)` | 配列の `n` 番目／`f` の `n` 番目の出力 | `nth(1)`（`[1, 2, 3]`）→ `2` |
+| `limit(n; f)` / `skip(n; f)` | `f` の出力の最初の `n` 件／`n` 件を飛ばした残り | `[limit(2; 1, 2, 3, 4)]` → `[1, 2]` |
+| `range(n)` / `range(a;b)` / `range(a;b;step)` | 数列（既定の刻みは 1）。1 千万件で打ち切ります | `[range(2; 5)]` → `[2, 3, 4]` |
+| `abs` / `toboolean` / `toarray` | 絶対値／`"true"`・`"false"` を真偽値に／配列でなければ 1 要素の配列にする | `toarray`（`5`）→ `[5]` |
+| `reverse` | **文字列・`null` にも使えるようになりました**（配列以外はエラーだったのを直しました） | `reverse`（`"abc"`）→ `"cba"` |
+
+#### パス・変数
+
+| 演算子 | 内容 | 例 → 結果 |
+|---|---|---|
+| `getpath(p)` | パス配列の位置の値（無ければ `null`。エラーにしません） | `getpath(["a", "z"])`（`{a: {b: 1}}`）→ `null` |
+| `path(f)` | `f` が指す先のパス（後置きの `f \| path` と同じ） | `path(.a.b)` → `[a, b]` |
+| bare な `paths` | すべての非ルートのパス | `[paths]`（`{a: {b: 1}}`）→ `[[a], [a, b]]` |
+| `leaf_paths` | 値が配列・マップでないパスだけ | `[leaf_paths]`（`{a: {b: 1}}`）→ `[[a, b]]` |
+| `paths(f)` | 値が `f` に一致するパスだけ | `[paths(tag == "!!int")]` |
+| `$ENV` / bare な `env` | 環境変数のオブジェクト（`--security-disable-env-ops` で無効化） | `$ENV.HOME` |
+| `input_filename` | `filename` の別名 | |
+
+#### 算術・数学関数
+
+| 演算子 | 内容 |
+|---|---|
+| 単項の `-` | `-.a`、`1 as $x \| -$x` など（負のリテラル `-1` は以前から書けました） |
+| `//=` `/=` `%=` | yq には無かった複合代入（`+= -= *=` はもとからあります） |
+| `1 + null` | `1`（jq と同じ。以前はエラー） |
+| 数学関数 | `floor` `ceil` `round`（半分は 0 から遠い方に丸め）`trunc` `fabs` `sqrt` `cbrt` `exp` `exp2` `exp10` `expm1` `log` `log2` `log10` `log1p` `sin` `cos` `tan` `asin` `acos` `atan` `sinh` `cosh` `tanh` `asinh` `acosh` `atanh` `pow(x;y)` `atan2(y;x)` `copysign` `hypot` `fmin` `fmax` |
+
+#### 算術の優先順位（v0.8.0 で唯一の挙動変更）
+
+**`+ - * / %` は既定から jq と同じ左結合になり、`* / %` が `+ -` より強くなります。** `//` と `*=` は対象外で、優先順位は変わりません。
+
+| 式 | v0.7.x 以前 | **v0.8.0 以降（jq と同じ）** |
+|---|---|---|
+| `1 - 2 - 3` | `2` | `-4` |
+| `8 / 2 / 2` | `8.0` | `2` |
+| `2 * 3 + 1` | `8` | `7` |
+
+Go 版 yq・v0.7.x 以前の yaqpy は右から計算していましたが、その動きを意図して使っている式はまずないと判断し、方言を分けずに既定を変えました。互換テスト（Go 版シナリオ 1,091 件のうち一致 1,047 件）・単体・受け入れテストは、この変更の前後で結果が変わらないことを確かめています。
+
+#### CLI フラグ
+
+| フラグ | 内容 |
+|---|---|
+| `--arg NAME VALUE` / `--argjson NAME JSON` | `$NAME` に文字列／JSON の値を束縛（`$ARGS.named` にもまとまります。繰り返すと最後の値が勝ちます） |
+| `--args` / `--jsonargs` | これより後ろの引数を `$ARGS.positional` に（文字列／JSON として）。ファイルとしては読みません |
+| `--slurp` | 全入力を 1 つの配列にして 1 回だけ評価（`eval-all`／`ea` とは違い、配列としてまとめます） |
+| `--compact-output` | 1 行にまとめて出力（`-c` は yq の `--yaml-compact-seq-indent` なので変えていません） |
+| `--tab` | インデントをタブに（今のところ JSON 出力だけ） |
+| `-S` / `--sort-keys` | すべての階層でマップのキーを並べ替えて出力 |
+| `--lint {off,warn}` | 下記の警告の切り替え（CLI・GUI の既定は `warn`、ライブラリは既定 `off`） |
+
+```bash
+yaqpy -n --arg name World '"Hello, \($name)!"'
+yaqpy -n -o json '$ARGS.positional' --args a b c
+yaqpy -o json --slurp '.' a.yaml b.yaml
+```
+
+#### 黙った誤りへの警告（`--lint=warn`）
+
+CLI・GUI は既定でオン、ライブラリは既定でオフです（`Options(lint="warn")` で有効）。標準エラー出力に `Warning: ...` の形で出ます。
+
+| 番号 | 検出する形 | 知らせる内容 |
+|---|---|---|
+| Y001 | `select(cond) \| 定数` | 条件が偽でも定数が出ます |
+| Y002 | 文字列リテラルの中の `*` を含む `==`/`!=` | ワイルドカードとして扱われます |
+| Y003 | 配列・オブジェクトのリテラルとの `==`/`!=` | 常に偽になります |
+| Y004 | 束縛されていない `$変数` | 黙って空になります |
+| Y005 | 配列でない `pick` の引数 | 黙って `{}` になります |
+| Y006 | 括弧なしの `,` と `\|` の混在 | jq とは結びつきが逆になります |
+| Y007 | `\|` の後ろの括弧なしの `and`/`or` | jq とは結びつきが逆になります |
+| Y008 | 括弧なしの `and`/`or` の混在 | 同じ強さで右から結びつきます（jq は `and` が強い） |
+| Y009（v0.8.x の間だけ） | 括弧なしの連続した算術 | v0.8.0 から計算の順序が変わりました |
+| R001（実行時） | 0 での割り算 | 結果が `Inf`/`-Inf`/`NaN` になりました |
+| R002（実行時） | 配列・オブジェクトどうしの `==`/`!=` | 常に偽になります |
+
+まだ書けない jq の語（`if` `try` `def` `input` など）を書くと、構文エラーに続けて対応の状態（対応の予定があります／ありません）と代わりの書き方が出ます。
+
 ### まだ使えないもの
 
-次の演算子は**実装していません**。式としては解釈されますが、**実行すると `Error: unknown operator ...` で終了します**。ファイル・環境変数・外部コマンドに触れる（`error` を除く）ため、安全性の設計をしてから入れる予定です（改修計画の O3）。
+次の演算子は**実装していません**。式としては解釈されますが、**実行すると `Error: unknown operator ...` で終了します**。ファイル・環境変数・外部コマンドに触れるため、安全性の設計をしてから入れる予定です（改修計画の O3）。
 
 <!-- yaqpy:unimplemented-operators:begin  (yaqpy --print-spec の「使えない演算子」と一致することを、テストで確かめています) -->
-`envsubst` `error` `eval` `load` `load_base64` `load_props` `load_str` `load_xml` `str_load` `system` `xml_load`
+`envsubst` `eval` `load` `load_base64` `load_props` `load_str` `load_xml` `str_load` `system` `xml_load`
 <!-- yaqpy:unimplemented-operators:end -->
 
 この一覧は、実装から自動生成される `yaqpy --print-spec` の「使えない演算子」と同じです（[yaqpy が自分を説明する](#yaqpy-が自分を説明する--print-spec---example---guide-prompt---skill-md)）。

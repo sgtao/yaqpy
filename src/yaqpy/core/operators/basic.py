@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
+
 from yaqpy.core.engine.context import Context
+from yaqpy.core.engine.helpers import yaml_string
 from yaqpy.core.engine.navigator import Navigator
 from yaqpy.core.lang.ast import ExprNode
 from yaqpy.core.lang.prefs import AssignVarPrefs, ExpressionPrefs
-from yaqpy.core.model.node import Node
+from yaqpy.core.model.node import Kind, Node
 from yaqpy.core.operators.registry import operator
 from yaqpy.errors import EvaluationError
 
@@ -19,6 +22,33 @@ def self_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
 @operator("EMPTY")
 def empty_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
     return ctx.child([])
+
+
+def _error_message(nav: Navigator, node: Node) -> str:
+    if node.tag == "!!null":
+        return "null (null)"
+    if node.kind is Kind.SCALAR:
+        return node.value
+    return yaml_string(nav, node)
+
+
+@operator("ERROR")
+@operator("ERROR_BARE", num_args=0, precedence=50)
+def error_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    """jq's ``error`` / ``error(msg)`` (yq has neither): raise, ending the whole evaluation.
+
+    ``error(msg)`` raises the (first) result of ``msg``; bare ``error`` raises the current
+    input itself (a string as-is, anything else rendered as YAML), matching jq's ``error/0``
+    and ``error/1``. Two lexer words (``error(`` vs bare ``error``) share this handler because
+    the postfix builder decides argument count from the token's own spec, and one word cannot
+    be both 0- and 1-ary at once (see ``core.lang.lex_rules._word_call`` / ``_word_bare``).
+    """
+    if expr.rhs is None:
+        node = ctx.nodes[0] if ctx.nodes else Node(tag="!!null")
+        raise EvaluationError(_error_message(nav, node))
+    message_ctx = nav.evaluate(ctx.readonly_clone(), expr.rhs)
+    node = message_ctx.nodes[0] if message_ctx.nodes else Node(tag="!!null")
+    raise EvaluationError(_error_message(nav, node))
 
 
 @operator("BLOCK")
@@ -72,10 +102,24 @@ def union_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
     return lhs.child(results)
 
 
+def _environ_node(environ: Mapping[str, str]) -> Node:
+    node = Node.mapping()
+    for key, value in environ.items():
+        node.add_key_value(Node.string(key), Node.string(value))
+    return node
+
+
 @operator("GET_VARIABLE")
 def get_variable_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
     name = expr.operation.string_value
     result = ctx.get_variable(name)
+    if result is None and name == "ENV":
+        # `$ENV` / bare `env` (E3/E5, 0926-03 3-6): built here, not pre-seeded into every
+        # root Context, so it stays live if `os.environ` changes between calls and so a
+        # user's own `... as $ENV | ...` (bound above, in ctx.variables) still shadows it.
+        if not nav.env.security.allow_env:
+            return ctx.child([])
+        return ctx.child([_environ_node(nav.env.environ)])
     # list(...) forces a fresh tuple so union's identity check does not collapse `$x, $x`
     return ctx.child(list(result or ()))
 

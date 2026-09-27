@@ -6,6 +6,7 @@ from collections.abc import Callable
 from typing import Any
 
 from yaqpy.core.lang.ast import Operation
+from yaqpy.core.lang.hints import hint_for
 from yaqpy.core.lang.lex_rules import DEFAULT_RULESET, LexRuleSet
 from yaqpy.core.lang.tokens import Token, TokenKind
 from yaqpy.core.model.node import Node
@@ -20,10 +21,11 @@ def tokenize(expression: str, get_spec: Callable[[str], Any],
     while pos < n:
         found = ruleset.match(expression, pos)
         if found is None:
-            raise ExpressionSyntaxError(
-                f"unexpected character {expression[pos]!r} at position {pos}",
-                expression=expression, position=pos,
-            )
+            message = f"unexpected character {expression[pos]!r} at position {pos}"
+            hint = hint_for(expression, pos)     # E7, 0926-03 5-6
+            if hint is not None:
+                message = f"{message}\n{hint}"
+            raise ExpressionSyntaxError(message, expression=expression, position=pos)
         rule, m = found
         text = m.group(0)
         if rule.action is not None:

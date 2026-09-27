@@ -20,6 +20,18 @@ def truthy(node: Node | None) -> bool:
     return node is not None and node.is_truthy()
 
 
+def add_lint_warning(nav: Navigator, message: str) -> None:
+    """R001/R002 (E7, 0926-03 5-5): a runtime lint finding - unlike Y001-Y009 (static, found
+    once at compile time on the tree), these depend on the actual values seen while
+    evaluating, so they are appended here, from inside the operator that noticed. Off unless
+    ``Options.lint != "off"`` (CLI/GUI default "warn"; the library default is "off" - 決定 3),
+    and de-duplicated so a warning inside a loop is not repeated for every iteration."""
+    if nav.env.options.lint == "off":
+        return
+    if message not in nav.env.lint_warnings:
+        nav.env.lint_warnings.append(message)
+
+
 def yaml_string(nav: Navigator, node: Node) -> str:
     """The node as YAML text without the trailing newline (Go's ``encodeToYamlString``)."""
     encoder = nav.env.formats.encoder_for("yaml", nav.env.options, False)

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from yaqpy.core.engine.context import Context
-from yaqpy.core.engine.helpers import CrossPrefs, compound_assign, cross_function, cross_function_with_prefs, truthy
+from yaqpy.core.engine.helpers import (
+    CrossPrefs, add_lint_warning, compound_assign, cross_function, cross_function_with_prefs, truthy,
+)
 from yaqpy.core.engine.navigator import Navigator
 from yaqpy.core.lang.ast import ExprNode, Operation
 from yaqpy.core.model import tags
@@ -81,6 +83,11 @@ def _add_scalars(ctx: Context, target: Node, lhs: Node, rhs: Node) -> None:
     elif rhs_tag == "!!str":
         target.tag = rhs.tag
         target.value = lhs.value + rhs.value
+    elif rhs_tag == "!!null":
+        # jq's `1 + null == 1` (null is `+`'s identity element); an "error becomes a value"
+        # change (0926-03 3-2), so it cannot affect an expression that worked before.
+        target.tag = lhs.tag
+        target.value = lhs.value
     elif lhs_tag == "!!int" and rhs_tag == "!!int":
         fmt, a = tags.parse_int(lhs.value)
         _, b = tags.parse_int(rhs.value)
@@ -197,6 +204,28 @@ def subtract_assign_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Co
     return compound_assign(nav, ctx, expr, build)
 
 
+# ----------------------------------------------------------------------------- unary minus (E5)
+
+@operator("NEGATE", num_args=1, precedence=45)
+def negate_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    """jq's unary ``-`` (``-.a``, ``-1``): Go yq's grammar never needed one, so this is new
+    in v0.8.0 (0926-03 3-2). ``core.lang.postfix`` rewrites a ``-`` into this operator
+    whenever an operand is expected next rather than a subtraction's right-hand side."""
+    operand = nav.evaluate(ctx, expr.rhs)
+    results: list[Node] = []
+    for node in operand.nodes:
+        tag = node.tag if node.tag.startswith("!!") else node.guess_tag()
+        if tag == "!!int":
+            fmt, value = tags.parse_int(node.value)
+            negated = tags.format_int(fmt, -value)
+        elif tag == "!!float":
+            negated = tags.format_float(-tags.parse_float(node.value))
+        else:
+            raise EvaluationError(f"{node.tag} ({node.nice_path()}) is not a number, cannot negate")
+        results.append(node.create_replacement(Kind.SCALAR, node.tag, negated))
+    return ctx.child(results)
+
+
 # ----------------------------------------------------------------------------- divide / modulo
 
 def _split_string(lhs: str, sep: str) -> list[Node]:
@@ -228,6 +257,7 @@ def divide(nav: Navigator, ctx: Context, lhs: Node | None, rhs: Node | None) -> 
         b = tags.parse_float(rhs.value)
         if b == 0:
             quotient = float("inf") if a > 0 else float("-inf") if a < 0 else float("nan")
+            add_lint_warning(nav, "R001: 0 で割った結果が、有限でない数 (Inf・-Inf・NaN) になりました")
         else:
             quotient = a / b
         target.tag = lhs.tag if lhs_is_custom else "!!float"
@@ -305,3 +335,34 @@ def _lhs_truthy(lhs: Node | None) -> Node | None:
 def alternative_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
     prefs = CrossPrefs(calc_when_empty=True, calculation=_alternative, lhs_result_value=_lhs_truthy)
     return cross_function_with_prefs(nav, ctx, expr, prefs)
+
+
+# ----------------------------------------------------------------------------- //= /= %= (E5)
+# jq has these three compound-assigns; Go yq only ever grew `+= -= *=` (0926-03 3-3), so they
+# are new to yaqpy too. Each just builds `a OP= b` as `a = a OP b`, exactly like `*=` already does.
+
+@operator("DIVIDE_ASSIGN", num_args=2, precedence=40)
+def divide_assign_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    def build(l: ExprNode, r: ExprNode | None) -> ExprNode:
+        return ExprNode(Operation(nav.env.operators.get("DIVIDE")), lhs=l, rhs=r)
+
+    return compound_assign(nav, ctx, expr, build)
+
+
+@operator("MODULO_ASSIGN", num_args=2, precedence=40)
+def modulo_assign_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    def build(l: ExprNode, r: ExprNode | None) -> ExprNode:
+        return ExprNode(Operation(nav.env.operators.get("MODULO")), lhs=l, rhs=r)
+
+    return compound_assign(nav, ctx, expr, build)
+
+
+@operator("ALTERNATIVE_ASSIGN", num_args=2, precedence=40)
+def alternative_assign_operator(nav: Navigator, ctx: Context, expr: ExprNode) -> Context:
+    """jq's ``//=``: ``a //= b`` is ``a = (a // b)`` - fill in ``b`` only where ``a`` is
+    null/false/missing."""
+
+    def build(l: ExprNode, r: ExprNode | None) -> ExprNode:
+        return ExprNode(Operation(nav.env.operators.get("ALTERNATIVE")), lhs=l, rhs=r)
+
+    return compound_assign(nav, ctx, expr, build)

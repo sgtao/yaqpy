@@ -3,6 +3,53 @@
 
 ---
 [toTop](#toreadme)
+## [0.8.0] - 2026-09-27
+
+**jq に寄せる改修計画の最初の版。既定（yq 方言）のままで、jq の書き方の多くが使えるようになりました。** 「エラー・意味のない結果 → 値」という変更だけを既定に入れたので、**すでに動いている式の結果は 1 つも変わりません**（算術の優先順位だけは例外。下記）。黙った誤りには警告を出せます（既定オフ）。jq との違いの詳細は [USAGE.ja.md の「jq に寄せた書き方」](USAGE.ja.md#jq-に寄せた書き方v080-で追加) を参照してください。
+
+### 追加（jq の書き方。既定の yq 方言のまま使えます）
+
+- **`error(msg)` / 空の `error`**：Go 版の文書の `select(cond) or error(msg)` の形が動くようになりました。**`empty`** は既存の演算子に字句の規則を足しただけです
+- **型のフィルタ**：`values` `nulls` `booleans` `numbers` `strings` `arrays` `objects` `iterables` `scalars`
+- **文字列**：`startswith` `endswith` `ltrimstr` `rtrimstr`（一致しない・文字列でないときは変更なし）、`ltrim` `rtrim`、`gsub`（yq の `sub` と同じ全置換の別名）、`scan`、`splits`（`split(re;flags)` の配列形は直しません。既知の不具合は v1.x まで保留）、`implode`（`explode` は yq の意味のまま）、`@html` `@text`。`test`/`match`/`capture` は `i` `x` `s` フラグを受け付けます（`n` は対応できません）
+- **配列・オブジェクト**：bare な `add`、`any(f)` `all(f)`（`any_c`/`all_c` も残ります）、`min_by` `max_by`、`keys_unsorted`（`keys` の別名）、`transpose`（`pivot` の別名）、`utf8bytelength`、`in` `inside`、`indices` `index` `rindex`、`isempty(f)`、bare な `last` と `last(f)`、`nth(n)` `nth(n;f)`、`limit(n;f)` `skip(n;f)`、`range(n)` `range(a;b)` `range(a;b;step)`（1 千万件で打ち切り）、`abs` `toboolean` `toarray`。**`reverse` は文字列・`null` にも使えます**（配列以外はエラーだったのを直しました）
+- **パス**：`getpath(p)`、前置きの `path(f)`（後置きの `f | path` と同じ）、bare な `paths` `leaf_paths`、`paths(f)`
+- **`$ENV` / bare な `env`**：環境変数のオブジェクト（`--security-disable-env-ops` に従う）。`input_filename` は `filename` の別名
+- **算術**：単項の `-`（`-.a`）、`//=` `/=` `%=`（yq には無かった複合代入）。`1 + null` は `1`（jq と同じ）
+- **数学関数**：`floor` `ceil` `round`（半分は 0 から遠い方に丸め）`trunc` `fabs` `sqrt` `cbrt` `exp` `exp2` `exp10` `expm1` `log` `log2` `log10` `log1p` `sin` `cos` `tan` `asin` `acos` `atan` `sinh` `cosh` `tanh` `asinh` `acosh` `atanh` `pow` `atan2` `copysign` `hypot` `fmin` `fmax`
+- **CLI**：`--arg NAME VALUE` `--argjson NAME JSON`（`$NAME` と `$ARGS.named` に）、`--args` `--jsonargs`（残りの引数が `$ARGS.positional` に。ファイルとしては読みません）、`--slurp`（全入力を 1 つの配列にして 1 回だけ評価。`eval-all` とは違います）、`--compact-output`、`--tab`（JSON のみ）、`-S`/`--sort-keys`（すべての階層）、`--lint`
+- **警告（`--lint=warn`。CLI・GUI は既定でオン、ライブラリは既定でオフ）**：`select(cond) | 定数`、文字列の中の `*` や配列・オブジェクトのリテラルとの `==`/`!=`、束縛されていない `$変数`、配列でない `pick` の引数、括弧なしの `,`/`|` の混在・`|` の後ろの `and`/`or`・`and`/`or` どうしの混在（結びつきが jq と逆になる 3 つ）、v0.8.0 で順序が変わった算術の連鎖（v0.8.x の間だけ）。実行時にも、0 での割り算（`Inf`/`NaN` になったとき）と配列・オブジェクトどうしの `==`/`!=`（常に偽）に警告します
+- **書けない jq の書き方への案内**：`if` `try` `def` `input` など、まだ読めない語を書くと、構文エラーに続けて「対応の予定があります／ありません」と代わりの書き方を添えます（`--print-spec` にも一覧があります）
+
+### 変更（挙動が変わるもの）
+
+- **算術の優先順位・結合性を、既定から jq と同じにしました**：`+ - * / %` は左から計算し、`* / %` が `+ -` より強くなります（`1 - 2 - 3` は `2` ではなく `-4` に。`//` と `*=` は対象外で、優先順位は変わりません）。Go 版 yq・これまでの yaqpy は右から計算していましたが、その動きを意図して使っている式はまずないと判断し、方言を分けずに既定を変えました。互換テスト（1,047/1,091）・単体・受け入れテストは、この変更の前後で結果が変わらないことを確かめています。**Go 版と意図して違える点**です
+
+### 見送り・保留（この版では扱いません）
+
+- `if…then…else…end` `try…catch` `walk` `reduce`（jq の語順）`foreach` `until` `while`（v0.9・v1.0 で計画）
+- `def` `import`/`include` `label`/`break` `input`/`inputs` `repeat` `tostream` 系 `combinations`（費用・安全性の理由で見送り。9 章）
+- 2 引数の `split`・3 引数の `sub` の意味のない結果、jq の意味の `explode`
+- GUI の警告欄（`EvaluateResult.warnings` はまだ表示に使っていません。GUI の構文エラー表示は、追加した案内をそのまま表示します）
+
+### ライブラリ・開発者向けの変更
+
+- 新しいモジュール：`core/lang/lint.py`（静的な警告 Y001-Y009。`,`/`|`/`and`/`or` の混在（Y006-Y008）は、jq とのぶつかり方が決まっている 3 パターンなので、方言の土台なしで木を見るだけで検出できました）、`core/lang/hints.py`（書けない jq の語の一覧）、`core/operators/jq_builtins.py`（上の追加のほとんど）
+- `core/lang/lex_rules.py` に `_word` / `_word_call` / `_word_bare`（語境界つきの規則。1 つの綴りが bare か呼び出しかで別の演算子になるもの用）
+- `OperatorSpec` に `left_assoc`（算術の優先順位）。`core/lang/postfix.py` の比較に反映
+- `Options` に `sort_keys` `lint`。`EvaluateRequest` に `slurp` `named_args` `named_json_args` `positional_args` `positional_args_json`。`EvalEnv` に `lint_warnings`（実行時の警告）
+- `Expression` に `lint_warnings`（コンパイル時に 1 度だけ計算）。`YqService.evaluate` の `EvaluateResult.warnings` は、常に空だったのが、静的＋実行時の警告（`Options.lint` が `"off"` でなければ）を返すようになりました
+- 公開する API（`yaqpy.evaluate` など）に変更はありません
+
+### 確認したこと
+
+- 全テスト：ユニット 1,920 件・受け入れ 121 件・ゴールデン 5 件（合計 2,046 件）が合格（Python 3.13）
+- **3 つの版（3.11・3.12・3.13）**：`tools/check_pythons.py` で、下限の検査（vermin）と全テストが、いずれも合格しました
+- Go 版シナリオの互換テスト（1,091 件）：一致 1,047 件（完全一致 1,018 ＋ 意味的に一致 29）で、この版に入る前から変わっていません
+- **未確認**：GUI での目視確認（コマンド・ライブラリの動作のみを確かめました。デスクトップ・Web 版の GUI は起動していません）。Python 3.14 以降
+
+---
+[toTop](#toreadme)
 ## [0.7.2] - 2026-09-27
 
 **レシピの案内（`hints:`）と、GUI の［サンプル］メニューを追加。** 既存の使い方は変わりません（変換の結果も同じで、新しい表示とボタンの追加・位置調整のみ）。

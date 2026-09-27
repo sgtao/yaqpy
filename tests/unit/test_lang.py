@@ -97,6 +97,36 @@ class ParserTests:
     def test_empty_expression(self) -> None:
         assert parse_expression("", REG.get) is None
 
+
+class ArithmeticPrecedenceTests:
+    """0926-03 決定 5 / E9: arithmetic is left-associative and `* / %` bind tighter than
+    `+ -`, matching jq, from the default dialect onward (both yq and jq dialects: 5-4)."""
+
+    def test_add_and_subtract_are_left_associative(self) -> None:
+        root = parse_expression("1 - 2 - 3", REG.get)
+        assert root.operation.spec.type == "SUBTRACT"
+        assert root.lhs.operation.spec.type == "SUBTRACT"     # (1 - 2) - 3, not 1 - (2 - 3)
+        assert root.rhs.operation.value == 3
+
+    def test_multiply_divide_modulo_are_left_associative(self) -> None:
+        root = parse_expression("8 / 2 / 2", REG.get)
+        assert root.operation.spec.type == "DIVIDE"
+        assert root.lhs.operation.spec.type == "DIVIDE"
+
+    def test_multiply_binds_tighter_than_add(self) -> None:
+        root = parse_expression("1 + 2 * 3", REG.get)
+        assert root.operation.spec.type == "ADD"
+        assert root.rhs.operation.spec.type == "MULTIPLY"
+
+    def test_alternative_and_multiply_assign_are_not_arithmetic(self) -> None:
+        """`//` and `*=` keep their old precedence (42): only + - * / % moved."""
+        from yaqpy.core.lang.specs import BASE_SPECS
+
+        assert BASE_SPECS["ALTERNATIVE"].precedence == 42
+        assert BASE_SPECS["ALTERNATIVE"].left_assoc is False
+        assert BASE_SPECS["MULTIPLY_ASSIGN"].precedence == 42
+        assert BASE_SPECS["MULTIPLY_ASSIGN"].left_assoc is False
+
     def test_compiler_caches(self) -> None:
         compiler = ExpressionCompiler(REG.get)
         assert compiler.compile(".a") is compiler.compile(".a")

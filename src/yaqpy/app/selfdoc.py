@@ -110,9 +110,10 @@ def operator_table(registry: OperatorRegistry | None = None) -> list[OperatorInf
 
 RULES: tuple[tuple[str, str], ...] = (
     ("jq にあって yaqpy にない書き方は使わない",
-     "`if … then … else … end`、`try … catch`、`walk`、`paths`、`limit`、関数の `add`、`reduce`（→ `ireduce`）、"
-     "`ltrimstr`、`splits`、`getpath`、`input`、`debug` は `unexpected character` になります。"
-     "条件分岐は「代入」か `select` で書き、合計は `.[] as $i ireduce (0; . + $i)` で求めます。"),
+     "`if … then … else … end`、`try … catch`、`walk`、`reduce`（→ `ireduce`）、`input`、`debug` は "
+     "`unexpected character` になります（v0.8.0 で `add` `paths` `limit` `ltrimstr` `splits` "
+     "`getpath` などの多くの jq の書き方を足しました。詳しくは --print-spec の「使えない演算子」）。"
+     "条件分岐は「代入」か `select` で書き、合計は `add` または `.[] as $i ireduce (0; . + $i)` で求めます。"),
     ("`select` の後ろに定数やオブジェクトを続けない",
      "`(.role | select(. == \"assistant\") | \"model\") // .role` は、条件が偽でも \"model\" を返します（Go 版 yq と同じ挙動）。"
      "条件付きの書き換えは代入で書きます：`(.contents[] | select(.role == \"assistant\") | .role) = \"model\"`。"
@@ -157,6 +158,21 @@ def _names(infos: list[OperatorInfo]) -> str:
     return " ".join(f"`{info.name}`" for info in infos)
 
 
+def _jq_word_hint_lines() -> list[str]:
+    """E7 (0926-03 5-6): jq の書き方のうち、まだ字句としても読めないもの一覧
+    （``unexpected character`` になる）。``core.lang.hints`` と同じ表を使う。"""
+    from yaqpy.core.lang.hints import _NOT_SUPPORTED, _NOT_YET
+
+    not_yet = ", ".join(f"`{w}`" for w in sorted(_NOT_YET))
+    not_supported = ", ".join(f"`{w}`" for w in sorted(_NOT_SUPPORTED))
+    return [
+        f"### jq の書き方でまだ読めないもの（{len(_NOT_YET) + len(_NOT_SUPPORTED)} 個。"
+        "`unexpected character` になります）", "",
+        f"- 対応の予定があるもの（{len(_NOT_YET)} 個）：{not_yet}",
+        f"- 対応の予定がないもの（{len(_NOT_SUPPORTED)} 個）：{not_supported}", "",
+    ]
+
+
 def _operator_sections(table: list[OperatorInfo]) -> list[str]:
     implemented = [i for i in table if i.implemented and not i.extension]
     extensions = [i for i in table if i.implemented and i.extension]
@@ -167,6 +183,7 @@ def _operator_sections(table: list[OperatorInfo]) -> list[str]:
              f"### yaqpy 独自の演算子（{len(extensions)} 個。Go 版にはありません）", "", _names(extensions), "",
              f"### 使えない演算子（{len(missing)} 個。書くと `unknown operator` になります）", "",
              _names(missing) if missing else "（なし）", ""]
+    lines.extend(_jq_word_hint_lines())
     return lines
 
 

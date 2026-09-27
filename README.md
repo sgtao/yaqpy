@@ -19,7 +19,7 @@ uv tool install "yaqpy[gui,web]" --with flet-desktop  # include flet-desktop for
 
 A lightweight tool to **query, update and convert** YAML, JSON and more with expressions, from the command line or from Python.
 
-- It follows the expression language of the popular CLI tool [mikefarah/yq](https://github.com/mikefarah/yq) (Go, v4.53.6)
+- Based on the CLI tool [mikefarah/yq](https://github.com/mikefarah/yq) (Go, v4.53.6), with part of `jq`'s own expression-language features implemented too
 - It is re-implemented with **nothing but the Python standard library**
 - The name stands for **Y**AML **A**nd more, **Q**uery editor in **PY**thon
 
@@ -37,13 +37,14 @@ $ yaqpy -i '.server.port = 9090' config.yaml     # comments and key order are ke
 - **No dependencies**: all it needs is Python 3.11 or later. The GUI is an optional extra (Flet); the web version adds flet-web
 - **Four ways to use it**: the `yaqpy` command, the Python library (`import yaqpy`), a desktop GUI (`yaqpy-gui`) and the same GUI in a web browser (`yaqpy-web`)
 - **Formats**: YAML, JSON, XML, CSV / TSV, TOML, properties and TOON (a token-saving format for LLMs), both in and out. TOML comments are not kept, so `-i` on TOML is refused by default
-- **Compatible with yq**: 1,091 test scenarios of the Go version are run as compatibility tests (1,047 of the 1,051 comparable ones match). Every operator works except `load` and friends, `eval`, `envsubst`, `system` and `error`
+- **Compatible with yq**: 1,091 test scenarios of the Go version are run as compatibility tests (1,047 of the 1,051 comparable ones match). Every operator works except `load` and friends, `eval`, `envsubst` and `system`
+- **Some of jq's own writing style, too** (added in v0.8.0, on top of the default yq dialect): `error`, `empty`, type filters (`numbers`, `strings`, ...), string functions (`startswith`, `gsub`, `scan`, `splits`, ...), array/object functions (bare `add`, `any(f)`, `range`, `limit`, ...), `getpath`/`path(f)`, `$ENV`, unary `-`, math functions (`sqrt`, `pow`, `sin`, ...), CLI flags (`--arg`, `--argjson`, `--slurp`, ...), and warnings for likely mistakes (`--lint`). See [jq に寄せた書き方](USAGE.ja.md#jq-に寄せた書き方v080-で追加) in the (Japanese) usage guide
 - **Beyond yq** (not in the Go version):
   - the input format is detected from the content when the file extension does not tell it
   - `yaqpy --schema data.yaml` prints a JSON Schema (Draft 2020-12) of the data, as JSON or YAML
   - `yaqpy --recipe openai-to-gemini request.json` converts request bodies between OpenAI, Gemini and Anthropic, and reports what was dropped, added, or does not fit the target schema, and says how to add the model name that the target API requires (results go to stdout; files are written only with `--apply --out-dir`; no API is called)
   - yaqpy describes itself for people and AI: `--print-spec` (the operators that work and those that do not), `--example`, `--guide-prompt` (a prompt that lets an AI write yaqpy expressions) and `--skill-md` (a Claude Code skill)
-- **GUI extras**: an "Ask AI" tab that builds a prompt for an AI to write your expression; expressions saved and loaded as `.yaqpy` files (the command reads them too: `yaqpy sample.yaqpy data.json`); a run log with a Log tab to browse, search and re-run past conversions (desktop only); file drag-and-drop in the web version; a Samples menu that opens the data files in `examples/` (including one request body per vendor) without hunting for a file
+- **GUI extras**: an "Ask AI" tab that builds a prompt for an AI to write your expression; expressions saved and loaded as `.yaqpy` files (the command reads them too: `yaqpy sample.yaqpy data.json`); a run log with a Log tab to browse, search and re-run past conversions (desktop only); file drag-and-drop in the web version; a Samples menu that opens the data files in `examples/` (including one request body per vendor) without hunting for a file. See [GUI の使い方](https://github.com/sgtao/yaqpy/blob/main/USAGE-GUI.ja.md) (Japanese)
 - **Safe defaults**: as a library, operators that read files or environment variables or run commands are all off. The CLI, like the Go version, allows environment variables and file reads (commands stay off). The web version always turns them off
 
 </details>
@@ -69,14 +70,19 @@ uv add yaqpy                        # use it as a library in a uv project
 
 > **`uv tool install` / `uvx` and the desktop GUI**: `flet` normally installs its desktop runtime (`flet-desktop`) on first launch. That auto-install targets whatever virtual environment `uv` can find near the current directory, which is **not** the isolated environment `uv tool install` created for `yaqpy` — so it can print "OK" and still leave you with `ModuleNotFoundError: No module named 'flet_desktop'` when you run `yaqpy-gui`. Passing `--with flet-desktop` (as above) puts it in the right place from the start and avoids this entirely. If you already installed without it: `uv tool install --force "yaqpy[gui]" --with flet-desktop`.
 
+To upgrade to a newer version: `pip install -U yaqpy` or `uv tool upgrade yaqpy`.
+
 **From GitHub Releases** (for example, a version that is not on PyPI): pick a version on [Releases](https://github.com/sgtao/yaqpy/releases) and replace `0.7.1` / `v0.7.1` below with it.
 
 ```bash
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.2/yaqpy-0.7.2-py3-none-any.whl"
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.2"
+# from a prebuilt wheel (no Git needed)
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.8.0/yaqpy-0.8.0-py3-none-any.whl"
+
+# with Git, by tag
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.8.0"
 ```
 
-To work on the source, see [DEVELOPMENT.md](https://github.com/sgtao/yaqpy/blob/main/DEVELOPMENT.md) (Japanese).
+The `[gui]` part can be dropped, or swapped for `[web]` or `[gui,web]`, depending on what you need (`[web]` has been available since v0.6.0). To work on the source, see [DEVELOPMENT.md](https://github.com/sgtao/yaqpy/blob/main/DEVELOPMENT.md) (Japanese).
 
 ## Quick start
 
@@ -115,7 +121,7 @@ yaqpy.update(".server.port = 9090", {"server": {"port": 8080}})  # {'server': {'
 
 ```bash
 yaqpy-gui                # desktop window (or: yaqpy --gui)
-yaqpy-web                # the same screens in your browser at http://127.0.0.1:8550/ (or: yaqpy --web)
+yaqpy-web                # the same screens in your browser at http://127.0.0.1:8550/ (needs the yaqpy[web] extra; or: yaqpy --web)
 yaqpy-web --port 9000    # another port; see yaqpy-web --help for the options
 ```
 
@@ -141,7 +147,7 @@ The detailed guides are written in **Japanese**.
 
 [MIT License](https://github.com/sgtao/yaqpy/blob/main/LICENSE)
 
-The design and the test scenarios draw on Go yq (MIT); see [NOTICE](https://github.com/sgtao/yaqpy/blob/main/NOTICE).
+The design and the test scenarios draw on Go yq (MIT); see [NOTICE](https://github.com/sgtao/yaqpy/blob/main/NOTICE). Some of the expression syntax is inspired by [jq](https://jqlang.org).
 
 ---
 

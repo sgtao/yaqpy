@@ -93,7 +93,8 @@ class RegexOperatorTests:
         assert out["captures"] == [{"string": None, "offset": -1, "length": 0}]
 
     def test_match_params(self) -> None:
-        assert "'i' is not a valid option" in fails('match("a"; "i")', "a")
+        # v0.8.0 (0926-03 3-8, E3): "i" (and "x", "s") are now accepted, not just "g".
+        assert run('match("A"; "i") | .string', "a") == "a"
         assert "unrecognised match params 'z'" in fails('match("a"; "gz")', "a")
 
     def test_a_comma_is_not_a_params_separator(self) -> None:

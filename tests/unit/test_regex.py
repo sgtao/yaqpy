@@ -57,9 +57,14 @@ class CompileTests:
         assert compile_go("\\Qa.b\\E").search("axb") is None
 
     def test_refused_constructs(self) -> None:
-        for pattern in ("\\pL", "\\p{Greek}", "(?U)a+", "(?x)a b"):
+        for pattern in ("\\pL", "\\p{Greek}", "(?U)a+"):
             with pytest.raises(RegexError):
                 compile_go(pattern)
+
+    def test_x_flag_is_accepted_since_v0_8_0(self) -> None:
+        # E3 (0926-03 3-8): test/match now pass "x" through to compile_go, which maps it to
+        # Python's re.VERBOSE (whitespace in the pattern is ignored outside a character class).
+        assert compile_go("(?x)a b").match("ab") is not None
 
     def test_syntax_error(self) -> None:
         with pytest.raises(RegexError) as raised:

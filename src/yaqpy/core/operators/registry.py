@@ -88,4 +88,5 @@ def make_spec(type_name: str, handler: OperatorHandler, overrides: dict[str, Any
         handler,
         base.check_for_post_traverse if overrides["check_for_post_traverse"] is None
         else overrides["check_for_post_traverse"],
+        base.left_assoc,
     )

@@ -33,10 +33,10 @@ uv run yaqpy '.server.port' examples/sample.yaml
 # 全部まとめて（並列。pytest-xdist）
 uv run pytest -n auto
 
-# ユニットテスト（1,785 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・入力形式の自動判定・GUI の Presenter・実行ログ・ログ画面など。実際にウィンドウは開きません。Web 版のサーバーは、[web] extra があれば 127.0.0.1 の空きポートで実際に起動して確かめます）
+# ユニットテスト（1,920 件。各形式・schema・演算子（性質テストを含む）・レシピ・自己説明・入力形式の自動判定・GUI の Presenter・実行ログ・ログ画面・v0.8.0 で足した jq の書き方・lint・hints など。実際にウィンドウは開きません。Web 版のサーバーは、[web] extra があれば 127.0.0.1 の空きポートで実際に起動して確かめます）
 uv run pytest tests/unit -n auto
 
-# CLI 受け入れテスト（109 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など）＋`examples/` の実ファイルの変換（`test_examples.py`））
+# CLI 受け入れテスト（121 件。Go 版 acceptance_tests/*.sh から移植（`-s` の分割出力を含む）＋`--gui` の入口＋レシピ・自己説明・自動判定（実プロセスでの stdout/stderr の分離など）＋`examples/` の実ファイルの変換（`test_examples.py`）＋v0.8.0 の CLI フラグ（`test_cli_v080_flags.py`））
 uv run pytest tests/acceptance -n auto
 
 # Go 版シナリオのゴールデンテスト（演算子 1,091 件・形式 154 件）

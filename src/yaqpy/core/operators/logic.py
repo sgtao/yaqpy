@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from yaqpy.core.engine.context import Context
 from yaqpy.core.engine.helpers import (
-    CrossPrefs, create_boolean, cross_function, cross_function_with_prefs, match_key, truthy,
+    CrossPrefs, add_lint_warning, create_boolean, cross_function, cross_function_with_prefs,
+    match_key, truthy,
 )
 from yaqpy.core.engine.navigator import Navigator
 from yaqpy.core.lang.ast import ExprNode
@@ -34,6 +35,11 @@ def _is_equals(flip: bool):
             value = rhs.tag == "!!null"
         elif lhs.kind is Kind.SCALAR and rhs.kind is Kind.SCALAR:
             value = match_key(lhs.value, rhs.value)
+        elif lhs.kind is not Kind.SCALAR or rhs.kind is not Kind.SCALAR:
+            # R002 (E7, 0926-03 5-5): an array or a map compared with `==`/`!=` is always
+            # unequal here (yq/yaqpy never compare structures - only scalars, and only by
+            # value/string, not type: 1-3 の 3), which is easy to write by mistake.
+            add_lint_warning(nav, "R002: 配列・オブジェクトどうしの '==' '!=' は、常に偽になります")
         if flip:
             value = not value
         return create_boolean(lhs, value)

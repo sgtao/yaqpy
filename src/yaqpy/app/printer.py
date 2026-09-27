@@ -10,7 +10,7 @@ from typing import Any, TextIO
 from yaqpy.app.ports import FileSystemPort
 from yaqpy.core.engine import Context, Navigator
 from yaqpy.core.model.leading import DOC_SEPARATOR_MARKER
-from yaqpy.core.model.node import Node
+from yaqpy.core.model.node import Kind, Node
 from yaqpy.core.operators.anchors import explode_node
 from yaqpy.errors import FormatError
 
@@ -92,16 +92,30 @@ class SplitWriter:
         return _SplitFile(self.fs, name)
 
 
+def _sort_keys_recursive(node: Node) -> None:
+    """-S/--sort-keys (E6, 0926-03 3-12): every mapping, at every depth, output-side only -
+    a plain Python walk, not a yaqpy expression, so it needs neither `if` nor recursive `..|=`."""
+    if node.kind is Kind.MAPPING:
+        pairs = sorted(node.map_items(), key=lambda pair: pair[0].value)
+        node.content = [item for pair in pairs for item in pair]
+        for _, value in pairs:
+            _sort_keys_recursive(value)
+    elif node.kind is Kind.SEQUENCE:
+        for child in node.content:
+            _sort_keys_recursive(child)
+
+
 class ResultPrinter:
     def __init__(self, encoder: Any, sink: Any, *, nul_separated: bool = False,
                  max_depth: int = 1000, fix_merge: bool = False,
-                 split: SplitWriter | None = None) -> None:
+                 split: SplitWriter | None = None, sort_keys: bool = False) -> None:
         self.encoder = encoder
         self.sink = sink
         self.split = split
         self.nul_separated = nul_separated
         self.max_depth = max_depth
         self.fix_merge = fix_merge
+        self.sort_keys = sort_keys
         self.first_time = True
         self.previous_doc = 0
         self.previous_file = 0
@@ -113,6 +127,9 @@ class ResultPrinter:
         if not self.encoder.can_handle_aliases():
             for node in nodes:
                 explode_node(node, fix_merge=self.fix_merge, max_depth=self.max_depth)
+        if self.sort_keys:
+            for node in nodes:
+                _sort_keys_recursive(node)
         if self.first_time:
             self.previous_doc = nodes[0].document()
             self.previous_file = nodes[0].get_file_index()

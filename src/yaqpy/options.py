@@ -58,6 +58,7 @@ class YamlOptions:
 @dataclass(frozen=True, slots=True, kw_only=True)
 class JsonOptions:
     indent: int = 2
+    tab: bool = False   # --tab (E6, 0926-03 3-12): one tab per level, JSON only for now
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -141,6 +142,9 @@ class Options:
     null_input: bool = False
     nul_separated_output: bool = False
     pretty_print: bool = False
+    sort_keys: bool = False               # -S/--sort-keys (E6, 0926-03 3-12): every level, on output
+    lint: str = "off"                     # "off" | "warn" (E7, 0926-03 5-5). CLI/GUI default to
+                                           # "warn" (decision 3); the library default stays "off".
     string_interpolation: bool = True     # "\(expression)" inside double-quoted strings
     yaml: YamlOptions = field(default_factory=YamlOptions)
     json: JsonOptions = field(default_factory=JsonOptions)
@@ -158,6 +162,8 @@ class Options:
             raise ValueError("indent must not be negative")
         if not self.input_format:
             raise ValueError("input_format must not be empty")
+        if self.lint not in ("off", "warn"):
+            raise ValueError('lint must be "off" or "warn"')
 
     @property
     def effective_output_format(self) -> str:
