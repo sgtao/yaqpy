@@ -76,10 +76,10 @@ To upgrade to a newer version: `pip install -U yaqpy` or `uv tool upgrade yaqpy`
 
 ```bash
 # from a prebuilt wheel (no Git needed)
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.2/yaqpy-0.7.2-py3-none-any.whl"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.8.0/yaqpy-0.8.0-py3-none-any.whl"
 
 # with Git, by tag
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.2"
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.8.0"
 ```
 
 The `[gui]` part can be dropped, or swapped for `[web]` or `[gui,web]`, depending on what you need (`[web]` has been available since v0.6.0). To work on the source, see [DEVELOPMENT.md](https://github.com/sgtao/yaqpy/blob/main/DEVELOPMENT.md) (Japanese).

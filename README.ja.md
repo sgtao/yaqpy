@@ -86,10 +86,10 @@ uv add yaqpy                        # uv のプロジェクトでライブラリ
 
 ```bash
 # ビルド済みの wheel から入れる（Git は不要）
-pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.7.2/yaqpy-0.7.2-py3-none-any.whl"
+pip install "yaqpy[gui] @ https://github.com/sgtao/yaqpy/releases/download/v0.8.0/yaqpy-0.8.0-py3-none-any.whl"
 
 # Git がある場合は、タグを指定して
-pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.7.2"
+pip install "yaqpy[gui] @ git+https://github.com/sgtao/yaqpy@v0.8.0"
 ```
 
 `[gui]` の部分は、入れたいものに合わせて外す・`[web]`・`[gui,web]` に変えられます（`[web]` は v0.6.0 から）。ソースを見たい・改造したい場合は [DEVELOPMENT.md](DEVELOPMENT.md) を参照してください。
