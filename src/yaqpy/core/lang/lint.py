@@ -3,13 +3,20 @@
 Pure tree inspection - no dependency on ``core.engine`` - so it runs once at compile time and
 its result is cached on ``Expression`` alongside the tree itself (``core.lang.parser``).
 
-Y006/Y007/Y008 (mixing `,`/`|`/`and`/`or` without parentheses, where yq's precedence groups
-them differently from jq's) are not implemented here: telling "no parens were written" from a
-tree that has already been built with *yq's* precedence would need a side-by-side comparison
-against jq's own precedence table, which does not exist yet - that is v0.9's dialect groundwork
-(the plan's 5-2 dialect setup and 5-4 P1). R001/R002 (division by zero; array/object `==`) are
-runtime, not static, and are raised by the operators themselves (arithmetic.py, logic.py) into
-``EvalEnv.lint_warnings`` - see ``core.engine.context.EvalEnv``.
+Y006/Y007/Y008 do not need v0.9's dialect groundwork after all (an earlier note here said they
+did): each is a fixed, already-known-and-documented pair of operator types (0926-02 6-1's own
+"実測で確かめた違い" table) - detecting "yq's table groups these two operators differently from
+jq's" is just checking whether a node of one type has the other as a direct child, verified by
+printing the actual tree for each of 0926-02's three examples (`.b[0], .b[1] | . * 10`,
+`.a | . > 0 and . < 5`, `false and false or true`) rather than assumed. A parenthesized
+sub-expression is indistinguishable from an unparenthesized one once the tree is built (parens
+leave no trace once they have done their job), so a deliberately-parenthesized expression that
+happens to have the same shape is flagged too - a false positive, but a harmless one: explicit
+parens keep their grouping in either dialect, so the warning just does not apply to it.
+
+R001/R002 (division by zero; array/object `==`) are runtime, not static, and are raised by the
+operators themselves (arithmetic.py, logic.py) into ``EvalEnv.lint_warnings`` - see
+``core.engine.context.EvalEnv``.
 """
 
 from __future__ import annotations
@@ -36,6 +43,12 @@ Y002 = ("Y002: 文字列リテラルの中の '*' は、'==' '!=' ではワイ�
 Y003 = "Y003: 配列・オブジェクトのリテラルとの '==' '!=' は、常に偽になります"
 Y005 = ("Y005: 'pick' の引数は配列にしてください (例: pick([\"a\"]))。"
        "配列でないと、黙って {} になります")
+Y006 = ("Y006: 括弧なしで ',' と '|' を混ぜると、jq とは結びつきが逆になります "
+       "(例: '.a, .b | f' は '.a, (.b | f)'。jq なら '(.a, .b) | f')")
+Y007 = ("Y007: '|' の後ろに括弧なしの 'and'/'or' を続けると、jq とは結びつきが逆になります "
+       "(例: '.a | . > 0 and B' は '(.a | . > 0) and B'。jq なら '.a | (. > 0 and B)')")
+Y008 = ("Y008: 括弧なしで 'and' と 'or' を混ぜると、同じ強さで右から結びつきます "
+       "(例: 'A and B or C' は 'A and (B or C)'。jq なら '(A and B) or C')")
 Y009 = ("Y009 (v0.8.x の間だけ): 括弧なしの連続した算術は、v0.8.0 から計算の順序が変わりました "
        "(左から、'* / %' が '+ -' より先。前の版と結果が違うことがあります)")
 
@@ -110,6 +123,15 @@ def _walk(node: ExprNode | None, bound: frozenset[str], out: list[str]) -> None:
     elif op_type == "PICK":
         if node.rhs is not None and node.rhs.operation.spec.type != "COLLECT":
             out.append(Y005)
+    elif op_type == "UNION":
+        if _op_type(node.lhs) in _PIPE_TYPES or _op_type(node.rhs) in _PIPE_TYPES:
+            out.append(Y006)
+    elif op_type in ("AND", "OR"):
+        other = "OR" if op_type == "AND" else "AND"
+        if _op_type(node.lhs) == other or _op_type(node.rhs) == other:
+            out.append(Y008)
+        if _op_type(node.lhs) in _PIPE_TYPES:
+            out.append(Y007)
     elif op_type in _ARITHMETIC_TIERS:
         tier = _ARITHMETIC_TIERS[op_type]
         if _op_type(node.lhs) in tier or _op_type(node.rhs) in tier:

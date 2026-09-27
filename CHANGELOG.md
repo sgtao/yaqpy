@@ -18,7 +18,7 @@
 - **算術**：単項の `-`（`-.a`）、`//=` `/=` `%=`（yq には無かった複合代入）。`1 + null` は `1`（jq と同じ）
 - **数学関数**：`floor` `ceil` `round`（半分は 0 から遠い方に丸め）`trunc` `fabs` `sqrt` `cbrt` `exp` `exp2` `exp10` `expm1` `log` `log2` `log10` `log1p` `sin` `cos` `tan` `asin` `acos` `atan` `sinh` `cosh` `tanh` `asinh` `acosh` `atanh` `pow` `atan2` `copysign` `hypot` `fmin` `fmax`
 - **CLI**：`--arg NAME VALUE` `--argjson NAME JSON`（`$NAME` と `$ARGS.named` に）、`--args` `--jsonargs`（残りの引数が `$ARGS.positional` に。ファイルとしては読みません）、`--slurp`（全入力を 1 つの配列にして 1 回だけ評価。`eval-all` とは違います）、`--compact-output`、`--tab`（JSON のみ）、`-S`/`--sort-keys`（すべての階層）、`--lint`
-- **警告（`--lint=warn`。CLI・GUI は既定でオン、ライブラリは既定でオフ）**：`select(cond) | 定数`、文字列の中の `*` や配列・オブジェクトのリテラルとの `==`/`!=`、束縛されていない `$変数`、配列でない `pick` の引数、v0.8.0 で順序が変わった算術の連鎖（v0.8.x の間だけ）。実行時にも、0 での割り算（`Inf`/`NaN` になったとき）と配列・オブジェクトどうしの `==`/`!=`（常に偽）に警告します
+- **警告（`--lint=warn`。CLI・GUI は既定でオン、ライブラリは既定でオフ）**：`select(cond) | 定数`、文字列の中の `*` や配列・オブジェクトのリテラルとの `==`/`!=`、束縛されていない `$変数`、配列でない `pick` の引数、括弧なしの `,`/`|` の混在・`|` の後ろの `and`/`or`・`and`/`or` どうしの混在（結びつきが jq と逆になる 3 つ）、v0.8.0 で順序が変わった算術の連鎖（v0.8.x の間だけ）。実行時にも、0 での割り算（`Inf`/`NaN` になったとき）と配列・オブジェクトどうしの `==`/`!=`（常に偽）に警告します
 - **書けない jq の書き方への案内**：`if` `try` `def` `input` など、まだ読めない語を書くと、構文エラーに続けて「対応の予定があります／ありません」と代わりの書き方を添えます（`--print-spec` にも一覧があります）
 
 ### 変更（挙動が変わるもの）
@@ -29,12 +29,12 @@
 
 - `if…then…else…end` `try…catch` `walk` `reduce`（jq の語順）`foreach` `until` `while`（v0.9・v1.0 で計画）
 - `def` `import`/`include` `label`/`break` `input`/`inputs` `repeat` `tostream` 系 `combinations`（費用・安全性の理由で見送り。9 章）
-- 2 引数の `split`・3 引数の `sub` の意味のない結果、jq の意味の `explode`、優先順位の警告のうち `,`/`|`/`and`/`or` の混在（jq の優先順位表と比べる仕組みが要り、v0.9 の方言の土台が前提）
+- 2 引数の `split`・3 引数の `sub` の意味のない結果、jq の意味の `explode`
 - GUI の警告欄（`EvaluateResult.warnings` はまだ表示に使っていません。GUI の構文エラー表示は、追加した案内をそのまま表示します）
 
 ### ライブラリ・開発者向けの変更
 
-- 新しいモジュール：`core/lang/lint.py`（静的な警告 Y001-Y005・Y009）、`core/lang/hints.py`（書けない jq の語の一覧）、`core/operators/jq_builtins.py`（上の追加のほとんど）
+- 新しいモジュール：`core/lang/lint.py`（静的な警告 Y001-Y009。`,`/`|`/`and`/`or` の混在（Y006-Y008）は、jq とのぶつかり方が決まっている 3 パターンなので、方言の土台なしで木を見るだけで検出できました）、`core/lang/hints.py`（書けない jq の語の一覧）、`core/operators/jq_builtins.py`（上の追加のほとんど）
 - `core/lang/lex_rules.py` に `_word` / `_word_call` / `_word_bare`（語境界つきの規則。1 つの綴りが bare か呼び出しかで別の演算子になるもの用）
 - `OperatorSpec` に `left_assoc`（算術の優先順位）。`core/lang/postfix.py` の比較に反映
 - `Options` に `sort_keys` `lint`。`EvaluateRequest` に `slurp` `named_args` `named_json_args` `positional_args` `positional_args_json`。`EvalEnv` に `lint_warnings`（実行時の警告）

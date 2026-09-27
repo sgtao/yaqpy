@@ -70,6 +70,30 @@ class StaticLintTests:
         assert any(w.startswith("Y005") for w in lint("pick(.a)"))
         assert not lint('pick(["a"])')
 
+    def test_y006_comma_and_pipe_mixed_without_parens(self) -> None:
+        # 0926-02 6-1's own example: yq groups `.b[0], (.b[1] | . * 10)`; jq groups the comma
+        # first. Confirmed by printing the actual tree, not assumed.
+        assert any(w.startswith("Y006") for w in lint(".b[0], .b[1] | . * 10"))
+        assert any(w.startswith("Y006") for w in lint(".a | .c, .b"))
+        assert not lint(".a, .b")
+        assert not lint("(.a, .b) | .c")     # explicit parens: UNION is not a PIPE's child
+
+    def test_y007_pipe_then_bare_and_or(self) -> None:
+        # yq groups `(.a | . > 0) and (. < 5)`; jq groups the whole `and` inside the pipe.
+        assert any(w.startswith("Y007") for w in lint(".a | . > 0 and . < 5"))
+        assert not lint(".a | (. > 0 and . < 5)")
+
+    def test_y008_and_or_mixed_without_parens(self) -> None:
+        assert any(w.startswith("Y008") for w in lint("false and false or true"))
+        assert not lint("false and true")
+
+    def test_y008_false_positive_on_an_explicitly_parenthesized_expression(self) -> None:
+        # Documented limitation (lint.py's own module docstring): parens leave no trace once
+        # the tree is built, so a deliberately-grouped `(A and B) or C` looks exactly like the
+        # unparenthesized version that needed the warning. Harmless (explicit parens keep
+        # their grouping in either dialect), but not distinguishable here.
+        assert any(w.startswith("Y008") for w in lint("(false and false) or true"))
+
     def test_y009_chained_arithmetic_of_the_same_tier(self) -> None:
         assert any(w.startswith("Y009") for w in lint("1 - 2 - 3"))
         assert any(w.startswith("Y009") for w in lint("1 * 2 / 3"))
