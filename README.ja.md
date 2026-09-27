@@ -7,6 +7,8 @@
 ```bash
 pip install yaqpy            # yaqpy コマンドとライブラリ（依存なし）
 pip install "yaqpy[gui]"     # + デスクトップ GUI（Flet が入る）
+# `uv tool` コマンドを使用する場合:
+uv tool install "yaqpy[gui,web]" --with flet-desktop  # GUI描画に必要な flet-desktop もインストール
 ```
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)

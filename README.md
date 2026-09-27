@@ -7,6 +7,8 @@
 ```bash
 pip install yaqpy            # the yaqpy command and the library (no dependencies)
 pip install "yaqpy[gui]"     # + the desktop GUI (adds Flet)
+# when using the `uv tool` command:
+uv tool install "yaqpy[gui,web]" --with flet-desktop  # include flet-desktop for GUI rendering
 ```
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/sgtao/yaqpy/blob/main/LICENSE)
