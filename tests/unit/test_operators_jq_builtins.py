@@ -103,3 +103,53 @@ class AddNullTests:
 
     def test_string_plus_null_already_worked_and_still_does(self) -> None:
         assert yaqpy.query('"a" + null', None) == ["a"]
+
+
+class UnaryMinusTests:
+    """0926-03 3-2 単項 `-` (E5): a `-` is unary wherever an operand is expected -
+    ``core.lang.postfix._expects_operand`` decides from the previous token's arity."""
+
+    def test_unary_minus_on_a_path(self) -> None:
+        assert yaqpy.query("-.a", {"a": 5}) == [-5]
+
+    def test_unary_minus_after_a_pipe(self) -> None:
+        assert yaqpy.query(".a | -.", {"a": 5}) == [-5]
+
+    def test_unary_minus_on_a_variable(self) -> None:
+        assert yaqpy.query("1 as $x | -$x", None) == [-1]
+
+    def test_unary_minus_binds_tighter_than_multiply(self) -> None:
+        assert yaqpy.query("-2 * 3", None) == [-6]
+        assert yaqpy.query("2 * -3", None) == [-6]
+
+    def test_unary_minus_negates_the_whole_traversal_chain(self) -> None:
+        assert yaqpy.query("-.a.b", {"a": {"b": 5}}) == [-5]
+
+    def test_binary_minus_after_a_value_is_unaffected(self) -> None:
+        assert yaqpy.query(".a - 1", {"a": 5}) == [4]
+        assert yaqpy.query("1 - -2", None) == [3]
+
+    def test_unary_minus_in_a_comparison_and_object_value(self) -> None:
+        assert yaqpy.query(".a == -1", {"a": -1}) == [True]
+        assert yaqpy.query('{"a": -1}', None) == [{"a": -1}]
+
+    def test_unary_minus_on_a_float(self) -> None:
+        assert yaqpy.query("-.a", {"a": 1.5}) == [-1.5]
+
+    def test_unary_minus_on_a_non_number_is_an_error(self) -> None:
+        with pytest.raises(EvaluationError):
+            yaqpy.query("-.a", {"a": "x"})
+
+
+class CompoundAssignTests:
+    """`//= /= %=` (E5): new to yaqpy - Go yq only ever had `+= -= *=`."""
+
+    def test_divide_assign(self) -> None:
+        assert yaqpy.query(".a /= .b", {"a": 10, "b": 4}) == [{"a": 2.5, "b": 4}]
+
+    def test_modulo_assign(self) -> None:
+        assert yaqpy.query(".a %= .b", {"a": 10, "b": 3}) == [{"a": 1, "b": 3}]
+
+    def test_alternative_assign_fills_in_only_when_null(self) -> None:
+        assert yaqpy.query(".c //= 5", {"c": None}) == [{"c": 5}]
+        assert yaqpy.query(".a //= 5", {"a": 10}) == [{"a": 10}]

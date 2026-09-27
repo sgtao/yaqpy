@@ -23,13 +23,47 @@ def _validate_no_open(token: Token, expression: str) -> None:
         raise ExpressionSyntaxError(message, expression=expression, position=token.position)
 
 
+_OPENER_KINDS = (
+    TokenKind.OPEN_BRACKET, TokenKind.OPEN_COLLECT, TokenKind.OPEN_COLLECT_OBJECT,
+    TokenKind.TRAVERSE_ARRAY_COLLECT,
+)
+
+
+def _expects_operand(previous: Token | None) -> bool:
+    """Is a value expected next (so a following ``-`` is unary), or does ``previous``
+    already stand as one on its own (so ``-`` is the binary subtract)?
+
+    E5 (0926-03 3-2 単項 `-`): the lexer has one token for ``-`` (``Subtract``) since Go
+    yq's grammar never needed a unary minus; this is the "unary の判定" the plan puts in
+    ``postfix.py`` - every other operator's arity already says whether it is still waiting
+    for an operand (``num_args >= 1``) or is already a complete value (``num_args == 0``,
+    e.g. ``.a``, a literal, ``$x``), so no separate lookup table is needed.
+    """
+    if previous is None or previous.kind in _OPENER_KINDS:
+        return True
+    if previous.kind is TokenKind.OPERATION and previous.operation is not None:
+        return previous.operation.spec.num_args >= 1
+    return False
+
+
+def _as_negate(token: Token, get_spec: Callable[[str], Any]) -> Token:
+    assert token.operation is not None
+    op = Operation(get_spec("NEGATE"), string_value=token.operation.string_value)
+    return Token(TokenKind.OPERATION, op, position=token.position)
+
+
 def to_postfix(infix: list[Token], get_spec: Callable[[str], Any],
                expression: str = "") -> list[Operation]:
     result: list[Operation] = []
     op_stack: list[Token] = [Token(TokenKind.OPEN_BRACKET)]
     tokens = [*infix, Token(TokenKind.CLOSE_BRACKET)]
+    previous: Token | None = None
 
     for current in tokens:
+        if (current.kind is TokenKind.OPERATION and current.operation is not None
+                and current.operation.spec.type == "SUBTRACT" and _expects_operand(previous)):
+            current = _as_negate(current, get_spec)
+        previous = current
         kind = current.kind
         if kind in (TokenKind.OPEN_BRACKET, TokenKind.OPEN_COLLECT, TokenKind.OPEN_COLLECT_OBJECT):
             op_stack.append(current)
