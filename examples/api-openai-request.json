@@ -1,0 +1,32 @@
+{
+  "model": "gpt-4o",
+  "max_tokens": 1024,
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_weather",
+        "description": "Get the current weather for a given location.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "location": {
+              "type": "string",
+              "description": "City and state, e.g. San Francisco, CA"
+            }
+          },
+          "required": ["location"]
+        }
+      }
+    }
+  ],
+  "tool_choice": "auto",
+  "messages": [
+    {"role": "system", "content": "You are a weather assistant."},
+    {"role": "user", "content": [
+      {"type": "text", "text": "What is the weather in Oslo?"},
+      {"type": "image_url", "image_url": {"url": "https://example.com/map.png"}}
+    ]}
+  ]
+}
+
